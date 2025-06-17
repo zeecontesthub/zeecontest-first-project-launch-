@@ -1,21 +1,41 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
+import { auth } from "../firebase";
 
 const RoleSelectionPage = () => {
-  const [selectedRole, setSelectedRole] = useState(null);
   const navigate = useNavigate();
 
-  const handleSelectRole = (role) => {
-    setSelectedRole(role);
-    console.log(`Role selected: ${role}`);
-    // Save the role selection to localStorage or call backend API
-    localStorage.setItem('userRole', role);
-    localStorage.setItem('onboardingComplete', 'true');
-    // Navigate to settings page with profile tab if role is organizer
-    if (role === 'organizer') {
-      navigate('/settings?tab=profile');
+  const handleSelectRole = async (role) => {
+    try {
+      const user = auth.currentUser;
+      const token = await user.getIdToken();
+
+      const res = await fetch("/api/users/update-role", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ role }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem("userRole", role);
+        localStorage.setItem("onboardingComplete", "true");
+
+        if (role === "organizer") {
+          return navigate("/settings?tab=profile");
+        }
+
+        return navigate("/dashboard");
+      } else {
+        alert(data.message || "Failed to update role");
+      }
+    } catch (error) {
+      console.error("Error updating role:", error);
+      alert("Something went wrong");
     }
-    // If role is cheerleader, do not navigate anywhere
   };
 
   return (
@@ -25,30 +45,22 @@ const RoleSelectionPage = () => {
         Please select whether you want to be an Organizer or a Cheerleader.
       </p>
       <div className="flex gap-8">
-        <div
-          className={`p-6 rounded-lg shadow-md text-center ${
-            selectedRole === 'organizer' ? 'bg-teal-800 p-20 text-white' : 'bg-teal-800 p-20 text-white'
-          }`}
-        >
+        <div className="p-6 rounded-lg shadow-md text-center bg-teal-800 p-20 text-white">
           <h3 className="text-xl font-semibold mb-2">Organizer</h3>
           <p>Create and manage exciting contests</p>
           <button
             className="mt-4 bg-white text-teal-800 font-semibold py-2 px-4 rounded hover:bg-teal-100"
-            onClick={() => handleSelectRole('organizer')}
+            onClick={() => handleSelectRole("organizer")}
           >
             Create Account
           </button>
         </div>
-        <div
-          className={`p-6 rounded-lg shadow-md text-center ${
-            selectedRole === 'cheerleader' ? 'bg-orange-500 p-20 text-white' : 'bg-orange-500 p-20 text-white'
-          }`}
-        >
+        <div className="p-6 rounded-lg shadow-md text-center bg-orange-500 p-20 text-white">
           <h3 className="text-xl font-semibold mb-2">Cheerleader</h3>
           <p>Cast your votes and participate in the action</p>
           <button
             className="mt-4 bg-white text-orange-500 font-semibold py-2 px-4 rounded hover:bg-orange-100"
-            onClick={() => handleSelectRole('cheerleader')}
+            onClick={() => handleSelectRole("cheerleader")}
           >
             Create Account
           </button>

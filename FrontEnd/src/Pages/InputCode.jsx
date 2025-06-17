@@ -1,35 +1,79 @@
-import React, { useState } from 'react'
-import Logo from '../assets/Logo.png';
-import backgroundImage from '../assets/fp2.png';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import React, { useState } from "react";
+import Logo from "../assets/Logo.png";
+import backgroundImage from "../assets/fp2.png";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { isSignInWithEmailLink, signInWithEmailLink } from "firebase/auth";
+import { auth } from "../firebase";
 
 const InputCode = () => {
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
 
   // Simulate code verification
   const verifyCode = (code) => {
-    console.log('Verifying code:', code);
+    console.log("Verifying code:", code);
     // Here you would integrate with your backend to verify the code
-    return code === '123456'; // For demo, accept '123456' as valid code
+    return code === "123456"; // For demo, accept '123456' as valid code
   };
 
   const handleSendCode = () => {
     if (!code) {
-      alert('Please enter the code');
+      alert("Please enter the code");
       return;
     }
     if (verifyCode(code)) {
       if (location.state && location.state.isSignup) {
-        navigate('/role-selection');
+        navigate("/role-selection");
       } else {
-        navigate('/dashboard');
+        navigate("/dashboard");
       }
     } else {
-      alert('Invalid code. Please try again.');
+      alert("Invalid code. Please try again.");
     }
   };
+
+
+  useEffect(() => {
+    const email = window.localStorage.getItem("emailForSignIn");
+
+    if (isSignInWithEmailLink(auth, window.location.href)) {
+      if (!email) {
+        // If email not found in localStorage, ask user to re-enter it (optional enhancement)
+        alert("Email not found in localStorage.");
+        return;
+      }
+
+      signInWithEmailLink(auth, email, window.location.href)
+        .then(async (result) => {
+          const user = result.user;
+          console.log("✅ Logged in user:", user);
+
+          // Get Firebase token
+          const token = await user.getIdToken();
+
+          // Save user to your backend
+          await fetch("/api/save-user", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: user.displayName || "Anonymous",
+              email: user.email,
+            }),
+          });
+
+          // Redirect to dashboard or home
+          navigate("/dashboard");
+        })
+        .catch((err) => {
+          console.error("❌ Error signing in", err);
+        });
+    }
+  }, [navigate]);
 
   return (
     <div className="flex min-h-screen w-full bg-white">
@@ -38,7 +82,11 @@ const InputCode = () => {
         {/* Logo */}
         <div className="mb-5">
           <div className="flex items-center">
-            <img src={Logo} alt="LeeContest Logo" className="mx-auto mb-10 mr-100 w-48 h-auto" />
+            <img
+              src={Logo}
+              alt="LeeContest Logo"
+              className="mx-auto mb-10 mr-100 w-48 h-auto"
+            />
           </div>
         </div>
 
@@ -58,7 +106,10 @@ const InputCode = () => {
 
         {/* Code Input */}
         <div className="mb-10 text-left">
-          <label htmlFor="code" className="block text-teal-800 font-medium mb-2">
+          <label
+            htmlFor="code"
+            className="block text-teal-800 font-medium mb-2"
+          >
             Code
           </label>
           <input
@@ -83,8 +134,11 @@ const InputCode = () => {
 
         <div className=" pt-6 border-t border-gray-200 text-center">
           <p className="text-gray-600">
-            Did not receive a code? Resend{' '}
-            <Link to="" className="font-medium text-[#E67347] hover:text-blue-500">
+            Did not receive a code? Resend{" "}
+            <Link
+              to=""
+              className="font-medium text-[#E67347] hover:text-blue-500"
+            >
               Code
             </Link>
           </p>
@@ -93,11 +147,17 @@ const InputCode = () => {
 
       {/* Right Section - Image */}
       <div className="hidden md:block w-1/2 bg-gray-300">
-        <div className="h-full w-full bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${backgroundImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        </div>
+        <div
+          className="h-full w-full bg-contain bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        ></div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default InputCode
+export default InputCode;
