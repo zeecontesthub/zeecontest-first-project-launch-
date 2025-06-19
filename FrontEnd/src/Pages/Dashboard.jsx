@@ -40,6 +40,30 @@ const Dashboard = () => {
     },
     {
       id: 3,
+      title: 'Lolllllllla Contest',
+      image: Image3,
+      votes: 10,
+      contestants: 10
+    }
+  ];
+
+  const completedContests = [
+    {
+      id: 1,
+      title: 'Imaginarium Contest',
+      image: Image1,
+      votes: 10,
+      contestants: 10
+    },
+    {
+      id: 2,
+      title: 'Magic Carpet Contest',
+      image: Image2,
+      votes: 10,
+      contestants: 10
+    },
+    {
+      id: 3,
       title: 'Lola Contest',
       image: Image3,
       votes: 10,
@@ -112,7 +136,7 @@ const Dashboard = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {ongoingContests.map(contest => (
+            {completedContests.map(contest => (
               <ContestCard 
                 key={contest.id}
                 title={contest.title}
