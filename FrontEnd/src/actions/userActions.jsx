@@ -11,7 +11,7 @@ export const loginWithGoogle = async () => {
 
 export const sendOTPLink = async (email) => {
   const actionCodeSettings = {
-    url: "http://localhost:5173/login", // your frontend page
+    url: "https://zeecontest-first-project-launch.onrender.com/login", // your frontend page
     handleCodeInApp: true,
   };
 
