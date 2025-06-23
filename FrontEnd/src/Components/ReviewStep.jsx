@@ -2,13 +2,13 @@ import React from 'react';
 
 const ReviewStep = ({ coverImage, logoImage, formData, contestants, onEditStep, onPublish }) => {
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 bg-[#FBF7F7] p-10">
             {/* Cover Image Section */}
             <div className="mb-8">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold">Cover Images</h2>
                     <button 
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-teal-600 hover:text-black"
                         onClick={() => onEditStep(1)}
                     >
                         Edit
@@ -32,7 +32,7 @@ const ReviewStep = ({ coverImage, logoImage, formData, contestants, onEditStep, 
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold">Contest Logo Image</h2>
                     <button 
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-teal-600 hover:text-black"
                         onClick={() => onEditStep(1)}
                     >
                         Edit
@@ -56,7 +56,7 @@ const ReviewStep = ({ coverImage, logoImage, formData, contestants, onEditStep, 
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold">Basic Contest Information</h2>
                     <button 
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-teal-600 hover:text-black"
                         onClick={() => onEditStep(2)}
                     >
                         Edit
@@ -64,30 +64,30 @@ const ReviewStep = ({ coverImage, logoImage, formData, contestants, onEditStep, 
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Contest Name</label>
+                        <label className="block text-sm text-left font-medium text-gray-700 mb-1">Contest Name</label>
                         <p className="bg-white p-2 rounded border border-gray-200">{formData.contestName || 'Not specified'}</p>
                     </div>
                     <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Contest Description</label>
+                        <label className="block text-sm text-left font-medium text-gray-700 mb-1">Contest Description</label>
                         <p className="bg-white p-2 rounded border border-gray-200">{formData.contestDescription || 'Not specified'}</p>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                            <label className="block text-sm text-left font-medium text-gray-700 mb-1">Start Date</label>
                             <p className="bg-white p-2 rounded border border-gray-200">{formData.startDate || 'Not specified'}</p>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                            <label className="block text-sm text-left font-medium text-gray-700 mb-1">End Date</label>
                             <p className="bg-white p-2 rounded border border-gray-200">{formData.endDate || 'Not specified'}</p>
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 mt-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
-                            <p className="bg-white p-2 rounded border border-gray-200">{formData.startTime || 'Not specified'}</p>
+                            <label className="block text-sm text-left font-medium text-gray-700 mb-1">Start Time</label>
+                            <p className="bg-white p-2  rounded border border-gray-200">{formData.startTime || 'Not specified'}</p>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">End Time</label>
+                            <label className="block text-sm text-left font-medium text-gray-700 mb-1">End Time</label>
                             <p className="bg-white p-2 rounded border border-gray-200">{formData.endTime || 'Not specified'}</p>
                         </div>
                     </div>
@@ -99,7 +99,7 @@ const ReviewStep = ({ coverImage, logoImage, formData, contestants, onEditStep, 
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold">Contestant List</h2>
                     <button 
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-teal-600 hover:text-black"
                         onClick={() => onEditStep(3)}
                     >
                         Edit
@@ -151,21 +151,7 @@ const ReviewStep = ({ coverImage, logoImage, formData, contestants, onEditStep, 
                 </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-end space-x-4 mt-8">
-                <button 
-                    className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                    onClick={() => onEditStep(3)}
-                >
-                    Back
-                </button>
-                <button 
-                    className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                    onClick={onPublish}
-                >
-                    Publish
-                </button>
-            </div>
+           
         </div>
     );
 };
