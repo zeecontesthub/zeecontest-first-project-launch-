@@ -11,7 +11,7 @@ export const loginWithGoogle = async () => {
 
 export const sendOTPLink = async (email) => {
   const actionCodeSettings = {
-    url: "http://localhost:5173/login", // your frontend page
+    url: "http://localhost:5000/login", // your frontend page
     handleCodeInApp: true,
   };
 
