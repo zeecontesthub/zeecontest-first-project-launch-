@@ -11,6 +11,7 @@ import Dashboard from './Pages/Dashboard'
 import Createspotlightcontest from './Pages/createspotlightcontest'
 import RoleSelectionPage from './Pages/RoleSelectionPage'
 import SettingsPage from './Pages/SettingsPage'
+import Contest from './Pages/contest'
 
 function App() {
   // const [count, setCount] = useState(0)
@@ -29,6 +30,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/role-selection" element={<RoleSelectionPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/contest" element={<Contest />} />
       </Routes>
     </Router>
   )

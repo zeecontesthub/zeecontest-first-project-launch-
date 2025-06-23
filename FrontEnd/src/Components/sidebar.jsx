@@ -22,7 +22,7 @@ const Sidebar = () => {
   };
 
   const handleContestClick = () => {
-    navigate('/create-spotlight-contest');
+    navigate('/contest');
   };
 
   return (
@@ -75,7 +75,7 @@ const Sidebar = () => {
               href="#"
               onClick={handleContestClick}
               className={`flex items-center px-4 py-3 text-white cursor-pointer ${
-                location.pathname === '/create-spotlight-contest' ? 'bg-teal-800' : 'hover:bg-teal-800'
+                (location.pathname === '/contest' || location.pathname === '/create-spotlight-contest') ? 'bg-teal-800' : 'hover:bg-teal-800'
               }`}
             >
               <Award size={20} className="mr-3" />

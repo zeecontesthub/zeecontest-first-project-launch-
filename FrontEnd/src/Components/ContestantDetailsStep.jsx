@@ -13,7 +13,7 @@ const ContestantDetailsStep = ({
     handleDrop
 }) => {
     return (
-        <div className="space-y-8">
+        <div className="space-y-8 bg-[#FBF7F7] p-10">
             {/* Manual Contestant Entry */}
             <div>
                 <h2 className="text-xl text-left font-semibold text-gray-900 mb-6">Manual Contestant Entry</h2>
@@ -119,7 +119,7 @@ const ContestantDetailsStep = ({
                         <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-md font-medium transition-colors">
                             Browse
                         </button>
-                        <p className="text-xs text-gray-500 mt-4">File must include Contestant Name, Position Profile Image and Bio</p>
+                        <p className="text-xs text-gray-500 mt-4">File must include Contestant Name, Position, and Bio</p>
                         <input
                             id="bulk-upload-input"
                             type="file"

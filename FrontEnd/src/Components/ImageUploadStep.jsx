@@ -65,7 +65,8 @@ const ImageUploadStep = ({ coverImage, logoImage, onFileUpload }) => {
     );
 
     return (
-        <div className="space-y-8 text-left">
+        <div className="space-y-8 text-left bg-[#FBF7F7] p-10">
+            {/* <h2 className="text-xl text-left font-semibold text-gray-900 mb-6">Upload Images</h2> */}
             <FileUploadArea type="cover" title="Cover Images" file={coverImage} />
             <FileUploadArea type="logo" title="Contest Logo Image" file={logoImage} />
         </div>
