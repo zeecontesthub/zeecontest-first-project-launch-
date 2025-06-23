@@ -16,15 +16,14 @@ dotenv.config();
 
 const app = express();
 
-// Routes
+// ✅ Middleware
+app.use(cors());
+app.use(express.json()); // ✅ Parse JSON before route handling
+
+// ✅ API routes
 app.use("/api/users", userRoutes);
 
-// Middleware
-app.use(cors()); // Allow frontend to access backend
-app.use(express.json()); // Parse JSON bodies
-
-// Use the Frontend app
-
+// ✅ Serve static frontend
 app.use(
   "/",
   expressStaticGzip(path.join(__dirname, "public"), {
@@ -38,8 +37,8 @@ app.use(
 
 app.use(express.static(path.join(__dirname, "../FrontEnd/dist")));
 
-// Catch-all handler to send back index.html for any other routes
-app.get('/{*any}', (req, res) => {
+// ✅ Catch-all route
+app.get("/{*any}", (req, res) => {
   res.sendFile(path.join(__dirname, "../FrontEnd/dist/index.html"));
 });
 

@@ -80,7 +80,9 @@ const Login = () => {
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider).catch((err) =>
+        console.log(err)
+      );
       const user = result.user;
       // console.log("✅ Google login successful:", user);
 
