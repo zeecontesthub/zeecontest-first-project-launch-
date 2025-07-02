@@ -12,6 +12,10 @@ import Createspotlightcontest from './Pages/createspotlightcontest'
 import RoleSelectionPage from './Pages/RoleSelectionPage'
 import SettingsPage from './Pages/SettingsPage'
 import Contest from './Pages/contest'
+import Contestdetails from './Pages/Contestdetails'
+import Editcontest from './Pages/editcontest'
+import Leaderboards from './Pages/Leaderboards'
+import ContestantDetails from './Pages/contestantdetails'
 
 function App() {
   // const [count, setCount] = useState(0)
@@ -31,6 +35,10 @@ function App() {
         <Route path="/role-selection" element={<RoleSelectionPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/contest" element={<Contest />} />
+        <Route path="/contest-details" element={<Contestdetails />} />
+        <Route path="/edit-contest" element={<Editcontest />} />
+        <Route path="/leaderboards" element={<Leaderboards />} />
+        <Route path="/contestant-details" element={<ContestantDetails />} />
       </Routes>
     </Router>
   )

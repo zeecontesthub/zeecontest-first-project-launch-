@@ -1,7 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router-dom';
 
 const ContestCard = ({ title, image, votes, contestants }) => {
+  const navigate = useNavigate();
+
+  const handleViewClick = () => {
+    navigate('/contest-details', { state: { id: title } });
+  };
+
   return (
     <div className="bg-teal-900 rounded-lg overflow-hidden">
       {/* Contest Image */}
@@ -15,7 +22,7 @@ const ContestCard = ({ title, image, votes, contestants }) => {
       
       {/* Contest Info */}
       <div className="p-4">
-        <h3 className="text-white text-lg font-bold mb-3">{title}</h3>
+        <h3 className="text-white text-left text-lg font-bold mb-3">{title}</h3>
         
         {/* Stats and View Button */}
         <div className="flex justify-between items-center">
@@ -31,6 +38,7 @@ const ContestCard = ({ title, image, votes, contestants }) => {
           
           <button 
             className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded"
+            onClick={handleViewClick}
           >
             View
           </button>
@@ -39,7 +47,6 @@ const ContestCard = ({ title, image, votes, contestants }) => {
     </div>
   );
 };
-
 ContestCard.propTypes = {
   title: PropTypes.string.isRequired,
   image: PropTypes.string.isRequired,

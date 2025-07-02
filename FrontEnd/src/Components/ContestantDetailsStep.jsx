@@ -47,6 +47,7 @@ const ContestantDetailsStep = ({
                         />
                     </div>
 
+
                     {/* Position */}
                     <div>
                         <label className="block text-sm text-left font-medium text-gray-700 mb-2">

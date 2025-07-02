@@ -27,7 +27,7 @@ a:hover {
 
 body {
   margin: 0;
-  min-width: 320px;
+  min-width: 700px;
   min-height: 100vh;
   /* Removed display: flex and place-items: center to allow full width */
   background-color: #ffffff;
@@ -40,16 +40,12 @@ h1 {
 
 button {
   border-radius: 8px;
-  border: 1px solid transparent;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
   transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #E67347;
 }
 button:focus,
 button:focus-visible {
