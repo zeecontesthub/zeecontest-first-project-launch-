@@ -43,7 +43,6 @@ const Sidebar = () => {
             </div>
             <span className="ml-3 text-white text-[11px] font-medium">Organization Name</span>
           </div>
-          <ChevronRight size={20} className="text-white" />
         </div>
 
         {/* Create Contest Button */}
@@ -75,7 +74,7 @@ const Sidebar = () => {
               href="#"
               onClick={handleContestClick}
               className={`flex items-center px-4 py-3 text-white cursor-pointer ${
-                (location.pathname === '/contest' || location.pathname === '/create-spotlight-contest') ? 'bg-teal-800' : 'hover:bg-teal-800'
+                (location.pathname === '/contest' || location.pathname === '/create-spotlight-contest' || location.pathname === '/contest-details' || location.pathname === '/edit-contest') ? 'bg-teal-800' : 'hover:bg-teal-800'
               }`}
             >
               <Award size={20} className="mr-3" />

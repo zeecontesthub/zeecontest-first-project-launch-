@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from '../Components/sidebar';
 import ContestCard from '../Components/ContestCard';
 import { Bell, Target, ChevronDown } from 'lucide-react';
-import Image1 from '../assets/Rectangle 333.png';
+import Image1 from '../assets/Rectangle_333.png';
 import Image2 from '../assets/22222.png';
 import Image3 from '../assets/33333.png';
 import { useNavigate, useLocation} from 'react-router-dom';
