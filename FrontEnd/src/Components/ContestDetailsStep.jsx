@@ -18,7 +18,7 @@ const ContestDetailsStep = ({ formData, onInputChange, positions, onAddPosition,
             {/* Basic Content Information */}
             <div className='bg-[#FBF7F7] p-10'>
                 <div >
-                    <h2 className="text-xl text-left font-semiboldtext-gray-900 mb-6">Basic Content Information</h2>
+                    <h2 className="text-xl text-left font-semibold text-gray-900 mb-6">Basic Content Information</h2>
 
                     <div className="space-y-6">
                         {/* Contest Name */}
@@ -161,17 +161,20 @@ const ContestDetailsStep = ({ formData, onInputChange, positions, onAddPosition,
                     </div>
                 </div>
 
-                {/* Position Setup */}
-                <div>
-                    <div className="flex items-center text-left justify-between mb-6 mt-10">
-                        <h2 className="text-xl font-semibold text-gray-900">Position Setup</h2>
-                        <button
-                            onClick={onAddPosition}
-                            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md font-medium transition-colors text-sm"
-                        >
-                            Create Position
-                        </button>
-                    </div>
+
+            </div>
+
+            {/* Position Setup */}
+            <div className="bg-[#FBF7F7] p-10 mt-10 rounded-md">
+                <div className="flex items-center text-left justify-between mb-6">
+                    <h2 className="text-xl font-semibold text-gray-900">Position Setup</h2>
+                    <button
+                        onClick={onAddPosition}
+                        className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md font-medium transition-colors text-sm"
+                    >
+                        Create Position
+                    </button>
+                </div>
 
                 {/* Position Cards */}
                 {positions.length === 0 ? (
@@ -204,7 +207,7 @@ const ContestDetailsStep = ({ formData, onInputChange, positions, onAddPosition,
                                                 placeholder="Enter position description"
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
                                             />
-<div className="flex space-x-2">
+                                            <div className="flex space-x-2">
                                                 <button
                                                     onClick={handleSaveClick}
                                                     className="text-green-600 hover:text-green-800"
@@ -256,9 +259,68 @@ const ContestDetailsStep = ({ formData, onInputChange, positions, onAddPosition,
                         </div>
                     </div>
                 )}
-                </div>
             </div>
 
+            {/* Paid Contest Section */}
+            <div className="bg-[#FBF7F7] p-10 mt-10 rounded-md">
+                <h2 className="text-xl font-semibold text-gray-900 text-left mb-4">Payment Setup</h2>
+                <div className="flex items-center space-x-6">
+                    <span className="text-sm font-medium text-gray-700">Is this a paid contest?</span>
+                    <button
+                        type="button"
+                        onClick={() => onInputChange('isPaidContest', true)}
+                        className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${formData.isPaidContest === true ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                    >
+                        Yes
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => onInputChange('isPaidContest', false)}
+                        className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${formData.isPaidContest === false ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                    >
+                        No
+                    </button>
+                </div>
+                {formData.isPaidContest && (
+                    <div className="mt-4">
+                        <label htmlFor="voterFee" className="block text-sm font-medium text-left text-gray-700 mb-2">
+                            Amount each voter should pay
+                        </label>
+                        <input
+                            id="voterFee"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={formData.voterFee || ''}
+                            onChange={(e) => onInputChange('voterFee', e.target.value)}
+                            placeholder="Enter amount"
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors"
+                        />
+                    </div>
+                )}
+            </div>
+
+            {/* Voters Setting Section */}
+            <div className="bg-[#FBF7F7] p-10 mt-10 rounded-md">
+                <h2 className="text-xl font-semibold text-gray-900 text-left mb-4">Voters Setting</h2>
+                <div className="flex items-center space-x-6">
+                    <span className="text-sm font-medium text-gray-700">Allow multiple votes</span>
+                    <button
+                        type="button"
+                        onClick={() => onInputChange('allowMultipleVotes', true)}
+                        className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${formData.allowMultipleVotes ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                    >
+                        Yes
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => onInputChange('allowMultipleVotes', false)}
+                        className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${formData.allowMultipleVotes === false ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+                    >
+                        No
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }

@@ -5,7 +5,6 @@ import BannerImage from '../assets/Rectangle _5189.png';
 import LogoImage from '../assets/Ellipse 20.png';
 import { ChevronLeft, ChevronRight, Play, Pause, Square, Trophy, Medal, Award, TrendingUp, Users, Target, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
 import positionData from '../data/positionData';
 
 const Contestdetails = () => {
@@ -72,9 +71,14 @@ const Contestdetails = () => {
     { name: 'Emmanuel', votes: 10, avatar: '👨‍🎨' }
   ];
 
-  // Combine all contestants from all positions and take first 5
-  const contestantDetails = Object.values(positionData)
-    .flatMap(position => position.contestants)
+  // Combine all contestants from all positions and take first 5, include position info
+  const contestantDetails = Object.entries(positionData)
+    .flatMap(([position, data]) =>
+      data.contestants.map(contestant => ({
+        ...contestant,
+        position
+      }))
+    )
     .slice(0, 5);
 
   const voterDetails = [
@@ -309,7 +313,7 @@ const Contestdetails = () => {
             {/* Right Column - Contest Info and Actions */}
             <div className="space-y-8">
               {/* Contest Timing */}
-              <div className="bg-white/80 backdrop-blur-sm border border-[#000000] rounded-3xl p-6 shadow-xl">
+              <div className="bg-white/80 w-80  backdrop-blur-sm border border-[#000000] rounded-3xl p-6 shadow-xl">
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <h3 className="text-sm text-left text-gray-600 mb-1">Start Date</h3>
@@ -331,10 +335,12 @@ const Contestdetails = () => {
               </div>
 
               {/* Contestant Details */}
-              <div className="bg-white/80 backdrop-blur-sm border border-[#000000] rounded-3xl p-6 shadow-xl">
+              <div className="bg-white/80 w-80 backdrop-blur-sm border border-[#000000] rounded-3xl p-6 shadow-xl">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
                   <h2 className="text-xl font-bold text-gray-900">Contestant</h2>
-                  <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-teal-900 hover:text-white transition-colors self-start">
+                  <button 
+                  onClick={() => navigate('/contestant')}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-teal-900 hover:text-white transition-colors self-start">
                     View All Contestants
                   </button>
                 </div>
@@ -343,21 +349,32 @@ const Contestdetails = () => {
                   {contestantDetails.map((contestant, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-orange-400 to-red-400 rounded-full flex items-center justify-center text-white">
-                          {contestant.avatar}
-                        </div>
+                        {contestant.image ? (
+                          <img
+                            src={contestant.image}
+                            alt={contestant.name}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-gradient-to-r from-orange-400 to-red-400 rounded-full flex items-center justify-center text-white">
+                            {contestant.name.charAt(0)}
+                          </div>
+                        )}
                         <span className="font-medium text-gray-900">{contestant.name}</span>
                       </div>
-                      <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white">
-                        <ChevronRight size={16} />
-                      </div>
+                        <button
+                          onClick={() => navigate(`/contestantdetails/${contestant.position}/${encodeURIComponent(contestant.name)}`)}
+                          className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white"
+                        >
+                          <ChevronRight size={16} className="text-gray-600" />
+                        </button>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* End Contest */}
-              <div className="bg-white/80 backdrop-blur-sm border border-[#000000] rounded-3xl p-6 shadow-xl">
+              <div className="bg-white/80 w-80  backdrop-blur-sm border border-[#000000] rounded-3xl p-6 shadow-xl">
                 {/* Header with Navigation */}
                 <div className="flex items-center justify-between mb-4">
                   <button

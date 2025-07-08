@@ -7,7 +7,7 @@ const ReviewStep = ({ coverImage, logoImage, formData, contestants, onEditStep, 
             <div className="mb-8">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold">Cover Images</h2>
-                    <button 
+                    <button
                         className="text-teal-600 hover:text-black"
                         onClick={() => onEditStep(1)}
                     >
@@ -16,9 +16,9 @@ const ReviewStep = ({ coverImage, logoImage, formData, contestants, onEditStep, 
                 </div>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
                     {coverImage ? (
-                        <img 
-                            src={typeof coverImage === 'string' ? coverImage : URL.createObjectURL(coverImage)} 
-                            alt="Cover" 
+                        <img
+                            src={typeof coverImage === 'string' ? coverImage : URL.createObjectURL(coverImage)}
+                            alt="Cover"
                             className="max-h-64 mx-auto rounded"
                         />
                     ) : (
@@ -31,7 +31,7 @@ const ReviewStep = ({ coverImage, logoImage, formData, contestants, onEditStep, 
             <div className="mb-8">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold">Contest Logo Image</h2>
-                    <button 
+                    <button
                         className="text-teal-600 hover:text-black"
                         onClick={() => onEditStep(1)}
                     >
@@ -40,9 +40,9 @@ const ReviewStep = ({ coverImage, logoImage, formData, contestants, onEditStep, 
                 </div>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
                     {logoImage ? (
-                        <img 
-                            src={typeof logoImage === 'string' ? logoImage : URL.createObjectURL(logoImage)} 
-                            alt="Logo" 
+                        <img
+                            src={typeof logoImage === 'string' ? logoImage : URL.createObjectURL(logoImage)}
+                            alt="Logo"
                             className="max-h-32 mx-auto rounded"
                         />
                     ) : (
@@ -55,23 +55,23 @@ const ReviewStep = ({ coverImage, logoImage, formData, contestants, onEditStep, 
             <div className="mb-8">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold">Basic Contest Information</h2>
-                    <button 
+                    <button
                         className="text-teal-600 hover:text-black"
-                        onClick={() => onEditStep(2)}
+                        onClick={() => onEditStep(0)}
                     >
                         Edit
                     </button>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="mb-4">
-                        <label className="block text-sm text-left font-medium text-gray-700 mb-1">Contest Name</label>
+                    <div className="mb-4 text-left ">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Contest Name</label>
                         <p className="bg-white p-2 rounded border border-gray-200">{formData.contestName || 'Not specified'}</p>
                     </div>
-                    <div className="mb-4">
+                    <div className="mb-4 text-left ">
                         <label className="block text-sm text-left font-medium text-gray-700 mb-1">Contest Description</label>
                         <p className="bg-white p-2 rounded border border-gray-200">{formData.contestDescription || 'Not specified'}</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4 text-left ">
                         <div>
                             <label className="block text-sm text-left font-medium text-gray-700 mb-1">Start Date</label>
                             <p className="bg-white p-2 rounded border border-gray-200">{formData.startDate || 'Not specified'}</p>
@@ -81,26 +81,52 @@ const ReviewStep = ({ coverImage, logoImage, formData, contestants, onEditStep, 
                             <p className="bg-white p-2 rounded border border-gray-200">{formData.endDate || 'Not specified'}</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="grid grid-cols-2 gap-4 mt-4 text-left ">
                         <div>
                             <label className="block text-sm text-left font-medium text-gray-700 mb-1">Start Time</label>
-                            <p className="bg-white p-2  rounded border border-gray-200">{formData.startTime || 'Not specified'}</p>
+                            <p className="bg-white p-2 rounded border border-gray-200">
+                                {formData.startTimeHour || formData.startTimeMinute
+                                    ? `${formData.startTimeHour || '--'}:${formData.startTimeMinute || '--'} ${formData.startTimeAmPm || 'AM'}`
+                                    : 'Not specified'}
+                            </p>
                         </div>
                         <div>
                             <label className="block text-sm text-left font-medium text-gray-700 mb-1">End Time</label>
-                            <p className="bg-white p-2 rounded border border-gray-200">{formData.endTime || 'Not specified'}</p>
+                            <p className="bg-white p-2 rounded border border-gray-200">
+                                {formData.endTimeHour && formData.endTimeMinute && formData.endTimeAmPm
+                                    ? `${formData.endTimeHour}:${formData.endTimeMinute} ${formData.endTimeAmPm}`
+                                    : 'Not specified'}
+                            </p>
                         </div>
+                    </div>
+
+                    {/* Payment Setup */}
+                    <div className="mt-6 text-left ">
+                        <label className="block text-sm text-left font-medium text-gray-700 mb-1">Is this a paid contest?</label>
+                        <p className="bg-white p-2 rounded border border-gray-200">{formData.isPaidContest === true ? 'Yes' : formData.isPaidContest === false ? 'No' : 'Not specified'}</p>
+                    </div>
+                    {formData.isPaidContest === true && (
+                        <div className="mt-4 text-left ">
+                            <label className="block text-sm text-left font-medium text-gray-700 mb-1">Amount each voter should pay</label>
+                            <p className="bg-white p-2 rounded border border-gray-200">{formData.voterFee || 'Not specified'}</p>
+                        </div>
+                    )}
+
+                    {/* Voters Setting */}
+                    <div className="mt-6 text-left ">
+                        <label className="block text-sm text-left font-medium text-gray-700 mb-1">Allow multiple votes</label>
+                        <p className="bg-white p-2 rounded border border-gray-200">{formData.allowMultipleVotes === true ? 'Yes' : formData.allowMultipleVotes === false ? 'No' : 'Not specified'}</p>
                     </div>
                 </div>
             </div>
 
             {/* Contestant List */}
-            <div className="mb-8">
+            <div className="mb-8 text-left ">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold">Contestant List</h2>
-                    <button 
+                    <button
                         className="text-teal-600 hover:text-black"
-                        onClick={() => onEditStep(3)}
+                        onClick={() => onEditStep(2)}
                     >
                         Edit
                     </button>
@@ -127,8 +153,8 @@ const ReviewStep = ({ coverImage, logoImage, formData, contestants, onEditStep, 
                                     <tr key={contestant.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                         <td className="px-4 py-2 border-t border-gray-200">
                                             {contestant.image ? (
-                                                <img 
-                                                    src={typeof contestant.image === 'string' ? contestant.image : URL.createObjectURL(contestant.image)} 
+                                                <img
+                                                    src={typeof contestant.image === 'string' ? contestant.image : URL.createObjectURL(contestant.image)}
                                                     alt={contestant.name}
                                                     className="w-10 h-10 rounded-full object-cover"
                                                 />
@@ -151,7 +177,7 @@ const ReviewStep = ({ coverImage, logoImage, formData, contestants, onEditStep, 
                 </div>
             </div>
 
-           
+
         </div>
     );
 };

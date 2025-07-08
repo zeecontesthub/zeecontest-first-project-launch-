@@ -330,16 +330,16 @@ const Leaderboards = () => {
                                                 <div
                                                     key={index}
                                                     className={`flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 ${isWinner ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200' :
-                                                            isRunner ? 'bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200' :
-                                                                isThird ? 'bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-200' :
-                                                                    'bg-gray-50/50 border border-gray-100'
+                                                        isRunner ? 'bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200' :
+                                                            isThird ? 'bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-200' :
+                                                                'bg-gray-50/50 border border-gray-100'
                                                         }`}
                                                 >
-                                                    {/* Enhanced Position Badge */}
+                                                    {/* Position Badge */}
                                                     <div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg ${isWinner ? 'bg-yellow-500 text-white' :
-                                                            isRunner ? 'bg-gray-400 text-white' :
-                                                                isThird ? 'bg-orange-600 text-white' :
-                                                                    'bg-gray-300 text-gray-600'
+                                                        isRunner ? 'bg-gray-400 text-white' :
+                                                            isThird ? 'bg-orange-600 text-white' :
+                                                                'bg-gray-300 text-gray-600'
                                                         }`}>
                                                         {isWinner ? <Trophy className="w-5 h-5" /> :
                                                             isRunner ? <Medal className="w-5 h-5" /> :
@@ -347,9 +347,19 @@ const Leaderboards = () => {
                                                                     index + 1}
                                                     </div>
 
-                                                    <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-red-400 rounded-full flex items-center justify-center text-white text-xl">
-                                                        {contestant.avatar}
-                                                    </div>
+                                                    {/* Updated Avatar/Image Display */}
+                                                    {contestant.image ? (
+                                                        <img
+                                                            src={contestant.image}
+                                                            alt={contestant.name}
+                                                            className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-red-400 rounded-full flex items-center justify-center text-white text-xl">
+                                                            {contestant.name.charAt(0)}
+                                                        </div>
+                                                    )}
+
                                                     <div className="flex-1">
                                                         <div className="flex items-center gap-2 mb-1">
                                                             <h3 className="font-semibold text-left text-gray-900">{contestant.name}</h3>
@@ -362,7 +372,7 @@ const Leaderboards = () => {
                                                             <div className="flex-1 bg-gray-200 rounded-full h-3 overflow-hidden">
                                                                 <div
                                                                     className={`h-full rounded-full transition-all duration-1000 ${isWinner ? 'bg-gradient-to-r from-yellow-400 to-orange-500' :
-                                                                            'bg-gradient-to-r from-teal-500 to-teal-600'
+                                                                        'bg-gradient-to-r from-teal-500 to-teal-600'
                                                                         }`}
                                                                     style={{ width: `${(contestant.votes / totalVotes) * 100}%` }}
                                                                 ></div>
