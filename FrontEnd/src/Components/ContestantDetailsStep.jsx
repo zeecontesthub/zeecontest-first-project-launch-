@@ -154,7 +154,7 @@ const ContestantDetailsStep = ({
                             {contestants.map((contestant) => (
                                 <div key={contestant.id} className="grid grid-cols-5 gap-4 px-6 py-4 text-sm items-center">
                                     <div>
-                                        <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                                        <div className="w-10 h-10 ml-15 bg-gray-300 rounded-full flex items-center justify-center">
                                             {contestant.image ? (
                                                 <img src={URL.createObjectURL(contestant.image)} alt={contestant.name} className="w-10 h-10 rounded-full object-cover" />
                                             ) : (

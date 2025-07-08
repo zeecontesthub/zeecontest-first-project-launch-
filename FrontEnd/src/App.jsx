@@ -16,6 +16,7 @@ import Contestdetails from './Pages/Contestdetails'
 import Editcontest from './Pages/editcontest'
 import Leaderboards from './Pages/Leaderboards'
 import ContestantDetails from './Pages/contestantdetails'
+import Contestant from './Pages/contestant'
 
 function App() {
   // const [count, setCount] = useState(0)
@@ -38,7 +39,8 @@ function App() {
         <Route path="/contest-details" element={<Contestdetails />} />
         <Route path="/edit-contest" element={<Editcontest />} />
         <Route path="/leaderboards" element={<Leaderboards />} />
-        <Route path="/contestant-details" element={<ContestantDetails />} />
+        <Route path="/contestantdetails/:position/:contestantId" element={<ContestantDetails />} />
+        <Route path="/contestant" element={<Contestant />} />
       </Routes>
     </Router>
   )

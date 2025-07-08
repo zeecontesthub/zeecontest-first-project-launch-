@@ -1,12 +1,10 @@
 import PositionPopup from '../Components/PositionPopup';
-
 import React, { useState } from 'react';
 import Sidebar from '../Components/sidebar';
 import ContestDetailsStep from '../Components/ContestDetailsStep';
 import ImageUploadStep from '../Components/ImageUploadStep';
 import ContestantDetailsStep from '../Components/ContestantDetailsStep';
 import ReviewStep from '../Components/ReviewStep';
-
 
 const CreateSpotlightContest = () => {
     const [currentStep, setCurrentStep] = useState(0);
@@ -17,19 +15,21 @@ const CreateSpotlightContest = () => {
         contestDescription: '',
         startDate: '',
         endDate: '',
-        startTime: '',
-        endTime: '',
+        startTimeHour: '',
+        startTimeMinute: '',
+        startTimeAmPm: 'AM',
+        endTimeHour: '',
+        endTimeMinute: '',
+        endTimeAmPm: 'AM',
+        isPaidContest: null,
+        voterFee: '',
+        allowMultipleVotes: false
     });
+
     const [positions, setPositions] = useState([]);
-
-    // New state for position popup visibility
     const [isPositionPopupOpen, setIsPositionPopupOpen] = useState(false);
-
-    // State for Image Upload Step
     const [coverImage, setCoverImage] = useState(null);
     const [logoImage, setLogoImage] = useState(null);
-
-    // State for Contestant Details Step
     const [contestantForm, setContestantForm] = useState({
         name: '',
         bio: '',
@@ -38,25 +38,43 @@ const CreateSpotlightContest = () => {
     });
     const [contestants, setContestants] = useState([]);
 
+    // Form validation function
+    const isFormValid = () => {
+        return (
+            formData.contestName &&
+            formData.contestDescription &&
+            formData.startDate &&
+            formData.endDate &&
+            contestants.length > 0
+        );
+    };
+
     // Handlers for Contest Details Step
     const onInputChange = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    // Modified onAddPosition to open popup
     const onAddPosition = () => {
         setIsPositionPopupOpen(true);
     };
 
-    // Handler to add position from popup
     const handleAddPositionFromPopup = (position) => {
         setPositions(prev => [...prev, position]);
         setIsPositionPopupOpen(false);
     };
 
-    // Handler to close popup
     const handleClosePositionPopup = () => {
         setIsPositionPopupOpen(false);
+    };
+
+    const onUpdatePosition = (index, field, value) => {
+        setPositions(prev => prev.map((pos, i) =>
+            i === index ? { ...pos, [field]: value } : pos
+        ));
+    };
+
+    const onRemovePosition = (index) => {
+        setPositions(prev => prev.filter((_, i) => i !== index));
     };
 
     // Handlers for Image Upload Step
@@ -88,7 +106,6 @@ const CreateSpotlightContest = () => {
     };
 
     const onBulkUpload = (file) => {
-        // Implement bulk upload logic here if needed
         console.log('Bulk upload file:', file);
     };
 
@@ -110,14 +127,14 @@ const CreateSpotlightContest = () => {
 
     // Navigation handlers
     const nextStep = () => {
-        console.log('Next step clicked. Current step:', currentStep);
         if (currentStep < 3) {
             setCurrentStep(currentStep + 1);
+        } else if (currentStep === 3) {
+            onPublish();
         }
     };
 
     const prevStep = () => {
-        console.log('Previous step clicked. Current step:', currentStep);
         if (currentStep > 0) {
             setCurrentStep(currentStep - 1);
         }
@@ -130,8 +147,19 @@ const CreateSpotlightContest = () => {
     };
 
     const onPublish = () => {
-        // Implement publish logic here
-        alert('Contest published!');
+        if (isFormValid()) {
+            // Here you would typically make an API call to publish the contest
+            alert('Contest published successfully!');
+            // resetForm(); // Uncomment if you want to reset after publishing
+        } else {
+            alert('Please complete all required fields before publishing:\n' +
+                (!formData.contestName ? '- Contest Name\n' : '') +
+                (!formData.contestDescription ? '- Contest Description\n' : '') +
+                (!formData.startDate ? '- Start Date\n' : '') +
+                (!formData.endDate ? '- End Date\n' : '') +
+                (contestants.length === 0 ? '- At least one contestant\n' : '')
+            );
+        }
     };
 
     const saveDraft = () => {
@@ -153,25 +181,14 @@ const CreateSpotlightContest = () => {
         }
     };
 
-    const onUpdatePosition = (index, field, value) => {
-        setPositions(prev => prev.map((pos, i) =>
-            i === index ? { ...pos, [field]: value } : pos
-        ));
-    };
-
-    const onRemovePosition = (index) => {
-        setPositions(prev => prev.filter((_, i) => i !== index));
-    };
-
     const steps = [
         <ContestDetailsStep
             formData={formData}
             onInputChange={onInputChange}
             positions={positions}
             onAddPosition={onAddPosition}
-            onUpdatePosition={onUpdatePosition}  // Add this
-            onRemovePosition={onRemovePosition}  // Add this
-
+            onUpdatePosition={onUpdatePosition}
+            onRemovePosition={onRemovePosition}
         />,
         <ImageUploadStep
             coverImage={coverImage}
@@ -195,7 +212,6 @@ const CreateSpotlightContest = () => {
             formData={formData}
             contestants={contestants}
             onEditStep={onEditStep}
-            onPublish={onPublish}
         />
     ];
 
@@ -208,29 +224,34 @@ const CreateSpotlightContest = () => {
                 <div>
                     <h2 className='text-xl font-semibold text-gray-900 mb-6'>Create Spotlight Contest</h2>
                 </div>
+                
                 {/* Step Progress Indicator */}
                 <div className="mb-8">
                     <div className="flex items-center justify-between mb-4">
                         {stepTitles.map((title, index) => (
                             <div key={index} className="flex items-center">
-                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${index <= currentStep
-                                    ? 'bg-orange-500 text-white'
-                                    : 'bg-gray-200 text-gray-600'
-                                    }`}>
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                                    index <= currentStep
+                                        ? 'bg-orange-500 text-white'
+                                        : 'bg-gray-200 text-gray-600'
+                                }`}>
                                     {index + 1}
                                 </div>
-                                <span className={`ml-2 text-sm ${index <= currentStep ? 'text-orange-600 font-medium' : 'text-gray-500'
-                                    }`}>
+                                <span className={`ml-2 text-sm ${
+                                    index <= currentStep ? 'text-orange-600 font-medium' : 'text-gray-500'
+                                }`}>
                                     {title}
                                 </span>
                                 {index < stepTitles.length - 1 && (
-                                    <div className={`ml-4 w-16 h-0.5 ${index < currentStep ? 'bg-orange-500' : 'bg-gray-200'
-                                        }`} />
+                                    <div className={`ml-4 w-16 h-0.5 ${
+                                        index < currentStep ? 'bg-orange-500' : 'bg-gray-200'
+                                    }`} />
                                 )}
                             </div>
                         ))}
                     </div>
                 </div>
+                
                 {steps[currentStep]}
 
                 <PositionPopup
@@ -257,8 +278,14 @@ const CreateSpotlightContest = () => {
                         </button>
                         <button
                             onClick={nextStep}
-                            disabled={currentStep === steps.length - 1}
-                            className="px-6 py-2 bg-orange-500 text-white rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-orange-600 transition-colors"
+                            className={`px-6 py-2 rounded-md font-medium transition-colors ${
+                                currentStep === steps.length - 1
+                                    ? isFormValid()
+                                        ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    : 'bg-orange-500 hover:bg-orange-600 text-white'
+                            }`}
+                            disabled={currentStep === steps.length - 1 && !isFormValid()}
                         >
                             {currentStep === steps.length - 1 ? 'Publish' : 'Next'}
                         </button>
