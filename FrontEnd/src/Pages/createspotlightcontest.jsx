@@ -204,7 +204,7 @@ const CreateSpotlightContest = () => {
     return (
         <div className="bg-white min-h-screen">
             <Sidebar />
-            <div className="w-380 p-8">
+            <div className="p-8 ml-20">
                 <div>
                     <h2 className='text-xl font-semibold text-gray-900 mb-6'>Create Spotlight Contest</h2>
                 </div>

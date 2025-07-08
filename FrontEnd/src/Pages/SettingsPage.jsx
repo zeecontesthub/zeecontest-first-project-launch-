@@ -50,7 +50,7 @@ const SettingsPage = () => {
   return (
     <div className="flex min-h-screen bg-white">
       <Sidebar />
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-8 ml-20">
         <h2 className="text-[35px] text-left font-bold mb-6">Settings</h2>
         <p className='text-left mb-6 '> Manage your account settings </p>
         <div className="border-b border-gray-300 mb-6">
