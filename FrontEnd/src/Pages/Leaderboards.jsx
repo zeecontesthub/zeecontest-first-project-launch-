@@ -165,7 +165,7 @@ const Leaderboards = () => {
     return (
         <div className="flex min-h-screen">
             <Sidebar />
-            <div className="flex-1 w-full p-6">
+            <div className="flex-1 w-full p-6 ml-20">
                 <div className="flex items-center gap-4 mb-8">
                     <button
                         onClick={() => navigate('/contest-details')}
@@ -181,7 +181,7 @@ const Leaderboards = () => {
                     <img src={BannerImage} alt="Contest Banner" className='w-full' />
                 </div>
 
-                <div className="relative z-10 backdrop-blur-sm rounded-3xl p-6 lg:p-8">
+                <div className="relative z-10 p-6 lg:p-8">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                         <div className="flex items-center gap-6">
                             <div className="w-20 h-20 lg:w-60 lg:h-60 rounded-full flex items-center justify-center border-4 border-black overflow-hidden -mt-30 ml-20">
@@ -228,7 +228,7 @@ const Leaderboards = () => {
                     </div>
 
                     {/* Enhanced Key Metrics Dashboard */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-12 mb-8 ml-25">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-12 mb-8 ">
                         <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-200">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-blue-100 rounded-xl">
@@ -279,7 +279,7 @@ const Leaderboards = () => {
                     </div>
 
                     {/* Position Tabs */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mt-12 mb-8 ml-25">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mt-12 mb-8">
                         {tabs.map((tab) => (
                             <button
                                 key={tab}
@@ -301,7 +301,7 @@ const Leaderboards = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Enhanced Leaderboard */}
                         <div className="lg:col-span-2">
-                            <div className="bg-white/80 backdrop-blur-sm rounded-3xl border border-[#000000] ml-25 p-6 lg:p-8 shadow-xl">
+                            <div className="bg-white/80 backdrop-blur-sm rounded-3xl border border-[#000000] p-6 lg:p-8 shadow-xl">
                                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
                                     <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                                         <Crown className="w-6 h-6 text-yellow-500" />

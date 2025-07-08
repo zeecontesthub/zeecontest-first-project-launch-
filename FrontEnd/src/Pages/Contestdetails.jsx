@@ -90,7 +90,7 @@ const Contestdetails = () => {
     <div className="flex min-h-screen">
       <Sidebar />
 
-      <div className="flex-1 w-full p-6">
+      <div className="flex-1 w-full p-6 ml-20">
         {/* Header */}
         <h2 className="text-[30px] text-left font-bold text-gray-900 mb-8">Contest</h2>
 

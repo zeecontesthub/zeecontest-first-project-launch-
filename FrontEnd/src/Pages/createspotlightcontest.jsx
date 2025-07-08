@@ -202,9 +202,9 @@ const CreateSpotlightContest = () => {
     const stepTitles = ['Contest Details', 'Upload Images', 'Add Contestants', 'Review & Publish'];
 
     return (
-        <div className="bg-white min-h-screen">
+        <div className="bg-white min-h-screen flex">
             <Sidebar />
-            <div className="w-380 p-8">
+            <div className="flex-1 w-full p-6 ml-20">
                 <div>
                     <h2 className='text-xl font-semibold text-gray-900 mb-6'>Create Spotlight Contest</h2>
                 </div>
