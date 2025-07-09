@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronRight, LayoutDashboard, Award, Settings, LogOut } from 'lucide-react';
+import { ChevronRight, LayoutDashboard, Award, Settings, LogOut, CreditCard } from 'lucide-react';
 import iconnn from '../assets/iconnn.png';
 import ContestPopup from './contestpopup';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -79,6 +79,16 @@ const Sidebar = () => {
             >
               <Award size={20} className="mr-3" />
               <span>Contest</span>
+            </a>
+            <a
+              href="#"
+              onClick={() => navigate('/wallet')}
+              className={`flex items-center px-4 py-3 text-white cursor-pointer ${
+                location.pathname === '/wallet' ? 'bg-teal-800' : 'hover:bg-teal-800'
+              }`}
+            >
+              <CreditCard size={20} className="mr-3" />
+              <span>Wallet</span>
             </a>
           </div>
         </div>

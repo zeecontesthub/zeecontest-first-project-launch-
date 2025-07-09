@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Edit, Eye, Share2 } from 'lucide-react';
 import Sidebar from '../Components/sidebar';
 import BannerImage from '../assets/Rectangle _5189.png';
@@ -7,9 +7,12 @@ import { ChevronLeft, ChevronRight, Play, Pause, Square, Trophy, Medal, Award, T
 import { useNavigate } from 'react-router-dom';
 import positionData from '../data/positionData';
 
-const Contestdetails = () => {
+
+
+const Contestdetails = ({ isPaidContest, voterFee }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [currentSection, setCurrentSection] = useState(0);
+  const [countdown, setCountdown] = useState('');
   const navigate = useNavigate();
 
   const totalGlobalVotes = Object.values(positionData).reduce((acc, pos) => acc + pos.votersCount, 0);
@@ -19,6 +22,46 @@ const Contestdetails = () => {
     current[1].votersCount > prev[1].votersCount ? current : prev
   );
 
+  const accountBalance = isPaidContest ? totalGlobalVotes * (parseFloat(voterFee) || 0) : null;
+
+  // Simulated contest start and end date/time for countdown
+  // These should be replaced with actual values from backend or global state
+  const contestStartDateTime = new Date('August 10, 2025 00:00:00').getTime();
+  const contestEndDateTime = new Date('August 15, 2025 00:00:00').getTime();
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+
+      if (now < contestStartDateTime) {
+        // Countdown to contest start
+        const distance = contestStartDateTime - now;
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        setCountdown(` ${days}d ${hours}h ${minutes}m ${seconds}s`);
+      } else if (now >= contestStartDateTime && now < contestEndDateTime) {
+        // Countdown to contest end
+        const distance = contestEndDateTime - now;
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        setCountdown(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+      } else {
+        // Contest ended
+        setCountdown('Contest Ended');
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [contestStartDateTime, contestEndDateTime]);
 
   // Calculate participation metrics
   const avgParticipation = (totalGlobalVotes / (totalPositions * 50) * 100).toFixed(1);
@@ -112,7 +155,7 @@ const Contestdetails = () => {
             {/* Left Section - Logo and Content */}
             <div className="flex items-center gap-6">
               {/* Logo */}
-              <div className="w-20 h-20 lg:w-60 lg:h-60 rounded-full flex items-center justify-center border-4 border-black overflow-hidden -mt-30 ml-20">
+              <div className=" rounded-full flex items-center justify-center border-4 border-black overflow-hidden -mt-5 ml-5">
                 <img src={LogoImage} alt="Logo" className="w-full h-full object-cover" />
               </div>
 
@@ -284,9 +327,12 @@ const Contestdetails = () => {
               <div className="bg-white/80 backdrop-blur-sm border border-[#000000] rounded-3xl p-6 lg:p-8 shadow-xl ">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
                   <h2 className="text-xl font-bold text-gray-900">Voters Details</h2>
-                  <button className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-teal-900 hover:text-white transition-colors self-start">
-                    View Full Voters Details
-                  </button>
+<button
+  onClick={() => navigate('/voters-details')}
+  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-teal-900 hover:text-white transition-colors self-start"
+>
+  View Full Voters Details
+</button>
                 </div>
 
                 <div className="overflow-x-auto">
@@ -314,23 +360,9 @@ const Contestdetails = () => {
             <div className="space-y-8">
               {/* Contest Timing */}
               <div className="bg-white/80 w-80  backdrop-blur-sm border border-[#000000] rounded-3xl p-6 shadow-xl">
-                <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-sm text-left text-gray-600 mb-1">Start Date</h3>
-                    <p className="text-lg text-left font-bold text-gray-900">Aug 10, 2025</p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm text-left text-gray-600 mb-1">Start Time</h3>
-                    <p className="text-lg text-left font-bold text-gray-900">12:00 AM</p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm text-left text-gray-600 mb-1">End Date</h3>
-                    <p className="text-lg text-left font-bold text-gray-900">Aug 15, 2025</p>
-                  </div>
-                  <div>
-                    <h3 className="text-sm text-left text-gray-600 mb-1">End Time</h3>
-                    <p className="text-lg text-left font-bold text-gray-900">12:00 AM</p>
-                  </div>
+                <div className="text-center">
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">Contest Starts In</h3>
+                  <p className="text-xl font-semibold text-orange-600">{countdown}</p>
                 </div>
               </div>
 
@@ -338,9 +370,9 @@ const Contestdetails = () => {
               <div className="bg-white/80 w-80 backdrop-blur-sm border border-[#000000] rounded-3xl p-6 shadow-xl">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
                   <h2 className="text-xl font-bold text-gray-900">Contestant</h2>
-                  <button 
-                  onClick={() => navigate('/contestant')}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-teal-900 hover:text-white transition-colors self-start">
+                  <button
+                    onClick={() => navigate('/contestant')}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-teal-900 hover:text-white transition-colors self-start">
                     View All Contestants
                   </button>
                 </div>
@@ -348,7 +380,10 @@ const Contestdetails = () => {
                 <div className="space-y-3">
                   {contestantDetails.map((contestant, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
-                      <div className="flex items-center gap-3">
+                      <div
+                        onClick={() => navigate(`/contestantdetails/${contestant.position}/${encodeURIComponent(contestant.name)}`)}
+                        className="flex items-center gap-3 cursor-pointer"
+                      >
                         {contestant.image ? (
                           <img
                             src={contestant.image}
@@ -362,12 +397,6 @@ const Contestdetails = () => {
                         )}
                         <span className="font-medium text-gray-900">{contestant.name}</span>
                       </div>
-                        <button
-                          onClick={() => navigate(`/contestantdetails/${contestant.position}/${encodeURIComponent(contestant.name)}`)}
-                          className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white"
-                        >
-                          <ChevronRight size={16} className="text-gray-600" />
-                        </button>
                     </div>
                   ))}
                 </div>

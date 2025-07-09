@@ -39,7 +39,7 @@ const Contestant = () => {
             <div className="flex-1 w-full p-6 ml-20">
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-8">
-                     <button
+                    <button
                         onClick={() => navigate('/contest-details')}
                         className="p-2 rounded-full hover:bg-gray-200 transition-colors"
                         aria-label="Back to Contest Details"
@@ -48,7 +48,7 @@ const Contestant = () => {
                     </button>
                     <h2 className="text-[30px] text-left font-bold text-gray-900 mb-0">Contestant</h2>
                 </div>
-                
+
                 <div>
                     <img
                         src={BannerImage}
@@ -61,7 +61,7 @@ const Contestant = () => {
                         {/* Left Section - Logo and Content */}
                         <div className="flex items-center gap-6">
                             {/* Logo */}
-                            <div className="w-20 h-20 lg:w-60 lg:h-60 rounded-full flex items-center justify-center border-4 border-black overflow-hidden -mt-30 ml-20">
+                            <div className=" rounded-full flex items-center justify-center border-4 border-black overflow-hidden -mt-5 ml-5">
                                 <img src={LogoImage} alt="Logo" className="w-full h-full object-cover" />
                             </div>
 
@@ -112,11 +112,10 @@ const Contestant = () => {
                         <button
                             key={pos}
                             onClick={() => setSelectedPosition(pos)}
-                            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                                selectedPosition === pos
+                            className={`px-6 py-3 rounded-lg font-medium transition-colors ${selectedPosition === pos
                                     ? 'bg-orange-500 text-white'
                                     : 'bg-teal-800 text-white hover:bg-teal-700'
-                            }`}
+                                }`}
                         >
                             {pos}
                         </button>

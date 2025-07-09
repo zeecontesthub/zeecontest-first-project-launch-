@@ -184,18 +184,19 @@ const Leaderboards = () => {
                 <div className="relative z-10 backdrop-blur-sm rounded-3xl p-6 lg:p-8">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                         <div className="flex items-center gap-6">
-                            <div className="w-20 h-20 lg:w-60 lg:h-60 rounded-full flex items-center justify-center border-4 border-black overflow-hidden -mt-30 ">
+                            {/* Logo */}
+                            <div className=" rounded-full flex items-center justify-center border-4 border-black overflow-hidden -mt-5 ml-5">
                                 <img src={LogoImage} alt="Logo" className="w-full h-full object-cover" />
                             </div>
                             <div>
-                                <h2 className="text-[32px] lg:text-[32px] text-left font-bold text-gray-900 mb-2">
+                                <h2 className="text-[20px] lg:text-[25px] text-left font-bold text-gray-900 mb-2">
                                     Imaginarium Contest ({activeTab} Leaderboard)
                                 </h2>
                                 <p className="text-gray-600 max-w-lg text-left text-sm lg:text-base">
                                     Real-time voting results and comprehensive analytics for all leadership positions. Track live progress and competition insights.
                                 </p>
 
-                                <div className="flex items-center gap-8 mt-4">
+                                <div className="flex items-center gap-8 mt-4 mr-10">
                                     <div>
                                         <span className="text-3xl lg:text-4xl font-bold text-gray-900">{totalVotes}</span>
                                         <span className="text-gray-600 ml-2 text-sm">Votes for ({activeTab} Position)</span>
