@@ -17,6 +17,8 @@ import Editcontest from './Pages/editcontest'
 import Leaderboards from './Pages/Leaderboards'
 import ContestantDetails from './Pages/contestantdetails'
 import Contestant from './Pages/contestant'
+import VotersDetails from './Pages/VotersDetails'
+import Wallet from './Pages/WalletSetup'
 
 function App() {
   // const [count, setCount] = useState(0)
@@ -41,6 +43,8 @@ function App() {
         <Route path="/leaderboards" element={<Leaderboards />} />
         <Route path="/contestantdetails/:position/:contestantId" element={<ContestantDetails />} />
         <Route path="/contestant" element={<Contestant />} />
+        <Route path="/voters-details" element={<VotersDetails />} />
+        <Route path="/wallet" element={<Wallet />} />
       </Routes>
     </Router>
   )
