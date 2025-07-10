@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-// import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import backgroundImage from "../assets/Image.png";
 import Logo from "../assets/Logo.png";
 import { sendOTPLink } from "../actions/userActions";
@@ -33,6 +33,9 @@ const Login = () => {
         .then(async (result) => {
           const user = result.user;
           console.log("✅ Logged in user:", user);
+
+          // Show toast notification on successful login
+          toast.success("Login successful");
 
           // Get Firebase token
           const token = await user.getIdToken();
@@ -85,6 +88,9 @@ const Login = () => {
       );
       const user = result.user;
       // console.log("✅ Google login successful:", user);
+
+      // Show toast notification on successful login
+      toast.success("Login successful");
 
       const token = await user.getIdToken();
 

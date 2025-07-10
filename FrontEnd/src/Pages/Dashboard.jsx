@@ -23,6 +23,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  
+
   const ongoingContests = [
     {
       id: 1,
