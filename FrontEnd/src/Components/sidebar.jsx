@@ -24,6 +24,9 @@ const Sidebar = () => {
   const handleContestClick = () => {
     navigate('/contest');
   };
+  const handleWalletClick = () => {
+    navigate('/mywallet');
+  };
 
   return (
     <>
@@ -82,9 +85,9 @@ const Sidebar = () => {
             </a>
             <a
               href="#"
-              onClick={() => navigate('/wallet')}
+              onClick={handleWalletClick}
               className={`flex items-center px-4 py-3 text-white cursor-pointer ${
-                location.pathname === '/wallet' ? 'bg-teal-800' : 'hover:bg-teal-800'
+                location.pathname === '/mywallet' ? 'bg-teal-800' : 'hover:bg-teal-800'
               }`}
             >
               <CreditCard size={20} className="mr-3" />
