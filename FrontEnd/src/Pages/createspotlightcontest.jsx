@@ -35,7 +35,22 @@ const CreateSpotlightContest = () => {
   // New state for position popup visibility
   const [isPositionPopupOpen, setIsPositionPopupOpen] = useState(false);
 
-  const [positions, setPositions] = useState(createContest?.positions || []);
+  const [positions, setPositions] = useState(
+    createContest?.positions && createContest.positions.length > 0
+      ? createContest.positions
+      : [
+          // {
+          //   name: "",
+          //   voters: [
+          //     // { name: "", email: "" }
+          //   ],
+          //   contestants: [
+          //     // { name: "", email: "", bio: "", imageUrl: "" }
+          //   ],
+          //   description: "",
+          // },
+        ]
+  );
   const [contestants, setContestants] = useState(
     createContest?.contestants || []
   );
@@ -113,20 +128,51 @@ const CreateSpotlightContest = () => {
 
   const onAddContestant = () => {
     if (contestantForm.name.trim() === "") return;
+    setPositions((prev) =>
+      prev.map((pos) =>
+        pos.name === contestantForm.position
+          ? {
+              ...pos,
+              contestants: [
+                ...(Array.isArray(pos.contestants) ? pos.contestants : []),
+                { ...contestantForm, dateId: Date.now() },
+              ],
+            }
+          : pos
+      )
+    );
     setContestants((prev) => [...prev, { ...contestantForm, id: Date.now() }]);
     setCreateContest((prev) => ({
       ...prev,
       contestants: [...contestants, { ...contestantForm, id: Date.now() }],
     }));
-    setContestantForm({ name: "", bio: "", position: "", image: null });
+    setContestantForm({
+      name: "",
+      bio: "",
+      position: "",
+      image: null,
+      email: "",
+    });
   };
 
   const onRemoveContestant = (id) => {
+    setPositions((prev) =>
+      prev.map((pos) =>
+        pos.name === contestantForm.position
+          ? {
+              ...pos,
+              contestants: pos.contestants.filter((c) => c.id !== id),
+            }
+          : pos
+      )
+    );
     setContestants((prev) => prev.filter((c) => c.id !== id));
     setCreateContest((prev) => ({
       ...prev,
       contestants: contestants.filter((c) => c.id !== id),
     }));
+
+    setContestantForm({ name: "", bio: "", position: "", image: null });
   };
 
   const onBulkUpload = (file) => {
@@ -229,6 +275,7 @@ const CreateSpotlightContest = () => {
       onUpdatePosition={onUpdatePosition} // Add this
       onRemovePosition={onRemovePosition} // Add this
       setCreateContest={setCreateContest}
+      setContestantForm={setContestantForm}
     />,
     <ImageUploadStep
       coverImage={coverImage}

@@ -99,7 +99,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex bg-white">
+    <div className="w-full flex bg-white">
       <Sidebar />
       <div className="flex-1 w-full p-6">
         {/* Menu Area Section */}
@@ -150,8 +150,9 @@ const Dashboard = () => {
                   key={contest.id}
                   title={contest.title}
                   image={contest.coverImageUrl}
-                  votes={contest?.votes?.length}
-                  contestants={contest.contestants}
+                  votes={contest?.votes?.length || 0}
+                  contestants={contest.participants?.length || 0}
+                  _id={contest._id} // Pass the contest ID for navigation
                 />
               ))}
           </div>
@@ -176,8 +177,9 @@ const Dashboard = () => {
                   key={contest._id}
                   title={contest.title}
                   image={contest.image}
-                  votes={contest?.votes?.length}
-                  contestants={contest.contestants}
+                  votes={contest?.votes?.length || 0}
+                  contestants={contest.participants?.length || 0}
+                  _id={contest._id} // Pass the contest ID for navigation
                 />
               ))}
           </div>

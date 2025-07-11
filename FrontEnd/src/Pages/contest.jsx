@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from '../Components/sidebar';
 import ContestCard from '../Components/ContestCard';
-import Image1 from '../assets/Rectangle 333.png';
+import Image1 from '../assets/Rectangle_333.png';
 import Image2 from '../assets/22222.png';
 import Image3 from '../assets/33333.png';
 
@@ -10,12 +10,13 @@ const Contest = () => {
 
   const stats = [
     { label: 'Total Contests', value: '25' },
+    {label: 'Upcoming Contest', value: '20'},
     { label: 'Ongoing Contest', value: '15' },
     { label: 'Completed Contest', value: '5' },
-    { label: 'Drafts', value: '5' }
+    { label: 'Drafts', value: '5' },
   ];
 
-  const tabs = ['All', 'Ongoing', 'Completed', 'Drafts'];
+  const tabs = ['All', 'Upcoming', 'Ongoing', 'Completed', 'Drafts', ];
 
   const contests = [
     {
@@ -24,7 +25,7 @@ const Contest = () => {
       image: Image1,
       votes: 50,
       contestants: 10,
-      status: 'Ongoing',
+      status: 'Upcoming',
       gradient: 'from-blue-400 to-purple-500'
     },
     {
@@ -77,12 +78,12 @@ const Contest = () => {
   return (
     <div className="flex">
       <Sidebar />
-      <div className="flex-1 p-6">
+      <div className="p-6">
         {/* Header */}
         <h2 className="text-[30px] text-left font-bold text-gray-900 mb-8">Contest</h2>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           {stats.map((stat, index) => (
             <div key={index} className="bg-gray-200 text-left rounded-xl p-5">
               <h3 className="text-sm font-medium text-gray-600 mb-2">{stat.label}</h3>

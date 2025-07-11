@@ -1,11 +1,5 @@
 import mongoose from "mongoose";
 
-const positionSchema = new mongoose.Schema({
-  name: { type: String },
-  description: { type: String },
-  // Add more fields for position as needed (e.g., description, requirements)
-});
-
 const participantSchema = new mongoose.Schema(
   {
     name: { type: String },
@@ -29,6 +23,30 @@ const voterSchema = new mongoose.Schema(
   },
   { _id: true }
 );
+
+const positionSchema = new mongoose.Schema({
+  name: { type: String },
+  voters: [
+    {
+      name: { type: String },
+      email: { type: String },
+      votedFor: {
+        type: mongoose.Schema.Types.ObjectId,
+      }, // references participant _id
+    },
+  ],
+  contestants: [
+    {
+      name: { type: String },
+      email: { type: String },
+      bio: { type: String },
+      imageUrl: { type: String },
+      position: { type: String }, // Position title
+    },
+    { _id: true },
+  ], // Array of contestants for this position
+  description: { type: String },
+});
 
 const contestSchema = new mongoose.Schema({
   title: { type: String, required: true }, // Contest Name

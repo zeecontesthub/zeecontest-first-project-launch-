@@ -11,6 +11,7 @@ const ContestantDetailsStep = ({
   handleDragOver,
   handleDrop,
   positions,
+  setContestantForm
 }) => {
   return (
     <div className="space-y-8 bg-[#FBF7F7] p-10">
@@ -231,7 +232,10 @@ const ContestantDetailsStep = ({
                       </svg>
                     </button>
                     <button
-                      onClick={() => onRemoveContestant(contestant.id)}
+                      onClick={() => {
+                        setContestantForm(contestant);
+                        onRemoveContestant(contestant.id);
+                      }}
                       className="text-red-400 hover:text-red-600"
                     >
                       <svg
