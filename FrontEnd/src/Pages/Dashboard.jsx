@@ -145,11 +145,12 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {userContests
-              ? userContests
-                  ?.filter((c) => c.status === "upcoming")
-                  ?.map((contest) => <ContestCard contest={contest} />)
-              : ""}
+            {Array.isArray(userContests) &&
+              userContests
+                .filter((c) => c.status === "upcoming")
+                .map((contest) => (
+                  <ContestCard key={contest._id} contest={contest} />
+                ))}
           </div>
         </div>
 
@@ -165,11 +166,12 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {userContests
-              ? userContests
-                  ?.filter((c) => c.status === "draft")
-                  ?.map((contest) => <ContestCard contest={contest} />)
-              : ""}
+            {Array.isArray(userContests) &&
+              userContests
+                .filter((c) => c.status === "draft")
+                .map((contest) => (
+                  <ContestCard key={contest._id} contest={contest} />
+                ))}
           </div>
         </div>
       </div>

@@ -13,12 +13,14 @@ import axios from "axios";
 import { uploadToCloudinary } from "../actions/cloudinaryAction";
 import { toast } from "react-toastify";
 import { useUser } from "../context/UserContext";
+import { set } from "date-fns";
 
 const Editcontest = () => {
   const { user } = useUser();
 
   const { contestId } = useParams();
   const [contest, setContest] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -202,13 +204,18 @@ const Editcontest = () => {
   const handleBrowseClick = () => {
     fileInputRef.current.click();
   };
-
+  const [coverIsUploading, setCoverIsUploading] = useState(false);
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
+
     if (file) {
+      setCoverIsUploading(true);
+      setIsUploading(true);
       const imageFileUrl = URL.createObjectURL(file);
       setCoverImage(imageFileUrl);
       const imgURL = await uploadToCloudinary(file);
+      setIsUploading(false);
+      setCoverIsUploading(false);
       setFormData((prev) => ({
         ...prev,
         coverImageUrl: imgURL,
@@ -221,12 +228,18 @@ const Editcontest = () => {
     logoInputRef.current.click();
   };
 
+  const [logoIsUploading, setLogoIsUploading] = useState(false);
+
   const handleLogoChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
+      setLogoIsUploading(true);
+      setIsUploading(true);
       const imageFileUrl = URL.createObjectURL(file);
       setLogoImage(imageFileUrl);
       const imgURL = await uploadToCloudinary(file);
+      setIsUploading(false);
+      setLogoIsUploading(false);
       setFormData((prev) => ({
         ...prev,
         contestLogoImageUrl: imgURL,
@@ -281,7 +294,7 @@ const Editcontest = () => {
         {/* Header */}
         <div className="flex items-center mb-8 gap-4">
           <button
-            onClick={() => navigate("/contest-details")}
+            onClick={() => navigate(-1)}
             className="p-2 rounded-full hover:bg-gray-200 transition-colors"
             aria-label="Back to Contest Details"
           >
@@ -307,30 +320,57 @@ const Editcontest = () => {
                 <div
                   className="relative h-40 rounded-lg overflow-hidden"
                   style={{
-                    backgroundImage: `url(${coverImage})`,
+                    backgroundImage: `url(${coverImage || BannerImage})`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
+                    opacity: coverIsUploading ? 0.7 : 1,
                   }}
                 >
-                  <div className="absolute inset-0 bg-[#000000]/50 flex flex-col items-center justify-center text-white">
-                    <p className="text-sm mb-3">
-                      Drag and Drop your Cover Image here
-                    </p>
-                    <p className="text-xs mb-4">Or</p>
-                    <button
-                      onClick={handleBrowseClick}
-                      className="bg-orange-500 hover:bg-orange-600 px-6 py-2 rounded text-sm font-medium transition-colors"
-                    >
-                      Browse
-                    </button>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      ref={fileInputRef}
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                  </div>
+                  {coverIsUploading ? (
+                    <div className="flex flex-col items-center space-y-2 animate-pulse h-full justify-center">
+                      <svg
+                        className="w-8 h-8 animate-spin text-teal-300"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v8H4z"
+                        ></path>
+                      </svg>
+                      <p className="text-sm text-teal-300">Uploading...</p>
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0 bg-[#000000]/50 flex flex-col items-center justify-center text-white">
+                      <p className="text-sm mb-3">
+                        Drag and Drop your Cover Image here
+                      </p>
+                      <p className="text-xs mb-4">Or</p>
+                      <button
+                        onClick={handleBrowseClick}
+                        className="bg-orange-500 hover:bg-orange-600 px-6 py-2 rounded text-sm font-medium transition-colors"
+                      >
+                        Browse
+                      </button>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -343,14 +383,42 @@ const Editcontest = () => {
                 </h2>
               </div>
               <div className="p-6">
-                <div className="relative w-24 h-24">
+                <div
+                  className={`${
+                    logoIsUploading ? "opacity-70" : ""
+                  } relative w-24 h-24`}
+                >
                   <div className="w-full h-full bg-white border-2 border-gray-200 rounded-full flex items-center justify-center">
                     <img
                       src={logoImage}
                       alt="Contest Logo"
                       className="w-20 h-20 object-cover rounded-full"
                     />
-                    {console.log(logoImage)}
+                    {logoIsUploading && (
+                      <div className="flex flex-col items-center space-y-2 animate-pulse h-full justify-center absolute">
+                        <svg
+                          className="w-8 h-8 animate-spin text-teal-300"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-45"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-85"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v8H4z"
+                          ></path>
+                        </svg>
+                      </div>
+                    )}
+                    {/* {console.log(logoImage)} */}
                   </div>
                   <button
                     onClick={handleLogoClick}
@@ -364,6 +432,7 @@ const Editcontest = () => {
                     ref={logoInputRef}
                     onChange={handleLogoChange}
                     className="hidden"
+                    disabled={logoIsUploading}
                   />
                 </div>
               </div>
@@ -495,7 +564,7 @@ const Editcontest = () => {
                           );
                         })}
                       </select>
-                      <span>:</span>
+                      <span className="h-full flex place-self-center">:</span>
                       <select
                         value={formData?.startTime?.startTimeMinute || ""}
                         onChange={(e) => {
@@ -577,7 +646,7 @@ const Editcontest = () => {
                           );
                         })}
                       </select>
-                      <span>:</span>
+                      <span className="h-full flex place-self-center">:</span>
                       <select
                         value={formData?.endTime?.endTimeMinute || ""}
                         onChange={(e) => {
@@ -885,7 +954,10 @@ const Editcontest = () => {
               </button>
               <button
                 onClick={onPublishEdit}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-md font-medium transition-colors"
+                disabled={isUploading}
+                className={`${
+                  isUploading ? "opacity-30" : ""
+                } bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-md font-medium transition-colors`}
               >
                 Save
               </button>

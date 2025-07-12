@@ -16,6 +16,7 @@ const CreateSpotlightContest = () => {
   const { user, setUserContests, createContest, setCreateContest } = useUser();
   const [currentStep, setCurrentStep] = useState(0);
   const [isPositionPopupOpen, setIsPositionPopupOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // State for contest positions
   const [positions, setPositions] = useState(
@@ -113,22 +114,39 @@ const CreateSpotlightContest = () => {
     setPositions((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Image upload handlers
+  // Image upload handlers with loading state
   const onFileUpload = async (file, type) => {
-    if (type === "cover") {
+    if (!file) return;
+    try {
+      setIsUploading(true);
+
       const imgURL = await uploadToCloudinary(file);
-      setCreateContest((prev) => ({
-        ...prev,
-        coverImageUrl: imgURL,
-      }));
-      setCoverImage(imgURL);
-    } else if (type === "logo") {
-      const imgURL = await uploadToCloudinary(file);
-      setCreateContest((prev) => ({
-        ...prev,
-        contestLogoImageUrl: imgURL,
-      }));
-      setLogoImage(imgURL);
+      if (!imgURL) {
+        console.error("Failed to upload image to Cloudinary.");
+        // Optionally show a toast here:
+        // toast.error("Image upload failed. Please try again.");
+        return;
+      }
+
+      if (type === "cover") {
+        setCreateContest((prev) => ({
+          ...prev,
+          coverImageUrl: imgURL,
+        }));
+        setCoverImage(imgURL);
+      } else if (type === "logo") {
+        setCreateContest((prev) => ({
+          ...prev,
+          contestLogoImageUrl: imgURL,
+        }));
+        setLogoImage(imgURL);
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      // Optionally show a toast here:
+      // toast.error("Something went wrong while uploading.");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -138,8 +156,29 @@ const CreateSpotlightContest = () => {
   };
 
   const onContestantImageUpload = async (file) => {
-    const imgURL = await uploadToCloudinary(file);
-    setContestantForm((prev) => ({ ...prev, image: imgURL }));
+    if (!file) return;
+    try {
+      setIsUploading(true);
+
+      const imgURL = await uploadToCloudinary(file);
+      if (!imgURL) {
+        console.error("Failed to upload image to Cloudinary.");
+        // Optionally show toast:
+        toast.error("Image upload failed. Please try again.");
+        return;
+      }
+
+      setContestantForm((prev) => ({
+        ...prev,
+        image: imgURL,
+      }));
+    } catch (error) {
+      console.error("Error uploading contestant image:", error);
+      // Optionally show toast:
+      toast.error("Something went wrong while uploading.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const onAddContestant = () => {
@@ -318,6 +357,7 @@ const CreateSpotlightContest = () => {
       coverImage={coverImage}
       logoImage={logoImage}
       onFileUpload={onFileUpload}
+      isUploading={isUploading}
     />,
     <ContestantDetailsStep
       contestantForm={contestantForm}
@@ -330,6 +370,7 @@ const CreateSpotlightContest = () => {
       handleDragOver={handleDragOver}
       handleDrop={handleDrop}
       positions={positions}
+      isUploading={isUploading}
     />,
     <ReviewStep
       coverImage={coverImage}
@@ -405,28 +446,37 @@ const CreateSpotlightContest = () => {
         <div className="flex justify-between mt-8">
           <button
             onClick={saveDraft}
-            className="px-6 py-2 bg-teal-900 text-white rounded-md font-medium hover:bg-blue-600 transition-colors"
+            className={` ${
+              isUploading ? "opacity-30 cursor-not-allowed" : ""
+            } px-6 py-2 bg-teal-900 text-white rounded-md font-medium hover:bg-blue-600 transition-colors`}
+            disabled={isUploading}
           >
             Save as Draft
           </button>
           <div className="flex space-x-4">
             <button
               onClick={prevStep}
-              disabled={currentStep === 0}
+              disabled={isUploading || currentStep === 0}
               className="px-6 py-2 bg-gray-300 text-gray-700 rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400 transition-colors"
             >
               Back
             </button>
             <button
               onClick={currentStep === steps.length - 1 ? onPublish : nextStep}
-              className={`px-6 py-2 rounded-md font-medium transition-colors ${
+              className={`px-6 ${
+                isUploading ? "opacity-30 cursor-not-allowed" : ""
+              } py-2 rounded-md font-medium transition-colors ${
                 currentStep === steps.length - 1
                   ? isFormValid()
                     ? "bg-orange-500 hover:bg-orange-600 text-white"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-orange-500 hover:bg-orange-600 text-white"
               }`}
-              disabled={currentStep === steps.length - 1 && !isFormValid()}
+              disabled={
+                isUploading &&
+                currentStep === steps.length - 1 &&
+                !isFormValid()
+              }
             >
               {currentStep === steps.length - 1 ? "Publish" : "Next"}
             </button>
