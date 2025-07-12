@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 import userRoutes from "./routes/userRoutes.js";
+import contestRoutes from "./routes/contestRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import expressStaticGzip from "express-static-gzip";
@@ -22,6 +23,7 @@ app.use(express.json()); // ✅ Parse JSON before route handling
 
 // ✅ API routes
 app.use("/api/users", userRoutes);
+app.use("/api/contest", contestRoutes);
 
 // ✅ Serve static frontend
 app.use(

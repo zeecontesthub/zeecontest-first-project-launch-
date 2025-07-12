@@ -1,45 +1,70 @@
-import React, { useState, useMemo } from 'react';
-import Sidebar from '../Components/sidebar';
-import BannerImage from '../assets/Rectangle _5189.png';
-import LogoImage from '../assets/Ellipse 20.png';
-import positionData from '../data/positionData';
-import { Edit, Eye, Share2, ChevronLeft, Search, Users, Download, ChevronUp, ChevronDown } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from "react";
+import Sidebar from "../Components/sidebar";
+import BannerImage from "../assets/Rectangle _5189.png";
+import LogoImage from "../assets/Ellipse 20.png";
+import {
+  Edit,
+  Eye,
+  Share2,
+  ChevronLeft,
+  Search,
+  Users,
+  Download,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
+
 const VotersDetails = () => {
-  const totalGlobalVotes = Object.values(positionData).reduce((acc, pos) => acc + pos.votersCount, 0);
-  const totalContestants = Object.values(positionData).reduce((acc, pos) => acc + pos.contestants.length, 0);
-  const navigate = useNavigate();
-
-  const [voterDetails] = useState([
-    { id: 1, fullName: 'John Smith', email: 'john.smith@email.com', votingDate: '2024-07-05' },
-    { id: 2, fullName: 'Sarah Johnson', email: 'sarah.johnson@email.com', votingDate: '2024-07-08' },
-    { id: 3, fullName: 'Michael Brown', email: 'michael.brown@email.com', votingDate: '2024-07-03' },
-    { id: 4, fullName: 'Emily Davis', email: 'emily.davis@email.com', votingDate: '2024-07-09' },
-    { id: 5, fullName: 'David Wilson', email: 'david.wilson@email.com', votingDate: '2024-07-01' },
-    { id: 6, fullName: 'Lisa Anderson', email: 'lisa.anderson@email.com', votingDate: '2024-07-07' },
-    { id: 7, fullName: 'Lissssa Ajjnderson', email: 'iilisa.anderson@email.com', votingDate: '2024-08-09' },
-  ]);
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState('fullName');
-  const [sortDirection, setSortDirection] = useState('asc');
+  const { contestId } = useParams();
+  const [contest, setContest] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortField, setSortField] = useState("name");
+  const [sortDirection, setSortDirection] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchContest = async () => {
+      try {
+        const res = await axios.get(`/api/contest/${contestId}`);
+        setContest(res.data.contest);
+      } catch (err) {
+        console.error("Failed to fetch contest:", err);
+      }
+    };
+    if (contestId) fetchContest();
+  }, [contestId]);
+
+  // Get voters from contest state
+  const voterDetails = useMemo(
+    () =>
+      contest?.voters?.map((voter) => ({
+        id: voter._id,
+        name: voter.name,
+        email: voter.email,
+        votingDate:
+          new Date(voter.votingDate).toLocaleDateString("en-US") || "", // adjust field name if needed
+      })) || [],
+    [contest]
+  );
 
   // Filtered and sorted data
   const filteredData = useMemo(() => {
-    let filtered = voterDetails.filter(voter => {
-      const matchesSearch = voter.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        voter.email.toLowerCase().includes(searchTerm.toLowerCase());
+    let filtered = voterDetails.filter((voter) => {
+      const matchesSearch =
+        voter.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        voter.email?.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesSearch;
     });
 
     // Sort data
     filtered.sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
-
-      if (sortDirection === 'asc') {
+      const aValue = a[sortField] || "";
+      const bValue = b[sortField] || "";
+      if (sortDirection === "asc") {
         return aValue.localeCompare(bValue);
       } else {
         return bValue.localeCompare(aValue);
@@ -52,23 +77,30 @@ const VotersDetails = () => {
   // Pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedData = filteredData.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
   const handleSort = (field) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortDirection('asc');
+      setSortDirection("asc");
     }
   };
 
   const SortIcon = ({ field }) => {
-    if (sortField !== field) return <ChevronUp className="w-4 h-4 opacity-30" />;
-    return sortDirection === 'asc' ?
-      <ChevronUp className="w-4 h-4 text-blue-600" /> :
-      <ChevronDown className="w-4 h-4 text-blue-600" />;
+    if (sortField !== field)
+      return <ChevronUp className="w-4 h-4 opacity-30" />;
+    return sortDirection === "asc" ? (
+      <ChevronUp className="w-4 h-4 text-blue-600" />
+    ) : (
+      <ChevronDown className="w-4 h-4 text-blue-600" />
+    );
   };
+
   return (
     <div className="flex min-h-screen">
       <Sidebar />
@@ -77,20 +109,22 @@ const VotersDetails = () => {
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
-            onClick={() => navigate('/contest-details')}
+            onClick={() => navigate("/contest-details")}
             className="p-2 rounded-full hover:bg-gray-200 transition-colors"
             aria-label="Back to Contest Details"
           >
             <ChevronLeft size={24} />
           </button>
-          <h2 className="text-[30px] text-left font-bold text-gray-900 mb-0">Voters Details</h2>
+          <h2 className="text-[30px] text-left font-bold text-gray-900 mb-0">
+            Voters Details
+          </h2>
         </div>
 
-        <div>
+        <div className="relative mb-2  h-65">
           <img
-            src={BannerImage}
+            src={contest?.coverImageUrl || BannerImage}
             alt="Contest Banner"
-            className='w-full'
+            className="w-full object-cover rounded-lg h-full absolute inset-0"
           />
         </div>
 
@@ -99,28 +133,41 @@ const VotersDetails = () => {
             {/* Left Section - Logo and Content */}
             <div className="flex items-center gap-6">
               {/* Logo */}
-              <div className=" rounded-full flex items-center justify-center border-4 border-black overflow-hidden -mt-5 ml-">
-                <img src={LogoImage} alt="Logo" className="w-full h-full object-cover" />
+              <div className="h-50 w-50 rounded-full flex items-center justify-center border-4 border-black overflow-hidden -mt-5 ml-5 mb-4">
+                <img
+                  src={contest?.contestLogoImageUrl || LogoImage}
+                  alt="Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
 
               {/* Content */}
               <div>
                 <h2 className="text-[32px] lg:text-[32px] text-left font-bold text-gray-900 mb-2">
-                  Imaginarium Contest
+                  {contest?.title || "Contest Name"}
                 </h2>
                 <p className="text-gray-600 max-w-lg text-left text-sm lg:text-base">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                  {contest?.description ||
+                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."}
                 </p>
 
                 {/* Stats */}
                 <div className="flex items-center gap-8 mt-4">
                   <div>
-                    <span className="text-3xl lg:text-4xl font-bold text-gray-900">{totalGlobalVotes}</span>
-                    <span className="text-gray-600 ml-2 text-sm">Total Votes</span>
+                    <span className="text-3xl lg:text-4xl font-bold text-gray-900">
+                      {contest?.voters?.length || 0}
+                    </span>
+                    <span className="text-gray-600 ml-2 text-sm">
+                      Total Votes
+                    </span>
                   </div>
                   <div>
-                    <span className="text-3xl lg:text-4xl font-bold text-gray-900">{totalContestants}</span>
-                    <span className="text-gray-600 ml-2 text-sm">Contestant</span>
+                    <span className="text-3xl lg:text-4xl font-bold text-gray-900">
+                      {contest?.participants?.length || 0}
+                    </span>
+                    <span className="text-gray-600 ml-2 text-sm">
+                      Contestant
+                    </span>
                   </div>
                 </div>
               </div>
@@ -129,7 +176,7 @@ const VotersDetails = () => {
             {/* Right Section - Action Buttons */}
             <div className="flex flex-col gap-3 min-w-fit">
               <button
-                onClick={() => navigate('/edit-contest')}
+                onClick={() => navigate("/edit-contest")}
                 className="flex items-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium"
               >
                 <Edit size={16} />
@@ -151,8 +198,10 @@ const VotersDetails = () => {
                     <div className="p-2 bg-blue-100 rounded-xl">
                       <Users className="w-6 h-6 text-blue-600" />
                     </div>
-                    <div className='text-left'>
-                      <h2 className="text-md font-bold text-gray-900">Voters Details</h2>
+                    <div className="text-left">
+                      <h2 className="text-md font-bold text-gray-900">
+                        Voters Details
+                      </h2>
                       <p className="text-gray-600 text-sm">
                         {filteredData.length} of {voterDetails.length} voters
                       </p>
@@ -192,16 +241,16 @@ const VotersDetails = () => {
                       <tr>
                         <th
                           className="text-left py-4 px-6 font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
-                          onClick={() => handleSort('fullName')}
+                          onClick={() => handleSort("name")}
                         >
                           <div className="flex  items-center gap-2">
                             Full Name
-                            <SortIcon field="fullName" />
+                            <SortIcon field="name" />
                           </div>
                         </th>
                         <th
                           className="text-left py-4 px-6 font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
-                          onClick={() => handleSort('email')}
+                          onClick={() => handleSort("email")}
                         >
                           <div className="flex items-center gap-2">
                             Email Address
@@ -215,20 +264,26 @@ const VotersDetails = () => {
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {paginatedData.length > 0 ? (
-                        paginatedData.map((voter, index) => (
+                        paginatedData.map((voter) => (
                           <tr
-                            key={voter.id}
+                            key={voter?.id}
                             className="hover:bg-gray-50 transition-colors group"
                           >
                             <td className="py-4 px-6">
-                              <div className="font-medium text-gray-900">{voter.fullName}</div>
+                              <div className="font-medium text-gray-900">
+                                {voter.name}
+                              </div>
                             </td>
                             <td className="py-4 px-6">
                               <div className="text-gray-600">{voter.email}</div>
                             </td>
                             <td className="py-4 px-6">
                               <div className="text-gray-600">
-                                {new Date(voter.votingDate).toLocaleDateString()}
+                                {voter.votingDate
+                                  ? new Date(
+                                      voter.votingDate
+                                    ).toLocaleDateString()
+                                  : "--"}
                               </div>
                             </td>
                           </tr>
@@ -241,8 +296,12 @@ const VotersDetails = () => {
                                 <Users className="w-8 h-8 text-gray-400" />
                               </div>
                               <div>
-                                <h3 className="text-lg font-medium text-gray-900">No voters found</h3>
-                                <p className="text-gray-500">Try adjusting your search or filter criteria</p>
+                                <h3 className="text-lg font-medium text-gray-900">
+                                  No voters found
+                                </h3>
+                                <p className="text-gray-500">
+                                  Try adjusting your search or filter criteria
+                                </p>
                               </div>
                             </div>
                           </td>
@@ -256,30 +315,39 @@ const VotersDetails = () => {
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between px-6 py-4 bg-gray-50 border-t border-gray-200">
                     <div className="text-sm text-gray-700">
-                      Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredData.length)} of {filteredData.length} results
+                      Showing {startIndex + 1} to{" "}
+                      {Math.min(startIndex + itemsPerPage, filteredData.length)}{" "}
+                      of {filteredData.length} results
                     </div>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        onClick={() =>
+                          setCurrentPage(Math.max(1, currentPage - 1))
+                        }
                         disabled={currentPage === 1}
                         className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
                         Previous
                       </button>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`px-3 py-1 text-sm border rounded-md transition-colors ${currentPage === page
-                              ? 'bg-orange-600 text-white border-blue-600'
-                              : 'border-gray-300 hover:bg-gray-100'
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                        (page) => (
+                          <button
+                            key={page}
+                            onClick={() => setCurrentPage(page)}
+                            className={`px-3 py-1 text-sm border rounded-md transition-colors ${
+                              currentPage === page
+                                ? "bg-orange-600 text-white border-blue-600"
+                                : "border-gray-300 hover:bg-gray-100"
                             }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
+                          >
+                            {page}
+                          </button>
+                        )
+                      )}
                       <button
-                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                        onClick={() =>
+                          setCurrentPage(Math.min(totalPages, currentPage + 1))
+                        }
                         disabled={currentPage === totalPages}
                         className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
@@ -291,7 +359,6 @@ const VotersDetails = () => {
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>
