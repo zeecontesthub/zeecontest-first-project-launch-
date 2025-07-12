@@ -387,7 +387,7 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
               {/* Content */}
               <div>
                 <h2 className="text-[32px] lg:text-[32px] text-left font-bold text-gray-900 mb-2">
-                  {contest?.Contest || "Contest Name"}
+                  {contest?.title || "Contest Name"}
                 </h2>
                 <p className="text-gray-600 max-w-lg text-left text-sm lg:text-base">
                   {contest?.description ||
