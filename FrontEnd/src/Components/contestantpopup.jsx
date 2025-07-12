@@ -13,13 +13,14 @@ const ContestantPopup = ({
   isOpen,
   onClose,
   onAddContestant,
-  positions = positions || defaultPositions,
+  positions = defaultPositions,
 }) => {
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
   const [bio, setBio] = useState("");
   const [email, setEmail] = useState("");
   const [imageFile, setImageFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -37,9 +38,15 @@ const ContestantPopup = ({
 
   const handleFileChange = async (e) => {
     if (e.target.files && e.target.files[0]) {
-      setImageFile(e.target.files[0]);
-      const imgURL = await uploadToCloudinary(e.target.files[0]);
-      setImageFile(imgURL);
+      setIsUploading(true);
+      try {
+        const imgURL = await uploadToCloudinary(e.target.files[0]);
+        setImageFile(imgURL);
+      } catch (error) {
+        console.error("Upload failed:", error);
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
@@ -47,7 +54,7 @@ const ContestantPopup = ({
 
   return (
     <div className="fixed inset-0 bg-[#000000]/50 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96">
+      <div className="bg-white rounded-lg p-6 w-96 relative">
         <h2 className="text-lg font-semibold mb-4">Add Contestant</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -58,6 +65,7 @@ const ContestantPopup = ({
               onChange={(e) => setName(e.target.value)}
               className="w-full border border-gray-300 rounded px-3 py-2"
               required
+              disabled={isUploading}
             />
           </div>
           <div>
@@ -67,6 +75,7 @@ const ContestantPopup = ({
               onChange={(e) => setPosition(e.target.value)}
               className="w-full border border-gray-300 rounded px-3 py-2"
               required
+              disabled={isUploading}
             >
               <option value="">Select position</option>
               {positions.map((pos) => (
@@ -83,6 +92,7 @@ const ContestantPopup = ({
               onChange={(e) => setBio(e.target.value)}
               className="w-full border border-gray-300 rounded px-3 py-2"
               rows={3}
+              disabled={isUploading}
             />
           </div>
           <div>
@@ -92,7 +102,7 @@ const ContestantPopup = ({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full border border-gray-300 rounded px-3 py-2"
-              rows={3}
+              disabled={isUploading}
             />
           </div>
           <div>
@@ -103,18 +113,34 @@ const ContestantPopup = ({
               <input
                 type="text"
                 readOnly
-                value={imageFile ? imageFile.name : ""}
+                value={
+                  isUploading
+                    ? "Uploading..."
+                    : imageFile
+                    ? typeof imageFile === "string"
+                      ? imageFile.split("/").pop()
+                      : imageFile.name
+                    : ""
+                }
                 placeholder="No file chosen"
-                className="w-full border border-gray-300 rounded px-3 py-3 pr-28"
+                className={`w-full border border-gray-300 rounded px-3 py-3 pr-28 ${
+                  isUploading ? "text-gray-400 italic" : ""
+                }`}
               />
               <button
                 type="button"
                 onClick={() =>
+                  !isUploading &&
                   document.getElementById("image-upload-input").click()
                 }
-                className="absolute right-1 top-1 bottom-1 px-4 py-2 rounded bg-orange-500 text-white hover:bg-orange-600"
+                disabled={isUploading}
+                className={`absolute right-1 top-1 bottom-1 px-4 py-2 rounded ${
+                  isUploading
+                    ? "bg-orange-300 cursor-not-allowed"
+                    : "bg-orange-500 hover:bg-orange-600 text-white"
+                } transition-colors`}
               >
-                Upload
+                {isUploading ? "Uploading..." : "Upload"}
               </button>
               <input
                 id="image-upload-input"
@@ -129,15 +155,25 @@ const ContestantPopup = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400"
+              disabled={isUploading}
+              className={`px-4 py-2 rounded ${
+                isUploading
+                  ? "bg-gray-300 cursor-not-allowed"
+                  : "bg-gray-300 hover:bg-gray-400"
+              }`}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded bg-orange-500 text-white hover:bg-orange-600"
+              disabled={isUploading}
+              className={`px-4 py-2 rounded ${
+                isUploading
+                  ? "bg-orange-300 cursor-not-allowed"
+                  : "bg-orange-500 text-white hover:bg-orange-600"
+              }`}
             >
-              Add
+              {isUploading ? "Please wait..." : "Add"}
             </button>
           </div>
         </form>

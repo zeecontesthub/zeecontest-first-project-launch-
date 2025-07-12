@@ -3,10 +3,12 @@ import Sidebar from "../Components/sidebar";
 import { uploadToCloudinary } from "../actions/cloudinaryAction"; // Adjust the import path as necessary
 import { useUser } from "../context/UserContext";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const { setUser, user } = useUser();
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     organizationName: user?.orgName || "",
@@ -27,6 +29,11 @@ const SettingsPage = () => {
 
   const handleFileChange = async (e) => {
     e.preventDefault();
+    if (!e.target.files || e.target.files.length === 0) {
+      console.error("No file selected");
+      return;
+    }
+    setIsLoading(true);
 
     const file = e.target.files[0];
     setFormData((prev) => ({
@@ -36,7 +43,7 @@ const SettingsPage = () => {
     const imgURL = await uploadToCloudinary(file);
 
     if (!imgURL) {
-      console.error("Image upload failed");
+      toast.error("Image upload failed");
       return;
     }
 
@@ -45,6 +52,8 @@ const SettingsPage = () => {
       ...prev,
       organizationImageUrl: imgURL,
     }));
+
+    setIsLoading(false);
 
     console.log("Image uploaded. URL:", imgURL);
   };
@@ -81,13 +90,14 @@ const SettingsPage = () => {
       // Update user context with new data
       if (res.data && res.data.user) {
         setUser(res.data.user);
-
+        toast.success("Profile updated successfully!");
         setIsEditing(false);
       }
 
       console.log("Profile data saved:", res.data.user);
     } catch (err) {
       console.error("Failed to update profile:", err);
+      toast.error("Failed to update profile. Please try again.");
       // Optionally show error to user
     }
   };
@@ -127,7 +137,7 @@ const SettingsPage = () => {
           <form onSubmit={handleSaveClick} className="max-w-xl">
             <div className="mb-6 flex flex-col items-center">
               <div className="relative w-32 h-32 justify-left mb-4 mr-5 cursor-pointer">
-                {formData.organizationImageUrl ? (
+                {!isLoading && formData.organizationImageUrl ? (
                   <>
                     <img
                       src={
@@ -150,7 +160,7 @@ const SettingsPage = () => {
                       &times;
                     </button>
                   </>
-                ) : (
+                ) : !isLoading && !formData.organizationImageUrl ? (
                   <div
                     className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 border border-gray-300"
                     onClick={() =>
@@ -159,7 +169,41 @@ const SettingsPage = () => {
                   >
                     Click to add image
                   </div>
+                ) : (
+                  <>
+                    <>
+                      <img
+                        src={
+                          formData.organizationLogo
+                            ? URL.createObjectURL(formData.organizationLogo)
+                            : formData.organizationImageUrl
+                        }
+                        alt="Organization Logo"
+                        className="w-32 h-32 rounded-full object-cover border border-gray-300"
+                        onClick={() =>
+                          document
+                            .getElementById("organizationLogoInput")
+                            .click()
+                        }
+                      />
+                      <button
+                        type="button"
+                        onClick={handleDeleteImage}
+                        className="absolute top-0 right-0 bg-red-600 text-white rounded-full p-1 hover:bg-red-700"
+                        title="Delete Image"
+                      >
+                        &times;
+                      </button>
+                    </>
+                    <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-full">
+                      <div className="flex flex-col items-center space-y-2">
+                        <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-white text-sm">Uploading...</span>
+                      </div>
+                    </div>
+                  </>
                 )}
+
                 <input
                   type="file"
                   id="organizationLogoInput"
@@ -246,15 +290,13 @@ const SettingsPage = () => {
                     />
                   </div>
                 )}
-
-                {isEditing && (
-                  <button
-                    type="submit"
-                    className="bg-teal-600 text-white font-semibold py-2 px-4 rounded hover:bg-teal-700 transition"
-                  >
-                    Save
-                  </button>
-                )}
+                <button
+                  type="submit"
+                  className={`${isLoading ? "opacity-30" : ""} bg-teal-600 text-white font-semibold py-2 px-4 rounded hover:bg-teal-700 transition`}
+                  disabled={isLoading}
+                >
+                  Save
+                </button>
               </div>
             </div>
           </form>
