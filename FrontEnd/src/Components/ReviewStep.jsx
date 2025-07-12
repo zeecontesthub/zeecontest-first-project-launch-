@@ -6,8 +6,9 @@ const ReviewStep = ({
   formData,
   contestants,
   onEditStep,
+  // eslint-disable-next-line no-unused-vars
+  onPublish,
 }) => {
-  //   const { createContest } = useUser();
   return (
     <div className="space-y-8 bg-[#FBF7F7] p-10">
       {/* Cover Image Section */}
@@ -72,21 +73,21 @@ const ReviewStep = ({
           <h2 className="text-lg font-semibold">Basic Contest Information</h2>
           <button
             className="text-teal-600 hover:text-black"
-            onClick={() => onEditStep(2)}
+            onClick={() => onEditStep(0)}
           >
             Edit
           </button>
         </div>
         <div className="bg-gray-50 p-4 rounded-lg">
-          <div className="mb-4">
-            <label className="block text-sm text-left font-medium text-gray-700 mb-1">
+          <div className="mb-4 text-left ">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Contest Name
             </label>
             <p className="bg-white p-2 rounded border border-gray-200">
               {formData.contestName || "Not specified"}
             </p>
           </div>
-          <div className="mb-4">
+          <div className="mb-4 text-left ">
             <label className="block text-sm text-left font-medium text-gray-700 mb-1">
               Contest Description
             </label>
@@ -94,7 +95,7 @@ const ReviewStep = ({
               {formData.contestDescription || "Not specified"}
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 text-left ">
             <div>
               <label className="block text-sm text-left font-medium text-gray-700 mb-1">
                 Start Date
@@ -112,18 +113,17 @@ const ReviewStep = ({
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4 mt-4">
+          <div className="grid grid-cols-2 gap-4 mt-4 text-left ">
             <div>
               <label className="block text-sm text-left font-medium text-gray-700 mb-1">
                 Start Time
               </label>
-              <p className="bg-white p-2  rounded border border-gray-200">
-                {formData?.startTime.startTimeHour +
-                  ":" +
-                  formData?.startTime.startTimeMinute +
-                  " " +
-                  (formData?.startTime.startTimeAmPm || "AM") ||
-                  "Not specified"}
+              <p className="bg-white p-2 rounded border border-gray-200">
+                {formData.startTime
+                  ? `${formData?.startTime.startTimeHour || "--"}:${
+                      formData?.startTime.startTimeMinute || "--"
+                    } ${formData?.startTime.startTimeAmPm || "AM"}`
+                  : "Not specified"}
               </p>
             </div>
             <div>
@@ -131,24 +131,62 @@ const ReviewStep = ({
                 End Time
               </label>
               <p className="bg-white p-2 rounded border border-gray-200">
-                {formData.endTime.endTimeHour +
-                  ":" +
-                  formData.endTime.endTimeMinute +
-                  " " +
-                  (formData.endTime.endTimeAmPm || "AM") || "Not specified"}
+                {formData.endTime
+                  ? `${formData?.endTime.endTimeHour || "--"}:${
+                      formData?.endTime.endTimeMinute || "--"
+                    } ${formData?.endTime.endTimeAmPm || "AM"}`
+                  : "Not specified"}
               </p>
             </div>
+          </div>
+
+          {/* Payment Setup */}
+          <div className="mt-6 text-left ">
+            <label className="block text-sm text-left font-medium text-gray-700 mb-1">
+              Is this a paid contest?
+            </label>
+            <p className="bg-white p-2 rounded border border-gray-200">
+              {formData?.payment.isPaid === true
+                ? "Yes"
+                : formData.payment.isPaid === false
+                ? "No"
+                : "Not specified"}
+            </p>
+          </div>
+          {formData?.payment.isPaid === true && (
+            <div className="mt-4 text-left ">
+              <label className="block text-sm text-left font-medium text-gray-700 mb-1">
+                Amount each voter should pay
+              </label>
+              <p className="bg-white p-2 rounded border border-gray-200">
+                {formData?.payment.amount || "Not specified"}
+              </p>
+            </div>
+          )}
+
+          {/* Voters Setting */}
+          <div className="mt-6 text-left ">
+            <label className="block text-sm text-left font-medium text-gray-700 mb-1">
+              Allow multiple votes
+            </label>
+            <p className="bg-white p-2 rounded border border-gray-200">
+              {formData.allowMultipleVotes === true
+                ? "Yes"
+                : formData.allowMultipleVotes === false
+                ? "No"
+                : "Not specified"}
+            </p>
           </div>
         </div>
       </div>
 
       {/* Contestant List */}
-      <div className="mb-8">
+      <div className="mb-8 text-left ">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Contestant List</h2>
           <button
             className="text-teal-600 hover:text-black"
-            onClick={() => onEditStep(3)}
+            onClick={() => onEditStep(2)}
           >
             Edit
           </button>

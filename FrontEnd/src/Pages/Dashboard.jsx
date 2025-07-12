@@ -25,17 +25,16 @@ const ContestTypeOption = ({ icon, title, onClick }) => {
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, setUserContests, userContests } = useUser(); // get user from context
+  const { user, setUserContests, userContests, setCreateContest } = useUser(); // get user from context
 
   useEffect(() => {
     const fetchContests = async () => {
       if (!user?._id) return;
       // Only fetch if userContests is empty
-      if (userContests && userContests.length > 0) return;
+      // if (userContests && userContests.length > 0) return;
 
       try {
         const res = await axios.get(`/api/contest/organizer/${user._id}`);
-        console.log(res);
         const allContests = res.data.contests || [];
         // Optionally update userContests in context
         setUserContests(allContests);
@@ -101,7 +100,7 @@ const Dashboard = () => {
   return (
     <div className="w-full flex bg-white">
       <Sidebar />
-      <div className="flex-1 w-full p-6">
+      <div className="flex-1 w-full p-6 ml-20">
         {/* Menu Area Section */}
         <div className="w-full bg-teal-900 rounded-lg p-6 mb-8">
           {/* Top right notification bell */}
@@ -126,7 +125,10 @@ const Dashboard = () => {
             <ContestTypeOption
               icon={<Target className="h-8 w-8 text-white" />}
               title="Spotlight"
-              onClick={handleSpotlightClick}
+              onClick={() => {
+                setCreateContest([]);
+                handleSpotlightClick();
+              }}
             />
           </div>
         </div>
@@ -135,7 +137,7 @@ const Dashboard = () => {
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center">
-              <h2 className="text-xl font-bold ml-2">Ongoing Contest</h2>
+              <h2 className="text-xl font-bold ml-2">Upcoming Contest</h2>
             </div>
             <a href="#" className="text-teal-600 hover:underline">
               View All
@@ -144,17 +146,10 @@ const Dashboard = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {userContests
-              .filter((c) => c.status !== "completed")
-              .map((contest) => (
-                <ContestCard
-                  key={contest.id}
-                  title={contest.title}
-                  image={contest.coverImageUrl}
-                  votes={contest?.votes?.length || 0}
-                  contestants={contest.participants?.length || 0}
-                  _id={contest._id} // Pass the contest ID for navigation
-                />
-              ))}
+              ? userContests
+                  ?.filter((c) => c.status === "upcoming")
+                  ?.map((contest) => <ContestCard contest={contest} />)
+              : ""}
           </div>
         </div>
 
@@ -162,7 +157,7 @@ const Dashboard = () => {
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center">
-              <h2 className="text-xl font-bold ml-2">Completed Contest</h2>
+              <h2 className="text-xl font-bold ml-2">Draft Contest</h2>
             </div>
             <a href="#" className="text-teal-600 hover:underline">
               View All
@@ -171,17 +166,10 @@ const Dashboard = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {userContests
-              .filter((c) => c.status === "completed")
-              .map((contest) => (
-                <ContestCard
-                  key={contest._id}
-                  title={contest.title}
-                  image={contest.image}
-                  votes={contest?.votes?.length || 0}
-                  contestants={contest.participants?.length || 0}
-                  _id={contest._id} // Pass the contest ID for navigation
-                />
-              ))}
+              ? userContests
+                  ?.filter((c) => c.status === "draft")
+                  ?.map((contest) => <ContestCard contest={contest} />)
+              : ""}
           </div>
         </div>
       </div>

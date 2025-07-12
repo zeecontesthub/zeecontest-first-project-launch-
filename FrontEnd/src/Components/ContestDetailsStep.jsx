@@ -26,7 +26,7 @@ const ContestDetailsStep = ({
       {/* Basic Content Information */}
       <div className="bg-[#FBF7F7] p-10">
         <div>
-          <h2 className="text-xl text-left font-semiboldtext-gray-900 mb-6">
+          <h2 className="text-xl text-left font-semibold text-gray-900 mb-6">
             Basic Content Information
           </h2>
 
@@ -79,8 +79,9 @@ const ContestDetailsStep = ({
                 </label>
                 <DatePicker
                   selected={
-                    formData.startDate ? new Date(formData.startDate) : null
+                    formData.startDate ? formData.startDate : null
                   }
+                  // value={formData?.startDate?.split("T")[0]}
                   onChange={(date) => {
                     onInputChange(
                       "startDate",
@@ -103,8 +104,9 @@ const ContestDetailsStep = ({
                 </label>
                 <DatePicker
                   selected={
-                    formData.endDate ? new Date(formData.endDate) : null
+                    formData.endDate ? formData.endDate : null
                   }
+                  // value={formData.endDate?.split("T")[0]}
                   onChange={(date) => {
                     onInputChange(
                       "endDate",
@@ -135,7 +137,7 @@ const ContestDetailsStep = ({
                 </label>
                 <div className="flex space-x-2">
                   <select
-                    value={formData?.startTime.startTimeHour || ""}
+                    value={formData?.startTime?.startTimeHour || ""}
                     onChange={(e) => {
                       onInputChange("startTime", {
                         ...formData.startTime,
@@ -163,7 +165,7 @@ const ContestDetailsStep = ({
                   </select>
                   <span>:</span>
                   <select
-                    value={formData.startTime.startTimeMinute || ""}
+                    value={formData?.startTime?.startTimeMinute || ""}
                     onChange={(e) => {
                       onInputChange("startTime", {
                         ...formData.startTime,
@@ -190,7 +192,7 @@ const ContestDetailsStep = ({
                     })}
                   </select>
                   <select
-                    value={formData.startTime.startTimeAmPm || "AM"}
+                    value={formData?.startTime?.startTimeAmPm || "AM"}
                     onChange={(e) => {
                       onInputChange("startTime", {
                         ...formData.startTime,
@@ -217,7 +219,7 @@ const ContestDetailsStep = ({
                 </label>
                 <div className="flex space-x-2">
                   <select
-                    value={formData.endTime.endTimeHour || ""}
+                    value={formData?.endTime?.endTimeHour || ""}
                     onChange={(e) => {
                       onInputChange("endTime", {
                         ...formData.endTime,
@@ -245,7 +247,7 @@ const ContestDetailsStep = ({
                   </select>
                   <span>:</span>
                   <select
-                    value={formData.endTime.endTimeMinute || ""}
+                    value={formData?.endTime?.endTimeMinute || ""}
                     onChange={(e) => {
                       onInputChange("endTime", {
                         ...formData.endTime,
@@ -272,7 +274,7 @@ const ContestDetailsStep = ({
                     })}
                   </select>
                   <select
-                    value={formData.endTime.endTimeAmPm || "AM"}
+                    value={formData?.endTime?.endTimeAmPm || "AM"}
                     onChange={(e) => {
                       onInputChange("endTime", {
                         ...formData.endTime,
@@ -298,8 +300,8 @@ const ContestDetailsStep = ({
         </div>
 
         {/* Position Setup */}
-        <div>
-          <div className="flex items-center text-left justify-between mb-6 mt-10">
+        <div className="bg-[#FBF7F7] p-10 mt-10 rounded-md">
+          <div className="flex items-center text-left justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">
               Position Setup
             </h2>
@@ -400,10 +402,10 @@ const ContestDetailsStep = ({
                         <div className="text-gray-600">
                           {position.description}
                         </div>
-                        <div className="flex  space-x-4">
+                        <div className="flex space-x-4">
                           <button
                             onClick={() => handleEditClick(index)}
-                            className="text-gray-400 ml-20 hover:text-gray-600"
+                            className="text-gray-400 hover:text-gray-600"
                             aria-label="Edit position"
                           >
                             <svg
@@ -447,6 +449,139 @@ const ContestDetailsStep = ({
               </div>
             </div>
           )}
+        </div>
+
+        {/* Paid Contest Section */}
+        <div className="bg-[#FBF7F7] p-10 mt-10 rounded-md">
+          <h2 className="text-xl font-semibold text-gray-900 text-left mb-4">
+            Payment Setup
+          </h2>
+          <div className="flex items-center space-x-6">
+            <span className="text-sm font-medium text-gray-700">
+              Is this a paid contest?
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                onInputChange("payment", { ...formData.payment, isPaid: true });
+                setCreateContest((prev) => ({
+                  ...prev,
+                  payment: {
+                    ...prev.payment,
+                    isPaid: true,
+                  },
+                }));
+              }}
+              className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
+                formData.payment?.isPaid === true
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              Yes
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onInputChange("payment", {
+                  ...formData.payment,
+                  isPaid: false,
+                });
+                setCreateContest((prev) => ({
+                  ...prev,
+                  payment: {
+                    ...prev.payment,
+                    isPaid: false,
+                  },
+                }));
+              }}
+              className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
+                formData.payment?.isPaid === false
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              No
+            </button>
+          </div>
+          {formData?.payment?.isPaid && (
+            <div className="mt-4">
+              <label
+                htmlFor="voterFee"
+                className="block text-sm font-medium text-left text-gray-700 mb-2"
+              >
+                Amount each voter should pay
+              </label>
+              <input
+                id="voterFee"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData?.payment?.amount || ""}
+                onChange={(e) => {
+                  onInputChange("payment", {
+                    ...formData.payment,
+                    amount: e.target.value,
+                  });
+                  setCreateContest((prev) => ({
+                    ...prev,
+                    payment: {
+                      ...prev.payment,
+                      amount: e.target.value,
+                    },
+                  }));
+                }}
+                placeholder="Enter amount"
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Voters Setting Section */}
+        <div className="bg-[#FBF7F7] p-10 mt-10 rounded-md">
+          <h2 className="text-xl font-semibold text-gray-900 text-left mb-4">
+            Voters Setting
+          </h2>
+          <div className="flex items-center space-x-6">
+            <span className="text-sm font-medium text-gray-700">
+              Allow multiple votes
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                onInputChange("allowMultipleVotes", true);
+                setCreateContest((prev) => ({
+                  ...prev,
+                  allowMultipleVotes: true,
+                }));
+              }}
+              className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
+                formData.allowMultipleVotes
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              Yes
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onInputChange("allowMultipleVotes", false);
+                setCreateContest((prev) => ({
+                  ...prev,
+                  allowMultipleVotes: false,
+                }));
+              }}
+              className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
+                formData.allowMultipleVotes === false
+                  ? "bg-orange-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              No
+            </button>
+          </div>
         </div>
       </div>
     </div>

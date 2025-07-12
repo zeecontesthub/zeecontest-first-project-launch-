@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+/* eslint-disable no-unused-vars */
+import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../Components/sidebar";
 import BannerImage from "../assets/Rectangle _5189.png";
 import LogoImage from "../assets/Ellipse 20.png";
@@ -27,8 +27,8 @@ import {
   LinearScale,
   BarElement,
 } from "chart.js";
-
 import positionData from "../data/positionData";
+import axios from "axios";
 
 ChartJS.register(
   ArcElement,
@@ -39,7 +39,6 @@ ChartJS.register(
   BarElement
 );
 
-// Enhanced vote distribution with more realistic patterns
 const distributeVotes = (totalVotes, contestants) => {
   const votes = [];
   let remainingVotes = totalVotes;
@@ -67,31 +66,73 @@ const distributeVotes = (totalVotes, contestants) => {
 };
 
 const Leaderboards = () => {
+  const { contestId } = useParams();
+  const [contest, setContest] = useState(null);
+  const [activeTab, setActiveTab] = useState("");
   const navigate = useNavigate();
 
-  const tabs = Object.keys(positionData);
-  const [activeTab, setActiveTab] = useState(tabs[0]);
+  useEffect(() => {
+    const fetchContest = async () => {
+      try {
+        const res = await axios.get(`/api/contest/${contestId}`);
+        setContest(res.data.contest);
+        // Set first position as default tab
+        if (
+          res.data.contest.positions &&
+          res.data.contest.positions.length > 0
+        ) {
+          setActiveTab(res.data.contest.positions[0].name);
+        }
+      } catch (err) {
+        console.error("Failed to fetch contest:", err);
+      }
+    };
+    if (contestId) fetchContest();
+  }, [contestId]);
 
-  const { votersCount, contestants: rawContestants } = positionData[activeTab];
+  // Get position data from contest
+  const positions = contest?.positions || [];
+  const activePosition = positions.find((pos) => pos.name === activeTab);
 
-  const contestants = useMemo(() => {
-    return distributeVotes(votersCount, rawContestants);
-  }, [activeTab]);
+  // Get contestants and votes for active position
+  const contestants = activePosition?.contestants || [];
+  const voters = activePosition?.voters || [];
+  const totalVotes = voters.length;
 
-  const totalVotes = votersCount;
+  // Calculate votes per contestant
+  const contestantVotes = contestants.map((c) => {
+    const votes = voters.filter((v) => v.votedFor === c._id).length;
+    return {
+      ...c,
+      votes,
+      percentage: totalVotes ? ((votes / totalVotes) * 100).toFixed(1) : "0.0",
+    };
+  });
 
-  const totalGlobalVotes = Object.values(positionData).reduce(
-    (acc, position) => acc + position.votersCount,
+  // Global stats
+  const totalGlobalVotes = positions.reduce(
+    (acc, pos) => acc + (pos.voters ? pos.voters.length : 0),
     0
   );
+  const turnoutRate = positions.length
+    ? ((totalGlobalVotes / (positions.length * 50)) * 100).toFixed(1)
+    : "0.0";
 
-  // Enhanced pie chart config
+  // Most competitive position (most votes)
+  const mostCompetitive =
+    positions.length > 0
+      ? positions.reduce((prev, curr) =>
+          (curr.voters?.length || 0) > (prev.voters?.length || 0) ? curr : prev
+        ).name
+      : "";
+
+  // Pie chart data
   const pieData = {
-    labels: tabs,
+    labels: positions.map((pos) => pos.name),
     datasets: [
       {
         label: "Votes per Position",
-        data: tabs.map((tab) => positionData[tab].votersCount),
+        data: positions.map((pos) => pos.voters?.length || 20),
         backgroundColor: [
           "rgba(255, 99, 132, 0.8)",
           "rgba(54, 162, 235, 0.8)",
@@ -112,13 +153,13 @@ const Leaderboards = () => {
     ],
   };
 
-  // Contestant performance chart
+  // Bar chart data
   const contestantData = {
-    labels: contestants.map((c) => c.name),
+    labels: contestantVotes.map((c) => c.name),
     datasets: [
       {
         label: "Votes",
-        data: contestants.map((c) => c.votes),
+        data: contestantVotes.map((c) => c.votes),
         backgroundColor: "rgba(20, 184, 166, 0.7)",
         borderColor: "rgba(20, 184, 166, 1)",
         borderWidth: 2,
@@ -152,9 +193,9 @@ const Leaderboards = () => {
   };
 
   const barOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
+    ...chartOptions,
     plugins: {
+      ...chartOptions.plugins,
       legend: {
         display: false,
       },
@@ -174,21 +215,21 @@ const Leaderboards = () => {
     },
   };
 
-  // Calculate engagement metrics
-  const mostCompetitive = tabs.reduce((prev, current) =>
-    positionData[current].votersCount > positionData[prev].votersCount
-      ? current
-      : prev
+  // Quick stats
+  const sortedContestants = [...contestantVotes].sort(
+    (a, b) => b.votes - a.votes
   );
 
-  const turnoutRate = ((totalGlobalVotes / (tabs.length * 50)) * 100).toFixed(
-    1
-  );
+  const leadingCandidate = sortedContestants[0]?.name || "N/A";
+  const voteMargin =
+    sortedContestants.length > 1
+      ? `${sortedContestants[0].votes - sortedContestants[1].votes} votes`
+      : "0 votes";
 
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <div className="flex-1 w-full p-6">
+      <div className="flex-1 w-full p-6 ml-20">
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => navigate("/contest-details")}
@@ -202,31 +243,33 @@ const Leaderboards = () => {
           </h2>
         </div>
 
-        <div>
-          <img src={BannerImage} alt="Contest Banner" className="w-full" />
+        <div className="relative mb-2  h-65">
+          <img
+            src={contest?.coverImageUrl || BannerImage}
+            alt="Contest Banner"
+            className="w-full object-cover rounded-lg h-full absolute inset-0"
+          />
         </div>
 
-        <div className="relative z-10 backdrop-blur-sm rounded-3xl p-6 lg:p-8">
+        <div className="relative z-10 backdrop-blur-sm rounded-3xl p-6 lg:p-8 mt-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="flex items-center gap-6">
-              <div className="w-20 h-20 lg:w-60 lg:h-60 rounded-full flex items-center justify-center border-4 border-black overflow-hidden -mt-30 ml-20">
+              <div className="rounded-full flex items-center justify-center border-4 border-black overflow-hidden -mt-16 ml-5 w-20 h-20 lg:w-24 lg:h-24">
                 <img
-                  src={LogoImage}
+                  src={contest?.contestLogoImageUrl || LogoImage}
                   alt="Logo"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div>
-                <h2 className="text-[32px] lg:text-[32px] text-left font-bold text-gray-900 mb-2">
-                  Imaginarium Contest ({activeTab} Leaderboard)
+                <h2 className="text-[20px] lg:text-[25px] text-left font-bold text-gray-900 mb-2">
+                  {contest?.title} ({activeTab} Leaderboard)
                 </h2>
                 <p className="text-gray-600 max-w-lg text-left text-sm lg:text-base">
-                  Real-time voting results and comprehensive analytics for all
-                  leadership positions. Track live progress and competition
-                  insights.
+                  {contest?.description}
                 </p>
 
-                <div className="flex items-center gap-8 mt-4">
+                <div className="flex items-center gap-8 mt-4 mr-10">
                   <div>
                     <span className="text-3xl lg:text-4xl font-bold text-gray-900">
                       {totalVotes}
@@ -245,7 +288,7 @@ const Leaderboards = () => {
                   </div>
                   <div>
                     <span className="text-3xl lg:text-4xl font-bold text-gray-900">
-                      {votersCount}
+                      {contest?.voters.length}
                     </span>
                     <span className="text-gray-600 ml-2 text-sm">Voters</span>
                   </div>
@@ -268,81 +311,69 @@ const Leaderboards = () => {
             </div>
           </div>
 
-          {/* Enhanced Key Metrics Dashboard */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-12 mb-8 ml-25">
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-200">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 rounded-xl">
-                  <Vote className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-600">Global Votes</p>
-                  <p className="text-xl font-bold text-gray-900">
-                    {totalGlobalVotes}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-200">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-xl">
-                  <Users className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-600">Positions</p>
-                  <p className="text-xl font-bold text-gray-900">
-                    {tabs.length}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-200">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-100 rounded-xl">
-                  <TrendingUp className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-600">Turnout Rate</p>
-                  <p className="text-xl font-bold text-gray-900">
-                    {turnoutRate}%
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-200">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-100 rounded-xl">
-                  <Target className="w-5 h-5 text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-600">Most Competitive</p>
-                  <p className="text-sm font-bold text-gray-900">
-                    {mostCompetitive}
-                  </p>
+          {/* Key Metrics Dashboard */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-12 mb-8">
+            {[
+              {
+                icon: <Vote className="w-5 h-5 text-blue-600" />,
+                bg: "bg-blue-100",
+                label: "Global Votes",
+                value: totalGlobalVotes,
+              },
+              {
+                icon: <Users className="w-5 h-5 text-green-600" />,
+                bg: "bg-green-100",
+                label: "Positions",
+                value: positions.length,
+              },
+              {
+                icon: <TrendingUp className="w-5 h-5 text-purple-600" />,
+                bg: "bg-purple-100",
+                label: "Turnout Rate",
+                value: `${turnoutRate}%`,
+              },
+              {
+                icon: <Target className="w-5 h-5 text-orange-600" />,
+                bg: "bg-orange-100",
+                label: "Most Competitive",
+                value: mostCompetitive,
+              },
+            ].map((metric, index) => (
+              <div
+                key={index}
+                className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-gray-200"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 ${metric.bg} rounded-xl`}>
+                    {metric.icon}
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-600">{metric.label}</p>
+                    <p className="text-xl font-bold text-gray-900">
+                      {metric.value}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
 
           {/* Position Tabs */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mt-12 mb-8 ml-25">
-            {tabs.map((tab) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mt-12 mb-8">
+            {positions.map((pos) => (
               <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
+                key={pos.name}
+                onClick={() => setActiveTab(pos.name)}
                 className={`px-6 py-6 rounded-lg font-medium transition-all duration-200 ${
-                  activeTab === tab
+                  activeTab === pos.name
                     ? "bg-orange-500 text-white shadow-lg transform scale-105"
                     : "bg-teal-800 text-white hover:bg-teal-700 hover:shadow-md"
                 }`}
               >
                 <div className="flex flex-col items-center">
-                  <span className="font-semibold">{tab}</span>
+                  <span className="font-semibold">{pos.name}</span>
                   <span className="text-xs opacity-75">
-                    ({positionData[tab].votersCount} votes)
+                    ({pos.voters?.length || 0} votes)
                   </span>
                 </div>
               </button>
@@ -351,9 +382,9 @@ const Leaderboards = () => {
 
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Enhanced Leaderboard */}
+            {/* Leaderboard */}
             <div className="lg:col-span-2">
-              <div className="bg-white/80 backdrop-blur-sm rounded-3xl border border-[#000000] ml-25 p-6 lg:p-8 shadow-xl">
+              <div className="bg-white/80 backdrop-blur-sm rounded-3xl border border-[#000000] p-6 lg:p-8 shadow-xl">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
                   <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                     <Crown className="w-6 h-6 text-yellow-500" />
@@ -368,21 +399,12 @@ const Leaderboards = () => {
                 </div>
 
                 <div className="space-y-6">
-                  {contestants
+                  {contestantVotes
                     .sort((a, b) => b.votes - a.votes)
                     .map((contestant, index) => {
                       const isWinner = index === 0;
                       const isRunner = index === 1;
                       const isThird = index === 2;
-
-                      let positionStyle = "text-gray-500 font-normal";
-                      if (index === 0)
-                        positionStyle = "text-yellow-500 text-[30px] font-bold";
-                      else if (index === 1)
-                        positionStyle = "text-gray-400 text-[30px] font-bold";
-                      else if (index === 2)
-                        // eslint-disable-next-line no-unused-vars
-                        positionStyle = "text-yellow-800 text-[30px] font-bold";
 
                       return (
                         <div
@@ -397,7 +419,6 @@ const Leaderboards = () => {
                               : "bg-gray-50/50 border border-gray-100"
                           }`}
                         >
-                          {/* Enhanced Position Badge */}
                           <div
                             className={`flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg ${
                               isWinner
@@ -420,9 +441,18 @@ const Leaderboards = () => {
                             )}
                           </div>
 
-                          <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-red-400 rounded-full flex items-center justify-center text-white text-xl">
-                            {contestant.avatar}
-                          </div>
+                          {contestant.image ? (
+                            <img
+                              src={contestant.image}
+                              alt={contestant.name}
+                              className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 bg-gradient-to-r from-orange-400 to-red-400 rounded-full flex items-center justify-center text-white text-xl">
+                              {contestant.name.charAt(0)}
+                            </div>
+                          )}
+
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="font-semibold text-left text-gray-900">
@@ -447,7 +477,9 @@ const Leaderboards = () => {
                                   }`}
                                   style={{
                                     width: `${
-                                      (contestant.votes / totalVotes) * 100
+                                      totalVotes
+                                        ? (contestant.votes / totalVotes) * 100
+                                        : 0
                                     }%`,
                                   }}
                                 ></div>
@@ -469,9 +501,9 @@ const Leaderboards = () => {
               </div>
             </div>
 
-            {/* Enhanced Analytics Sidebar */}
+            {/* Analytics Sidebar */}
             <div className="space-y-6">
-              {/* Enhanced Pie Chart */}
+              {/* Pie Chart */}
               <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200 p-6">
                 <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <div className="w-3 h-3 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full"></div>
@@ -482,7 +514,7 @@ const Leaderboards = () => {
                 </div>
               </div>
 
-              {/* Contestant Performance Bar Chart */}
+              {/* Bar Chart */}
               <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200 p-6">
                 <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <div className="w-3 h-3 bg-gradient-to-r from-teal-400 to-blue-400 rounded-full"></div>
@@ -493,45 +525,46 @@ const Leaderboards = () => {
                 </div>
               </div>
 
-              {/* Enhanced Quick Stats */}
+              {/* Quick Stats */}
               <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200 p-6">
                 <h4 className="text-lg font-semibold mb-4">
                   Position Insights
                 </h4>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg">
-                    <span className="text-sm text-gray-600">
-                      🏆 Leading Candidate
-                    </span>
-                    <span className="font-semibold text-gray-900">
-                      {contestants.sort((a, b) => b.votes - a.votes)[0]?.name}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-lg">
-                    <span className="text-sm text-gray-600">
-                      📊 Vote Margin
-                    </span>
-                    <span className="font-semibold text-gray-900">
-                      {contestants.sort((a, b) => b.votes - a.votes)[0]?.votes -
-                        contestants.sort((a, b) => b.votes - a.votes)[1]
-                          ?.votes}{" "}
-                      votes
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
-                    <span className="text-sm text-gray-600">
-                      👥 Participation
-                    </span>
-                    <span className="font-semibold text-teal-600">
-                      {votersCount} voters
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg">
-                    <span className="text-sm text-gray-600">🎯 Candidates</span>
-                    <span className="font-semibold text-gray-900">
-                      {contestants.length}
-                    </span>
-                  </div>
+                  {[
+                    {
+                      label: "🏆 Leading Candidate",
+                      value: leadingCandidate,
+                      bg: "from-yellow-50 to-orange-50",
+                    },
+                    {
+                      label: "📊 Vote Margin",
+                      value: voteMargin,
+                      bg: "from-blue-50 to-teal-50",
+                    },
+                    {
+                      label: "👥 Participation",
+                      value: `${totalVotes} voters`,
+                      bg: "from-green-50 to-emerald-50",
+                    },
+                    {
+                      label: "🎯 Candidates",
+                      value: contestants.length,
+                      bg: "from-purple-50 to-pink-50",
+                    },
+                  ].map((stat, index) => (
+                    <div
+                      key={index}
+                      className={`flex justify-between items-center p-3 bg-gradient-to-r ${stat.bg} rounded-lg`}
+                    >
+                      <span className="text-sm text-gray-600">
+                        {stat.label}
+                      </span>
+                      <span className="font-semibold text-gray-900">
+                        {stat.value}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

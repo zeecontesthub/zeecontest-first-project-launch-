@@ -11,7 +11,8 @@ const ContestantDetailsStep = ({
   handleDragOver,
   handleDrop,
   positions,
-  setContestantForm
+  // eslint-disable-next-line no-unused-vars
+  setContestantForm,
 }) => {
   return (
     <div className="space-y-8 bg-[#FBF7F7] p-10">
@@ -20,7 +21,6 @@ const ContestantDetailsStep = ({
         <h2 className="text-xl text-left font-semibold text-gray-900 mb-6">
           Manual Contestant Entry
         </h2>
-
         <div className="space-y-6">
           {/* Contestant Name */}
           <div>
@@ -35,7 +35,6 @@ const ContestantDetailsStep = ({
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors"
             />
           </div>
-
           {/* Short Bio */}
           <div>
             <label className="block text-sm text-left font-medium text-gray-700 mb-2">
@@ -49,7 +48,6 @@ const ContestantDetailsStep = ({
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors resize-none"
             />
           </div>
-
           {/* Position */}
           <div>
             <label className="block text-sm text-left font-medium text-gray-700 mb-2">
@@ -63,16 +61,14 @@ const ContestantDetailsStep = ({
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors appearance-none"
             >
               <option value="">Select Position</option>
-              {positions
-                ? positions.map((position, id) => (
-                    <option key={id} value={position.name}>
-                      {position.name}
-                    </option>
-                  ))
-                : null}
+              {positions &&
+                positions.map((position, id) => (
+                  <option key={id} value={position.name}>
+                    {position.name}
+                  </option>
+                ))}
             </select>
           </div>
-
           {/* Email */}
           <div>
             <label className="block text-sm text-left font-medium text-gray-700 mb-2">
@@ -80,13 +76,12 @@ const ContestantDetailsStep = ({
             </label>
             <input
               type="email"
-              value={contestantForm?.email}
+              value={contestantForm.email || ""}
               onChange={(e) => onContestantInputChange("email", e.target.value)}
               placeholder="Enter Contestant Email"
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors"
             />
           </div>
-
           {/* Contestant Image */}
           <div>
             <label className="block text-sm text-left font-medium text-gray-700 mb-2">
@@ -99,6 +94,7 @@ const ContestantDetailsStep = ({
                   : "No file selected"}
               </div>
               <button
+                type="button"
                 onClick={() =>
                   document.getElementById("contestant-image-input").click()
                 }
@@ -115,10 +111,10 @@ const ContestantDetailsStep = ({
               />
             </div>
           </div>
-
           {/* Add Contestant Button */}
           <div className="flex justify-end">
             <button
+              type="button"
               onClick={onAddContestant}
               className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-md font-medium transition-colors"
             >
@@ -133,7 +129,6 @@ const ContestantDetailsStep = ({
         <h2 className="text-xl font-semibold text-left text-gray-900 mb-6">
           Bulk Upload
         </h2>
-
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-8">
           <div
             className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center hover:border-orange-400 transition-colors cursor-pointer"
@@ -146,7 +141,13 @@ const ContestantDetailsStep = ({
               Drag and Drop your CSV file here
             </p>
             <p className="text-gray-500 mb-4">Or</p>
-            <button className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-md font-medium transition-colors">
+            <button
+              type="button"
+              className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-md font-medium transition-colors"
+              onClick={() =>
+                document.getElementById("bulk-upload-input").click()
+              }
+            >
               Browse
             </button>
             <p className="text-xs text-gray-500 mt-4">
@@ -168,7 +169,6 @@ const ContestantDetailsStep = ({
         <h2 className="text-xl font-semibold text-left text-gray-900 mb-6">
           Contestant List
         </h2>
-
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div className="grid grid-cols-5 gap-4 px-6 py-4 bg-gray-50 font-medium text-gray-700 text-sm border-b border-gray-200">
             <div>Image</div>
@@ -177,7 +177,6 @@ const ContestantDetailsStep = ({
             <div>Bio</div>
             <div>Actions</div>
           </div>
-
           {contestants.length === 0 ? (
             <div className="px-6 py-12 text-center text-gray-500">
               No contestants added yet.
@@ -194,11 +193,9 @@ const ContestantDetailsStep = ({
                       {contestant.image ? (
                         <img
                           src={
-                            contestant.image
-                              ? typeof contestant.image === "string"
-                                ? contestant.image
-                                : URL.createObjectURL(contestant.image)
-                              : ""
+                            typeof contestant.image === "string"
+                              ? contestant.image
+                              : URL.createObjectURL(contestant.image)
                           }
                           alt={contestant.name}
                           className="w-10 h-10 rounded-full object-cover"
@@ -216,7 +213,11 @@ const ContestantDetailsStep = ({
                   <div className="text-gray-600">{contestant.position}</div>
                   <div className="text-gray-600 truncate">{contestant.bio}</div>
                   <div className="flex items-center space-x-2">
-                    <button className="text-gray-400 hover:text-gray-600">
+                    <button
+                      type="button"
+                      className="text-gray-400 hover:text-gray-600"
+                      // Add edit logic here if needed
+                    >
                       <svg
                         className="w-4 h-4"
                         fill="none"
@@ -232,10 +233,8 @@ const ContestantDetailsStep = ({
                       </svg>
                     </button>
                     <button
-                      onClick={() => {
-                        setContestantForm(contestant);
-                        onRemoveContestant(contestant.id);
-                      }}
+                      type="button"
+                      onClick={() => onRemoveContestant(contestant.id)}
                       className="text-red-400 hover:text-red-600"
                     >
                       <svg

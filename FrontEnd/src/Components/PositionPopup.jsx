@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
+import { toast } from "react-toastify";
 
 const PositionPopup = ({ isOpen, onClose, onAddPosition }) => {
   const [name, setName] = useState("");
@@ -9,7 +10,7 @@ const PositionPopup = ({ isOpen, onClose, onAddPosition }) => {
 
   const handleAddPosition = () => {
     if (name.trim() === "") {
-      alert("Position name is required");
+      toast.error("Position name is required");
       return;
     }
     onAddPosition({ name, description });

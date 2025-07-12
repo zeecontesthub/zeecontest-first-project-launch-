@@ -16,12 +16,32 @@ import Contestdetails from "./Pages/Contestdetails";
 import Editcontest from "./Pages/editcontest";
 import Leaderboards from "./Pages/Leaderboards";
 import ContestantDetails from "./Pages/contestantdetails";
+import Contestant from "./Pages/contestant";
+import VotersDetails from "./Pages/VotersDetails";
+import Mywallet from "./Pages/Mywallet";
+import OngoingContest from "./Pages/ongoingcontest";
+import UpcomingContest from "./Pages/upcomingcontest";
+import CompletedContest from "./Pages/completedcontest";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   // const [count, setCount] = useState(0)
 
   return (
     <Router>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/create-account" element={<CreateAccount />} />
@@ -42,9 +62,18 @@ function App() {
           path="/contest-details/:contestId"
           element={<Contestdetails />}
         />
-        <Route path="/edit-contest" element={<Editcontest />} />
-        <Route path="/leaderboards" element={<Leaderboards />} />
-        <Route path="/contestant-details" element={<ContestantDetails />} />
+        <Route path="/edit-contest/:contestId" element={<Editcontest />} />
+        <Route path="/leaderboards/:contestId" element={<Leaderboards />} />
+        <Route
+          path="/contestantdetails/:position/:contestantId/:contestId"
+          element={<ContestantDetails />}
+        />
+        <Route path="/contestant/:contestId" element={<Contestant />} />
+        <Route path="/voters-details/:contestId" element={<VotersDetails />} />
+        <Route path="/mywallet" element={<Mywallet />} />
+        <Route path="/ongoing-contest" element={<OngoingContest />} />
+        <Route path="/upcoming-contest" element={<UpcomingContest />} />
+        <Route path="/completed-contest" element={<CompletedContest />} />
       </Routes>
     </Router>
   );

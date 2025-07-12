@@ -5,7 +5,7 @@ const participantSchema = new mongoose.Schema(
     name: { type: String },
     email: { type: String },
     bio: { type: String },
-    imageUrl: { type: String },
+    image: { type: String },
     position: { type: String }, // Position title
     // Add more fields for position as needed (e.g., description, requirements)
   },
@@ -16,6 +16,7 @@ const voterSchema = new mongoose.Schema(
   {
     name: { type: String },
     email: { type: String },
+    votingDate: { type: Date, default: Date.now },
     votedFor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Participant",
@@ -30,17 +31,19 @@ const positionSchema = new mongoose.Schema({
     {
       name: { type: String },
       email: { type: String },
+      votingDate: { type: Date, default: Date.now },
       votedFor: {
         type: mongoose.Schema.Types.ObjectId,
       }, // references participant _id
     },
+    { _id: true },
   ],
   contestants: [
     {
       name: { type: String },
       email: { type: String },
       bio: { type: String },
-      imageUrl: { type: String },
+      image: { type: String },
       position: { type: String }, // Position title
     },
     { _id: true },
@@ -76,9 +79,21 @@ const contestSchema = new mongoose.Schema({
   participants: [participantSchema], // Array of participants
   positions: [positionSchema], // Array of positions
   voters: [voterSchema], // <-- Add this line
+  payment: {
+    isPaid: { type: Boolean, default: false },
+    amount: { type: Number, default: 0 }, // Amount in cents
+  },
+  allowMultipleVotes: {
+    type: Boolean,
+    default: false, // Allow multiple votes per voter
+  },
   status: {
     type: String,
     default: "draft",
+  },
+  contestPaid: {
+    type: Boolean,
+    default: false, // Allow multiple votes per voter
   },
 });
 

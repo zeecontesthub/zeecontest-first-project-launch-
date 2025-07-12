@@ -5,6 +5,7 @@ import {
   Award,
   Settings,
   LogOut,
+  CreditCard,
 } from "lucide-react";
 import iconnn from "../assets/iconnn.png";
 import ContestPopup from "./contestpopup";
@@ -31,6 +32,9 @@ const Sidebar = () => {
 
   const handleContestClick = () => {
     navigate("/contest");
+  };
+  const handleWalletClick = () => {
+    navigate('/mywallet');
   };
 
   return (
@@ -102,6 +106,16 @@ const Sidebar = () => {
             >
               <Award size={20} className="mr-3" />
               <span>Contest</span>
+            </a>
+            <a
+              href="#"
+              onClick={handleWalletClick}
+              className={`flex items-center px-4 py-3 text-white cursor-pointer ${
+                location.pathname === '/mywallet' ? 'bg-teal-800' : 'hover:bg-teal-800'
+              }`}
+            >
+              <CreditCard size={20} className="mr-3" />
+              <span>Wallet</span>
             </a>
           </div>
         </div>
