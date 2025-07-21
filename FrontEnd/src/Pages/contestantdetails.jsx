@@ -127,7 +127,7 @@ const ContestantDetails = () => {
 
                             <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-3">
-                                    <h1 className="text-3xl text-left font-bold text-gray-900">{currentContestant.name}</h1>
+                                    <h2 className="text-[30px] text-left font-bold text-gray-900">{currentContestant.name}</h2>
                                     {currentContestant.rank === 1 && <Crown className="w-8 h-8 text-yellow-500" />}
                                     {currentContestant.rank === 2 && <Medal className="w-8 h-8 text-gray-400" />}
                                     {currentContestant.rank === 3 && <Award className="w-8 h-8 text-orange-600" />}

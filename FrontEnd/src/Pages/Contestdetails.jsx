@@ -26,8 +26,8 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
 
   // Simulated contest start and end date/time for countdown
   // These should be replaced with actual values from backend or global state
-  const contestStartDateTime = new Date('August 10, 2025 00:00:00').getTime();
-  const contestEndDateTime = new Date('August 15, 2025 00:00:00').getTime();
+  const contestStartDateTime = new Date('July 10, 2025 00:00:00').getTime();
+  const contestEndDateTime = new Date('July 15, 2025 00:00:00').getTime();
 
   useEffect(() => {
     const interval = setInterval(() => {

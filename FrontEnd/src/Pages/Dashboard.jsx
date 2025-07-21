@@ -5,6 +5,13 @@ import { Bell, Target, ChevronDown } from 'lucide-react';
 import Image1 from '../assets/Rectangle_333.png';
 import Image2 from '../assets/22222.png';
 import Image3 from '../assets/33333.png';
+import Image4 from '../assets/44444.jpg';
+import Image5 from '../assets/55555.jpg';
+import Image6 from '../assets/66666.jpg';
+import Image7 from '../assets/77777.jpg';
+import Image8 from '../assets/88888.jpg';
+import Image9 from '../assets/99999.jpg';
+
 import { useNavigate, useLocation} from 'react-router-dom';
 
 const ContestTypeOption = ({ icon, title, onClick }) => {
@@ -23,27 +30,49 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  
-
-  const ongoingContests = [
+  const upcomingContests = [
     {
       id: 1,
-      title: 'Imaginarium Contest',
+      title: 'Trad Contest',
       image: Image1,
-      votes: 10,
+      votes: 0,
       contestants: 10
     },
     {
       id: 2,
-      title: 'Magic Carpet Contest',
+      title: 'Dynamicc Contest',
       image: Image2,
-      votes: 10,
+      votes: 0,
       contestants: 10
     },
     {
       id: 3,
-      title: 'Lolllllllla Contest',
+      title: 'Forever Contest',
       image: Image3,
+      votes: 0,
+      contestants: 10
+    }
+  ];
+
+  const ongoingContests = [
+    {
+      id: 4,
+      title: 'Main Contest',
+      image: Image4,
+      votes: 10,
+      contestants: 10
+    },
+    {
+      id: 5,
+      title: 'Trust Contest',
+      image: Image5,
+      votes: 10,
+      contestants: 10
+    },
+    {
+      id: 6,
+      title: 'Beatiful Contest',
+      image: Image6,
       votes: 10,
       contestants: 10
     }
@@ -51,23 +80,23 @@ const Dashboard = () => {
 
   const completedContests = [
     {
-      id: 1,
-      title: 'Imaginarium Contest',
-      image: Image1,
+      id: 7,
+      title: 'Softwork Contest',
+      image: Image7,
       votes: 10,
       contestants: 10
     },
     {
-      id: 2,
-      title: 'Magic Carpet Contest',
-      image: Image2,
+      id: 8,
+      title: 'Khrien Contest',
+      image: Image8,
       votes: 10,
       contestants: 10
     },
     {
-      id: 3,
-      title: 'Lola Contest',
-      image: Image3,
+      id: 9,
+      title: 'Church Contest',
+      image: Image9,
       votes: 10,
       contestants: 10
     }
@@ -106,6 +135,28 @@ const Dashboard = () => {
           </div>
         </div>
         
+        {/* Upcoming Contests Section */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center">
+              <h2 className="text-xl font-bold ml-2">Upcoming Contest</h2>
+            </div>
+            <a href="#" className="text-teal-600 hover:underline">View All</a>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {upcomingContests.map(contest => (
+              <ContestCard 
+                key={contest.id}
+                title={contest.title}
+                image={contest.image}
+                votes={contest.votes}
+                contestants={contest.contestants}
+              />
+            ))}
+          </div>
+        </div>
+
         {/* Ongoing Contests Section */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
