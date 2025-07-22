@@ -45,7 +45,7 @@ const Dashboard = () => {
     fetchContests();
   }, [user, userContests, setUserContests]);
 
-  // const ongoingContests = [
+
   //   {
   //     id: 1,
   //     title: "Imaginarium Contest",
@@ -133,45 +133,121 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Ongoing Contests Section */}
+        {/* UpComing Contests Section */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center">
               <h2 className="text-xl font-bold ml-2">Upcoming Contest</h2>
             </div>
-            <a href="#" className="text-teal-600 hover:underline">
+            <button
+              className="text-teal-600 hover:underline bg-transparent border-none p-0 cursor-pointer"
+              onClick={() => navigate("/contest?tab=Upcoming")}
+            >
               View All
-            </a>
+            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.isArray(userContests) &&
+            userContests.filter((c) => c.status === "upcoming").length > 0 ? (
               userContests
                 .filter((c) => c.status === "upcoming")
                 .map((contest) => (
                   <ContestCard key={contest._id} contest={contest} />
-                ))}
+                ))
+            ) : (
+              <p className="text-gray-500 italic w-120">
+                No upcoming contest. Click create contest to get started.
+              </p>
+            )}
+          </div>
+        </div>
+              
+        {/* Ongoing Contests Section */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center">
+              <h2 className="text-xl font-bold ml-2">Ongoing Contest</h2>
+            </div>
+            <button
+              className="text-teal-600 hover:underline bg-transparent border-none p-0 cursor-pointer"
+              onClick={() => navigate("/contest?tab=Ongoing")}
+            >
+              View All
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.isArray(userContests) &&
+            userContests.filter((c) => c.status === "ongoing").length > 0 ? (
+              userContests
+                .filter((c) => c.status === "ongoing")
+                .map((contest) => (
+                  <ContestCard key={contest._id} contest={contest} />
+                ))
+            ) : (
+              <p className="text-gray-500 italic w-120">
+                No ongoing contest. Click create contest to get started.
+              </p>
+            )}
           </div>
         </div>
 
-        {/*Completed Contests Section */}
+        {/* Completed Contests Section */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center">
+              <h2 className="text-xl font-bold ml-2">Completed Contest</h2>
+            </div>
+            <button
+              className="text-teal-600 hover:underline bg-transparent border-none p-0 cursor-pointer"
+              onClick={() => navigate("/contest?tab=Completed")}
+            >
+              View All
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.isArray(userContests) &&
+            userContests.filter((c) => c.status === "completed").length > 0 ? (
+              userContests
+                .filter((c) => c.status === "completed")
+                .map((contest) => (
+                  <ContestCard key={contest._id} contest={contest} />
+                ))
+            ) : (
+              <p className="text-gray-500 italic w-120">
+                No completed contest. Click create contest to get started.
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/*Draft Contests Section */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center">
               <h2 className="text-xl font-bold ml-2">Draft Contest</h2>
             </div>
-            <a href="#" className="text-teal-600 hover:underline">
+            <button
+              className="text-teal-600 hover:underline bg-transparent border-none p-0 cursor-pointer"
+              onClick={() => navigate("/contest?tab=Draft")}
+            >
               View All
-            </a>
+            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.isArray(userContests) &&
+            userContests.filter((c) => c.status === "draft").length > 0 ? (
               userContests
                 .filter((c) => c.status === "draft")
                 .map((contest) => (
                   <ContestCard key={contest._id} contest={contest} />
-                ))}
+                ))
+            ) : (
+              <p className="text-gray-500 italic">No contest saved as drafts.</p>
+            )}
           </div>
         </div>
       </div>

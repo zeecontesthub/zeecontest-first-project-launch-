@@ -109,7 +109,7 @@ const VotersDetails = () => {
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
-            onClick={() => navigate("/contest-details")}
+            onClick={() => navigate(-1)}
             className="p-2 rounded-full hover:bg-gray-200 transition-colors"
             aria-label="Back to Contest Details"
           >
@@ -176,7 +176,7 @@ const VotersDetails = () => {
             {/* Right Section - Action Buttons */}
             <div className="flex flex-col gap-3 min-w-fit">
               <button
-                onClick={() => navigate("/edit-contest")}
+                onClick={() => navigate(`/edit-contest/${contestId}`)}
                 className="flex items-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium"
               >
                 <Edit size={16} />

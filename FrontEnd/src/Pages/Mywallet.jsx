@@ -11,10 +11,39 @@ import {
     ArrowUpRight
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import PayoutSetting from '../Components/payoutsetting';
+import Withdrawal from '../Components/withdrawal';
+
 
 const Mywallet = () => {
+    const [isPayoutOpen, setIsPayoutOpen] = useState(false);
+    const [isWithdrawalOpen, setIsWithdrawalOpen] = useState(false);
+
     const handleNavigation = (path) => {
         console.log(`Navigate to: ${path}`);
+    };
+
+    const openPayoutSettings = () => {
+        setIsPayoutOpen(true);
+    };
+
+    const closePayoutSettings = () => {
+        setIsPayoutOpen(false);
+    };
+
+    const savePayoutSettings = (data) => {
+        // For now, just close the popup and show a success toast
+        setIsPayoutOpen(false);
+        toast.success('Payout settings saved successfully!');
+        // Additional logic to handle saved data can be added here
+    };
+
+    const openWithdrawal = () => {
+        setIsWithdrawalOpen(true);
+    };
+
+    const closeWithdrawal = () => {
+        setIsWithdrawalOpen(false);
     };
 
 
@@ -160,11 +189,11 @@ const Mywallet = () => {
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">
-                                <button className="bg-white text-teal-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2 shadow-lg">
+                                <button onClick={openPayoutSettings} className="bg-white text-teal-700 px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2 shadow-lg">
                                     <Settings className="w-4 h-4" />
                                     Payout Settings
                                 </button>
-                                <button className="bg-orange-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-orange-400 transition-colors flex items-center gap-2 shadow-lg" onClick={notify}>
+                                <button className="bg-orange-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-orange-400 transition-colors flex items-center gap-2 shadow-lg" onClick={openWithdrawal}>
                                     <Download className="w-4 h-4" />
                                     Request Withdrawal
                                 </button>
@@ -420,6 +449,13 @@ const Mywallet = () => {
 
                 </div>
             </div>
+
+            <PayoutSetting
+                isOpen={isPayoutOpen}
+                onClose={closePayoutSettings}
+                onSave={savePayoutSettings}
+            />
+            {isWithdrawalOpen && <Withdrawal onClose={closeWithdrawal} />}
         </div>
     );
 };

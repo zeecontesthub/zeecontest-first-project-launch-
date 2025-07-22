@@ -62,7 +62,7 @@ const Contestant = () => {
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
-            onClick={() => navigate("/contest-details")}
+            onClick={() => navigate(-1)}
             className="p-2 rounded-full hover:bg-gray-200 transition-colors"
             aria-label="Back to Contest Details"
           >

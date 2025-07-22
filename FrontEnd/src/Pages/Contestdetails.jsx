@@ -395,24 +395,48 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                 </p>
 
                 {/* Stats */}
-                <div className="flex items-center gap-8 mt-4">
-                  <div>
-                    <span className="text-3xl lg:text-4xl font-bold text-gray-900">
-                      {contest?.voters?.length || 0}
-                    </span>
-                    <span className="text-gray-600 ml-2 text-sm">
-                      Total Votes
-                    </span>
+                  <div className="flex items-center gap-8 mt-4">
+                    <div>
+                      <span className="text-3xl lg:text-4xl font-bold text-gray-900">
+                        {contest?.voters?.length || 0}
+                      </span>
+                      <span className="text-gray-600 ml-2 text-sm">
+                        Total Votes
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-3xl lg:text-4xl font-bold text-gray-900">
+                        {contest?.participants?.length || 0}
+                      </span>
+                      <span className="text-gray-600 ml-2 text-sm">
+                        Contestant
+                      </span>
+                    </div>
+                    <div>
+                      {contest?.payment?.isPaid ? (
+                        <>
+                          <span className="text-3xl lg:text-4xl font-bold text-gray-900">
+                            {new Intl.NumberFormat('en-NG', {
+                              style: 'currency',
+                              currency: 'NGN',
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0,
+                            }).format(
+                              (contest.payment.amount || 0) *
+                                (contest.voters?.length || 0)
+                            )}
+                          </span>
+                          <span className="text-gray-600 ml-2 text-sm">
+                            Total Revenue
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-gray-600 ml-2 text-sm font-semibold">
+                          Free Contest
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-3xl lg:text-4xl font-bold text-gray-900">
-                      {contest?.participants?.length || 0}
-                    </span>
-                    <span className="text-gray-600 ml-2 text-sm">
-                      Contestant
-                    </span>
-                  </div>
-                </div>
               </div>
             </div>
 
