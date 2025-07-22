@@ -11,11 +11,13 @@ import {
 } from "firebase/auth";
 import { auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "../context/UserContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [infoMsg, setInfoMsg] = useState("");
+  const { setUser } = useUser();
 
   const navigate = useNavigate();
 
@@ -109,6 +111,8 @@ const Login = () => {
       const data = await apiResult.json(); // parse the JSON response
 
       // console.log(data);
+
+      setUser(data.user); // Set user in context
 
       const role = data.user?.role; // optional chaining to avoid crashes
 
