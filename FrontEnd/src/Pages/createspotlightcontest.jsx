@@ -121,6 +121,7 @@ const CreateSpotlightContest = () => {
       setIsUploading(true);
 
       const imgURL = await uploadToCloudinary(file);
+      console.log("Uploaded Image URL:", imgURL);
       if (!imgURL) {
         console.error("Failed to upload image to Cloudinary.");
         // Optionally show a toast here:
@@ -392,7 +393,7 @@ const CreateSpotlightContest = () => {
   return (
     <div className="bg-white min-h-screen">
       <Sidebar />
-      <div className="ml-60 p-8">
+      <div className="ml-20 p-8">
         <div>
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
             Create Spotlight Contest

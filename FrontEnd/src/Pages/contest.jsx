@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../Components/sidebar";
 import ContestCard from "../Components/ContestCard";
 import Image1 from "../assets/Rectangle_333.png";
@@ -7,11 +7,21 @@ import Image3 from "../assets/33333.png";
 import { useUser } from "../context/UserContext";
 // import { useNavigate } from "react-router-dom";
 
+import { useLocation } from "react-router-dom";
+
 const Contest = () => {
   const [activeTab, setActiveTab] = useState("All");
 
-  // const navigate = useNavigate();
   const { userContests } = useUser(); // get user from context
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get("tab");
+    if (tabParam && ["All", "Upcoming", "Ongoing", "Completed", "Draft"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [location.search]);
 
   const stats = [
     { label: "Total Contests", value: userContests.length || "0" },
@@ -34,63 +44,6 @@ const Contest = () => {
   ];
 
   const tabs = ["All", "Upcoming", "Ongoing", "Completed", "Draft"];
-
-  // const contests = [
-  //   {
-  //     id: 1,
-  //     title: "Imaginarium Contest",
-  //     image: Image1,
-  //     votes: 50,
-  //     contestants: 10,
-  //     status: "Upcoming",
-  //     gradient: "from-blue-400 to-purple-500",
-  //   },
-  //   {
-  //     id: 2,
-  //     title: "Magic Carpet Contest",
-  //     image: Image2,
-  //     votes: 10,
-  //     contestants: 10,
-  //     status: "Completed",
-  //     gradient: "from-green-400 to-blue-500",
-  //   },
-  //   {
-  //     id: 3,
-  //     title: "Lola Contest",
-  //     image: Image3,
-  //     votes: 10,
-  //     contestants: 10,
-  //     status: "Drafts",
-  //     gradient: "from-purple-400 to-pink-500",
-  //   },
-  //   {
-  //     id: 4,
-  //     title: "Imaginarium Contest",
-  //     image: Image1,
-  //     votes: 10,
-  //     contestants: 10,
-  //     status: "Ongoing",
-  //     gradient: "from-blue-400 to-purple-500",
-  //   },
-  //   {
-  //     id: 5,
-  //     title: "Magic Carpet Contest",
-  //     image: Image2,
-  //     votes: 10,
-  //     contestants: 10,
-  //     status: "Completed",
-  //     gradient: "from-green-400 to-blue-500",
-  //   },
-  //   {
-  //     id: 6,
-  //     title: "Lola Contest",
-  //     image: Image3,
-  //     votes: 10,
-  //     contestants: 10,
-  //     status: "Drafts",
-  //     gradient: "from-purple-400 to-pink-500",
-  //   },
-  // ];
 
   return (
     <div className="flex">
@@ -140,6 +93,7 @@ const Contest = () => {
             )
             .map((contest) => (
               <ContestCard
+                key={contest._id}
                 contest={contest}
                 // Pass isDraft prop if needed
               />

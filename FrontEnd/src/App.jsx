@@ -19,9 +19,6 @@ import ContestantDetails from "./Pages/contestantdetails";
 import Contestant from "./Pages/contestant";
 import VotersDetails from "./Pages/VotersDetails";
 import Mywallet from "./Pages/Mywallet";
-import OngoingContest from "./Pages/ongoingcontest";
-import UpcomingContest from "./Pages/upcomingcontest";
-import CompletedContest from "./Pages/completedcontest";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -71,9 +68,6 @@ function App() {
         <Route path="/contestant/:contestId" element={<Contestant />} />
         <Route path="/voters-details/:contestId" element={<VotersDetails />} />
         <Route path="/mywallet" element={<Mywallet />} />
-        <Route path="/ongoing-contest" element={<OngoingContest />} />
-        <Route path="/upcoming-contest" element={<UpcomingContest />} />
-        <Route path="/completed-contest" element={<CompletedContest />} />
       </Routes>
     </Router>
   );
