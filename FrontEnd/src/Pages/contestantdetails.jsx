@@ -165,7 +165,7 @@ const ContestantDetails = () => {
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <div className="flex-1 w-full p-6 ml-20">
+      <div className="flex-1 p-6 md:ml-20 ">
         <div className="mx-auto p-6 min-h-screen">
           <div className="flex items-center gap-4 mb-8">
             <button

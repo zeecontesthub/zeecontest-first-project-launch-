@@ -198,7 +198,7 @@ const SettingsPage = () => {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <Sidebar />
-      <div className="flex-1 text-left p-8 ml-20">
+      <div className="flex-1 p-6 md:ml-20 ">
         {/* Header Section */}
         <div className="mb-10 text-left ">
           <h2 className="text-[30px] font-bold text-gray-900 mb-3">Settings</h2>

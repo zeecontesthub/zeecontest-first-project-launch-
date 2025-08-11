@@ -27,10 +27,17 @@ a:hover {
 
 body {
   margin: 0;
-  min-width: 700px;
-  min-height: 100vh;
+  min-height: 40vh;
   /* Removed display: flex and place-items: center to allow full width */
   background-color: #ffffff;
+  /* Add padding-bottom for mobile bottom nav height */
+  padding-bottom: 5.5rem; /* 88px, matches h-20 in Tailwind for bottom nav */
+}
+
+@media (min-width: 640px) {
+  body {
+    padding-bottom: 0;
+  }
 }
 
 h1 {

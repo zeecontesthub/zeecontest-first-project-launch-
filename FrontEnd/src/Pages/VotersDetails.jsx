@@ -101,11 +101,35 @@ const VotersDetails = () => {
     );
   };
 
+  // New state for voter registration form
+  const [registrationForm, setRegistrationForm] = useState({
+    name: "",
+    email: "",
+    registrationDate: "",
+  });
+
+  // Placeholder registration data
+  const registrationData = [
+    {
+      id: 1,
+      name: "John Doe",
+      email: "john@example.com",
+      registrationDate: "2025-08-01",
+    },
+    {
+      id: 2,
+      name: "Jane Smith",
+      email: "jane@example.com",
+      registrationDate: "2025-08-02",
+    },
+    // Add more as needed or fetch from backend
+  ];
+
   return (
     <div className="flex min-h-screen">
       <Sidebar />
 
-      <div className="flex-1 w-full p-6 ml-20">
+      <div className="flex-1 w-full p-3 md:p-6 ml-0 md:ml-20">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
@@ -115,12 +139,12 @@ const VotersDetails = () => {
           >
             <ChevronLeft size={24} />
           </button>
-          <h2 className="text-[30px] text-left font-bold text-gray-900 mb-0">
+          <h2 className="text-xl md:text-[30px] text-left font-bold text-gray-900 mb-0">
             Voters Details
           </h2>
         </div>
 
-        <div className="relative mb-2  h-65">
+        <div className="relative mb-2 h-32 md:h-48 lg:h-64">
           <img
             src={contest?.coverImageUrl || BannerImage}
             alt="Contest Banner"
@@ -133,7 +157,7 @@ const VotersDetails = () => {
             {/* Left Section - Logo and Content */}
             <div className="flex items-center gap-6">
               {/* Logo */}
-              <div className="h-50 w-50 rounded-full flex items-center justify-center border-4 border-black overflow-hidden -mt-5 ml-5 mb-4">
+              <div className="h-16 w-16 md:h-20 md:w-20rounded-full flex items-center justify-center border-4 border-black overflow-hidden -mt-5 ml-5 mb-4">
                 <img
                   src={contest?.contestLogoImageUrl || LogoImage}
                   alt="Logo"
@@ -143,7 +167,7 @@ const VotersDetails = () => {
 
               {/* Content */}
               <div>
-                <h2 className="text-[32px] lg:text-[32px] text-left font-bold text-gray-900 mb-2">
+                <h2 className="text-xl md:text-2xl lg:text-[32px]text-left font-bold text-gray-900 mb-2">
                   {contest?.title || "Contest Name"}
                 </h2>
                 <p className="text-gray-600 max-w-lg text-left text-sm lg:text-base">
@@ -154,7 +178,7 @@ const VotersDetails = () => {
                 {/* Stats */}
                 <div className="flex items-center gap-8 mt-4">
                   <div>
-                    <span className="text-3xl lg:text-4xl font-bold text-gray-900">
+                    <span className="text-xl md:text-3xl lg:text-4xl font-bold text-gray-900">
                       {contest?.voters?.length || 0}
                     </span>
                     <span className="text-gray-600 ml-2 text-sm">
@@ -230,6 +254,117 @@ const VotersDetails = () => {
                       className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Registration Form Section */}
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
+                <h3 className="text-lg font-bold mb-4 text-gray-900">
+                  Register Voter
+                </h3>
+                <form
+                  className="flex flex-col md:flex-row gap-4 items-center"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    // Add registration logic here (e.g., API call or local state update)
+                    // For now, just clear the form
+                    setRegistrationForm({ name: "", email: "", registrationDate: "" });
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={registrationForm?.name || ""}
+                    onChange={(e) =>
+                      setRegistrationForm((f) => ({ ...f, name: e.target.value }))
+                    }
+                    className="w-full md:w-1/4 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    required
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email Address"
+                    value={registrationForm?.email || ""}
+                    onChange={(e) =>
+                      setRegistrationForm((f) => ({ ...f, email: e.target.value }))
+                    }
+                    className="w-full md:w-1/4 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    required
+                  />
+                  <input
+                    type="date"
+                    placeholder="Registration Date"
+                    value={registrationForm?.registrationDate || ""}
+                    onChange={(e) =>
+                      setRegistrationForm((f) => ({
+                        ...f,
+                        registrationDate: e.target.value,
+                      }))
+                    }
+                    className="w-full md:w-1/4 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    className="px-6 py-3 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors"
+                  >
+                    Register
+                  </button>
+                </form>
+              </div>
+
+              {/* Registration Preview Table Section */}
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden mb-8">
+                <div className="p-6 border-b border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">
+                    Voter Registrations
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-2">
+                    Preview of all pre-registered voters
+                  </p>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-gray-50 border-b border-gray-200">
+                      <tr>
+                        <th className="text-left py-4 px-6 font-semibold text-gray-900">
+                          Full Name
+                        </th>
+                        <th className="text-left py-4 px-6 font-semibold text-gray-900">
+                          Email Address
+                        </th>
+                        <th className="text-left py-4 px-6 font-semibold text-gray-900">
+                          Registration Date
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {registrationData.length > 0 ? (
+                        registrationData.map((reg) => (
+                          <tr
+                            key={reg.id}
+                            className="hover:bg-gray-50 transition-colors group"
+                          >
+                            <td className="py-4 px-6 font-medium text-gray-900">
+                              {reg.name}
+                            </td>
+                            <td className="py-4 px-6 text-gray-600">
+                              {reg.email}
+                            </td>
+                            <td className="py-4 px-6 text-gray-600">
+                              {reg.registrationDate}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="3" className="py-12 text-center text-gray-500">
+                            No registrations found
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
 

@@ -5,6 +5,7 @@ import ImageUploadStep from "../Components/ImageUploadStep";
 import ContestantDetailsStep from "../Components/ContestantDetailsStep";
 import ReviewStep from "../Components/ReviewStep";
 import PositionPopup from "../Components/PositionPopup";
+import Security from "../Components/Security";
 import axios from "axios";
 import { uploadToCloudinary } from "../actions/cloudinaryAction";
 import { useUser } from "../context/UserContext";
@@ -69,6 +70,11 @@ const CreateSpotlightContest = () => {
     },
     allowMultipleVotes: createContest?.allowMultipleVotes || false,
   });
+
+  // State for security settings
+  const [isVoterRegistrationEnabled, setIsVoterRegistrationEnabled] = useState(
+    createContest?.isVoterRegistrationEnabled || false
+  );
 
   // Form validation
   const isFormValid = () => {
@@ -255,7 +261,7 @@ const CreateSpotlightContest = () => {
 
   // Navigation handlers
   const nextStep = () => {
-    if (currentStep < 3) {
+    if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -267,7 +273,7 @@ const CreateSpotlightContest = () => {
   };
 
   const onEditStep = (step) => {
-    if (step >= 0 && step <= 3) {
+    if (step >= 0 && step <= 4) {
       setCurrentStep(step);
     }
   };
@@ -373,6 +379,10 @@ const CreateSpotlightContest = () => {
       positions={positions}
       isUploading={isUploading}
     />,
+    <Security
+      isVoterRegistrationEnabled={isVoterRegistrationEnabled}
+      onToggleVoterRegistration={() => setIsVoterRegistrationEnabled(!isVoterRegistrationEnabled)}
+    />,
     <ReviewStep
       coverImage={coverImage}
       logoImage={logoImage}
@@ -387,100 +397,172 @@ const CreateSpotlightContest = () => {
     "Contest Details",
     "Upload Images",
     "Add Contestants",
+    "Security Settings",
     "Review & Publish",
   ];
 
   return (
     <div className="bg-white min-h-screen">
       <Sidebar />
-      <div className="ml-20 p-8">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">
+      
+      {/* Main Container with improved mobile responsiveness */}
+      <div className="flex-1 p-3 sm:p-4 md:p-6 lg:ml-20 w-full max-w-5xl mx-auto">
+        
+        {/* Header Section */}
+        <div className="mb-4 sm:mb-6">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-900 leading-tight">
             Create Spotlight Contest
           </h2>
         </div>
 
-        {/* Step Progress Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            {stepTitles.map((title, index) => (
-              <div key={index} className="flex items-center">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    index <= currentStep
-                      ? "bg-orange-500 text-white"
-                      : "bg-gray-200 text-gray-600"
-                  }`}
-                >
-                  {index + 1}
-                </div>
-                <span
-                  className={`ml-2 text-sm ${
-                    index <= currentStep
-                      ? "text-orange-600 font-medium"
-                      : "text-gray-500"
-                  }`}
-                >
-                  {title}
-                </span>
-                {index < stepTitles.length - 1 && (
-                  <div
-                    className={`ml-4 w-16 h-0.5 ${
-                      index < currentStep ? "bg-orange-500" : "bg-gray-200"
-                    }`}
-                  />
-                )}
+        {/* Step Progress Indicator - Mobile Optimized */}
+        <div className="mb-6 md:mb-8">
+          {/* Mobile: Vertical Progress on small screens */}
+          <div className="block sm:hidden">
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <div className="text-sm font-medium text-gray-600 mb-2">
+                Step {currentStep + 1} of {stepTitles.length}
               </div>
-            ))}
+              <div className="text-lg font-semibold text-orange-600 mb-2">
+                {stepTitles[currentStep]}
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-orange-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${((currentStep + 1) / stepTitles.length) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop: Horizontal Progress on larger screens */}
+          <div className="hidden sm:block">
+            <div className="flex items-center justify-between mb-4 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 pb-2">
+              {stepTitles.map((title, index) => (
+                <div key={index} className="flex items-center min-w-fit">
+                  <div
+                    className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center text-sm lg:text-base font-medium transition-all duration-200 ${
+                      index <= currentStep
+                        ? "bg-orange-500 text-white shadow-md"
+                        : "bg-gray-200 text-gray-600"
+                    }`}
+                  >
+                    {index + 1}
+                  </div>
+                  <span
+                    className={`ml-2 lg:ml-3 text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
+                      index <= currentStep
+                        ? "text-orange-600 font-medium"
+                        : "text-gray-500"
+                    }`}
+                  >
+                    {title}
+                  </span>
+                  {index < stepTitles.length - 1 && (
+                    <div
+                      className={`ml-3 lg:ml-6 w-12 lg:w-20 h-0.5 transition-all duration-300 ${
+                        index < currentStep ? "bg-orange-500" : "bg-gray-200"
+                      }`}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {steps[currentStep]}
+        {/* Step Content */}
+        <div className="mb-6 md:mb-8">
+          {steps[currentStep]}
+        </div>
 
+        {/* Position Popup */}
         <PositionPopup
           isOpen={isPositionPopupOpen}
           onClose={handleClosePositionPopup}
           onAddPosition={handleAddPositionFromPopup}
         />
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between mt-8">
-          <button
-            onClick={saveDraft}
-            className={` ${
-              isUploading ? "opacity-30 cursor-not-allowed" : ""
-            } px-6 py-2 bg-teal-900 text-white rounded-md font-medium hover:bg-blue-600 transition-colors`}
-            disabled={isUploading}
-          >
-            Save as Draft
-          </button>
-          <div className="flex space-x-4">
+        {/* Navigation Buttons - Mobile Optimized */}
+        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 -mx-3 sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:static">
+          {/* Mobile: Stacked Layout */}
+          <div className="flex flex-col space-y-3 sm:hidden">
+            <div className="flex space-x-3">
+              <button
+                onClick={prevStep}
+                disabled={isUploading || currentStep === 0}
+                className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors text-sm"
+              >
+                Back
+              </button>
+              <button
+                onClick={currentStep === steps.length - 1 ? onPublish : nextStep}
+                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors text-sm ${
+                  isUploading ? "opacity-50 cursor-not-allowed" : ""
+                } ${
+                  currentStep === steps.length - 1
+                    ? isFormValid()
+                      ? "bg-orange-500 hover:bg-orange-600 text-white"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-orange-500 hover:bg-orange-600 text-white"
+                }`}
+                disabled={
+                  isUploading ||
+                  (currentStep === steps.length - 1 && !isFormValid())
+                }
+              >
+                {currentStep === steps.length - 1 ? "Publish" : "Next"}
+              </button>
+            </div>
             <button
-              onClick={prevStep}
-              disabled={isUploading || currentStep === 0}
-              className="px-6 py-2 bg-gray-300 text-gray-700 rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-400 transition-colors"
-            >
-              Back
-            </button>
-            <button
-              onClick={currentStep === steps.length - 1 ? onPublish : nextStep}
-              className={`px-6 ${
-                isUploading ? "opacity-30 cursor-not-allowed" : ""
-              } py-2 rounded-md font-medium transition-colors ${
-                currentStep === steps.length - 1
-                  ? isFormValid()
-                    ? "bg-orange-500 hover:bg-orange-600 text-white"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-orange-500 hover:bg-orange-600 text-white"
+              onClick={saveDraft}
+              className={`w-full px-4 py-3 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors text-sm ${
+                isUploading ? "opacity-50 cursor-not-allowed" : ""
               }`}
-              disabled={
-                isUploading &&
-                currentStep === steps.length - 1 &&
-                !isFormValid()
-              }
+              disabled={isUploading}
             >
-              {currentStep === steps.length - 1 ? "Publish" : "Next"}
+              Save as Draft
             </button>
+          </div>
+
+          {/* Desktop: Horizontal Layout */}
+          <div className="hidden sm:flex sm:flex-row sm:justify-between sm:items-center">
+            <button
+              onClick={saveDraft}
+              className={`px-6 py-2 lg:px-8 lg:py-3 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors ${
+                isUploading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              disabled={isUploading}
+            >
+              Save as Draft
+            </button>
+            <div className="flex space-x-4">
+              <button
+                onClick={prevStep}
+                disabled={isUploading || currentStep === 0}
+                className="px-6 py-2 lg:px-8 lg:py-3 bg-gray-100 text-gray-700 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
+              >
+                Back
+              </button>
+              <button
+                onClick={currentStep === steps.length - 1 ? onPublish : nextStep}
+                className={`px-6 py-2 lg:px-8 lg:py-3 rounded-lg font-medium transition-colors ${
+                  isUploading ? "opacity-50 cursor-not-allowed" : ""
+                } ${
+                  currentStep === steps.length - 1
+                    ? isFormValid()
+                      ? "bg-orange-500 hover:bg-orange-600 text-white"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-orange-500 hover:bg-orange-600 text-white"
+                }`}
+                disabled={
+                  isUploading ||
+                  (currentStep === steps.length - 1 && !isFormValid())
+                }
+              >
+                {currentStep === steps.length - 1 ? "Publish" : "Next"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
