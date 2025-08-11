@@ -43,8 +43,8 @@ const Contestant = () => {
     selectedPosition === "All"
       ? allContestants
       : allContestants.filter(
-          (contestant) => contestant.position === selectedPosition
-        );
+        (contestant) => contestant.position === selectedPosition
+      );
 
   // Total votes and contestants
   const totalGlobalVotes =
@@ -55,10 +55,10 @@ const Contestant = () => {
   const totalContestants = allContestants.length;
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen overflow-x-hidden">
       <Sidebar />
 
-      <div className="flex-1 w-full p-6 ml-20">
+      <div className="flex-1 p-4 sm:p-6 md:ml-20 overflow-x-hidden max-w-full">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
@@ -83,11 +83,11 @@ const Contestant = () => {
 
         {/* Main Header Content */}
         <div className="relative z-10  backdrop-blur-sm rounded-3xl p-6 lg:p-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             {/* Left Section - Logo and Content */}
-            <div className="flex items-center gap-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 min-w-0 flex-1">
               {/* Logo */}
-              <div className="h-50 w-50 rounded-full flex items-center justify-center border-4 border-black overflow-hidden -mt-5 ml-5">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full flex items-center justify-center border-4 border-black overflow-hidden -mt-5 ml-5 flex-shrink-0">
                 <img
                   src={contest?.contestLogoImageUrl || LogoImage}
                   alt="Logo"
@@ -96,30 +96,30 @@ const Contestant = () => {
               </div>
 
               {/* Content */}
-              <div>
-                <h2 className="text-[32px] lg:text-[32px] text-left font-bold text-gray-900 mb-2">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-xl sm:text-2xl lg:text-[32px] text-left font-bold text-gray-900 mb-2 break-words">
                   {contest?.title || "Contest Name"}
                 </h2>
-                <p className="text-gray-600 max-w-lg text-left text-sm lg:text-base">
+                <p className="text-gray-600 text-left text-sm lg:text-base break-words">
                   {contest?.description ||
                     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."}
                 </p>
 
-                {/* Stats */}
-                <div className="flex items-center gap-8 mt-4">
-                  <div>
-                    <span className="text-3xl lg:text-4xl font-bold text-gray-900">
+                {/* Stats - Make responsive */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 mt-4 overflow-x-auto">
+                  <div className="flex-shrink-0">
+                    <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
                       {totalGlobalVotes}
                     </span>
-                    <span className="text-gray-600 ml-2 text-sm">
+                    <span className="text-gray-600 ml-2 text-xs sm:text-sm block sm:inline">
                       Total Votes
                     </span>
                   </div>
-                  <div>
-                    <span className="text-3xl lg:text-4xl font-bold text-gray-900">
+                  <div className="flex-shrink-0">
+                    <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
                       {totalContestants}
                     </span>
-                    <span className="text-gray-600 ml-2 text-sm">
+                    <span className="text-gray-600 ml-2 text-xs sm:text-sm block sm:inline">
                       Contestant
                     </span>
                   </div>
@@ -127,18 +127,19 @@ const Contestant = () => {
               </div>
             </div>
 
+
             {/* Right Section - Action Buttons */}
-            <div className="flex flex-col gap-3 min-w-fit">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
               <button
                 onClick={() => navigate(`/edit-contest/${contestId}`)}
-                className="flex items-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium"
+                className="flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium"
               >
                 <Edit size={16} />
-                Edit Contest
+                <span className="whitespace-nowrap">Edit Contest</span>
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium">
+              <button className="flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium">
                 <Share2 size={16} />
-                Share Voters Link
+                <span className="whitespace-nowrap">Share Link</span>
               </button>
             </div>
           </div>
@@ -150,11 +151,10 @@ const Contestant = () => {
             <button
               key={pos}
               onClick={() => setSelectedPosition(pos)}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                selectedPosition === pos
-                  ? "bg-orange-500 text-white"
-                  : "bg-teal-800 text-white hover:bg-teal-700"
-              }`}
+              className={`px-6 py-3 rounded-lg font-medium transition-colors ${selectedPosition === pos
+                ? "bg-orange-500 text-white"
+                : "bg-teal-800 text-white hover:bg-teal-700"
+                }`}
             >
               {pos}
             </button>

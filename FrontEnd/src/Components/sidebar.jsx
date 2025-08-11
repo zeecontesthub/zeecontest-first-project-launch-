@@ -1,16 +1,29 @@
 import React, { useState } from "react";
 import {
-  ChevronRight,
   LayoutDashboard,
   Award,
   Settings,
   LogOut,
   CreditCard,
+  Plus,
 } from "lucide-react";
 import iconnn from "../assets/iconnn.png";
 import ContestPopup from "./contestpopup";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useUser } from "../context/UserContext";
+
+const navItems = [
+  {
+    key: "dashboard",
+    icon: <LayoutDashboard size={22} />,
+    label: "Dashboard",
+    path: "/dashboard",
+  },
+  { key: "contest", icon: <Award size={22} />, label: "Contest", path: "/contest" },
+  { key: "plus", icon: <Plus size={22} />, label: "Create", action: "popup" },
+  { key: "wallet", icon: <CreditCard size={22} />, label: "Wallet", path: "/mywallet" },
+  { key: "settings", icon: <Settings size={22} />, label: "Settings", path: "/settings" },
+];
 
 const Sidebar = () => {
   const { user } = useUser();
@@ -18,28 +31,20 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleCreateClick = () => {
-    setIsPopupOpen(true);
+  const handleNavClick = (item) => {
+    if (item.action === "popup") {
+      setIsPopupOpen(true);
+    } else if (item.path) {
+      navigate(item.path);
+    }
   };
 
-  const handleClosePopup = () => {
-    setIsPopupOpen(false);
-  };
-
-  const handleDashboardClick = () => {
-    navigate("/dashboard");
-  };
-
-  const handleContestClick = () => {
-    navigate("/contest");
-  };
-  const handleWalletClick = () => {
-    navigate('/mywallet');
-  };
+  const handleClosePopup = () => setIsPopupOpen(false);
 
   return (
     <>
-      <div className="fixed top-0 left-0 h-screen w-60 bg-teal-900 flex flex-col">
+      {/* Desktop Sidebar */}
+      <div className="hidden sm:flex fixed top-0 left-0 h-screen w-60 bg-teal-900 flex-col z-40">
         {/* Logo Section */}
         <div className="flex justify-between items-center p-4">
           <div className="bg-white rounded-lg p-2">
@@ -66,7 +71,7 @@ const Sidebar = () => {
         {/* Create Contest Button */}
         <div className="mx-4 mt-6">
           <button
-            onClick={handleCreateClick}
+            onClick={() => setIsPopupOpen(true)}
             className="w-full bg-orange-500 hover:bg-orange-600 text-white rounded-lg py-2 px-4 flex items-center justify-center"
           >
             <span className="mr-2">+</span>
@@ -82,7 +87,7 @@ const Sidebar = () => {
           <div className="flex flex-col">
             <a
               href="#"
-              onClick={handleDashboardClick}
+              onClick={() => navigate("/dashboard")}
               className={`flex items-center px-4 py-3 text-white cursor-pointer ${
                 location.pathname === "/dashboard"
                   ? "bg-teal-800"
@@ -94,12 +99,9 @@ const Sidebar = () => {
             </a>
             <a
               href="#"
-              onClick={handleContestClick}
+              onClick={() => navigate("/contest")}
               className={`flex items-center px-4 py-3 text-white cursor-pointer ${
-                location.pathname === "/contest" ||
-                location.pathname === "/create-spotlight-contest" ||
-                location.pathname === "/contest-details" ||
-                location.pathname === "/edit-contest"
+                location.pathname === "/contest"
                   ? "bg-teal-800"
                   : "hover:bg-teal-800"
               }`}
@@ -109,7 +111,7 @@ const Sidebar = () => {
             </a>
             <a
               href="#"
-              onClick={handleWalletClick}
+              onClick={() => navigate("/mywallet")}
               className={`flex items-center px-4 py-3 text-white cursor-pointer ${
                 location.pathname === '/mywallet' ? 'bg-teal-800' : 'hover:bg-teal-800'
               }`}
@@ -146,6 +148,46 @@ const Sidebar = () => {
           </div>
         </div>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <nav
+        className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 flex justify-between items-center px-1 h-20 shadow-lg"
+        style={{ minHeight: 72, maxHeight: 80 }} // Ensures enough height for all icons
+      >
+        {navItems.map((item, idx) => (
+          <button
+            key={item.key}
+            onClick={() => handleNavClick(item)}
+            className={`flex flex-col items-center flex-1 py-1 px-0 text-xs font-medium focus:outline-none ${
+              (item.path && location.pathname === item.path) ||
+              (item.key === "plus" && isPopupOpen)
+                ? "text-orange-500"
+                : "text-gray-500 hover:text-orange-500"
+            }`}
+            style={
+              item.key === "plus"
+                ? {
+                    marginTop: -20,
+                    background: "#fff",
+                    borderRadius: "50%",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                    width: 56,
+                    height: 56,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }
+                : { minWidth: 0, flex: 1 }
+            }
+            aria-label={item.label}
+          >
+            {item.icon}
+            
+          </button>
+        ))}
+      </nav>
+
+      {/* Contest Popup */}
       <ContestPopup isOpen={isPopupOpen} onClose={handleClosePopup} />
     </>
   );

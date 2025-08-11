@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-vars */
+
 import React, { useEffect, useState } from "react";
 import { Edit, Eye, Share2 } from "lucide-react";
 import Sidebar from "../Components/sidebar";
@@ -356,13 +356,13 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
     <div className="flex min-h-screen">
       <Sidebar />
 
-      <div className="flex-1 w-full p-6 ml-20">
+      <div className="flex-1 p-4 sm:p-6 md:ml-20 ">
         {/* Header */}
-        <h2 className="text-[30px] text-left font-bold text-gray-900 mb-8">
+        <h2 className="text-2xl sm:text-[30px] text-left font-bold text-gray-900 mb-6 sm:mb-8">
           Contest
         </h2>
 
-        <div className="relative mb-2  h-65">
+        <div className="relative mb-2 h-40 sm:h-48 lg:h-65">
           <img
             src={contest?.coverImageUrl || BannerImage}
             alt="Contest Banner"
@@ -371,12 +371,12 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
         </div>
 
         {/* Main Header Content */}
-        <div className="relative z-10  backdrop-blur-sm rounded-3xl p-6 lg:p-8">
+        <div className="relative z-10 backdrop-blur-sm rounded-3xl p-4 sm:p-6 lg:p-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             {/* Left Section - Logo and Content */}
-            <div className="flex items-center gap-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
               {/* Logo */}
-              <div className="h-50 w-50 rounded-full flex items-center justify-center border-4 border-black overflow-hidden -mt-5 ml-5">
+              <div className="h-16 w-16 sm:h-20 sm:w-20 lg:h-50 lg:w-50 rounded-full flex items-center justify-center border-4 border-black overflow-hidden flex-shrink-0">
                 <img
                   src={contest?.contestLogoImageUrl || LogoImage}
                   alt="Logo"
@@ -385,133 +385,133 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
               </div>
 
               {/* Content */}
-              <div>
-                <h2 className="text-[32px] lg:text-[32px] text-left font-bold text-gray-900 mb-2">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-xl sm:text-2xl lg:text-[32px] text-left font-bold text-gray-900 mb-2">
                   {contest?.title || "Contest Name"}
                 </h2>
-                <p className="text-gray-600 max-w-lg text-left text-sm lg:text-base">
+                <p className="text-gray-600 text-left text-sm sm:text-base">
                   {contest?.description ||
                     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."}
                 </p>
 
                 {/* Stats */}
-                  <div className="flex items-center gap-8 mt-4">
-                    <div>
-                      <span className="text-3xl lg:text-4xl font-bold text-gray-900">
-                        {contest?.voters?.length || 0}
-                      </span>
-                      <span className="text-gray-600 ml-2 text-sm">
-                        Total Votes
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-3xl lg:text-4xl font-bold text-gray-900">
-                        {contest?.participants?.length || 0}
-                      </span>
-                      <span className="text-gray-600 ml-2 text-sm">
-                        Contestant
-                      </span>
-                    </div>
-                    <div>
-                      {contest?.payment?.isPaid ? (
-                        <>
-                          <span className="text-3xl lg:text-4xl font-bold text-gray-900">
-                            {new Intl.NumberFormat('en-NG', {
-                              style: 'currency',
-                              currency: 'NGN',
-                              minimumFractionDigits: 0,
-                              maximumFractionDigits: 0,
-                            }).format(
-                              (contest.payment.amount || 0) *
-                                (contest.voters?.length || 0)
-                            )}
-                          </span>
-                          <span className="text-gray-600 ml-2 text-sm">
-                            Total Revenue
-                          </span>
-                        </>
-                      ) : (
-                        <span className="text-gray-600 ml-2 text-sm font-semibold">
-                          Free Contest
-                        </span>
-                      )}
-                    </div>
+                <div className="flex flex-wrap items-center gap-4 sm:gap-6 lg:gap-8 mt-4">
+                  <div>
+                    <span className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900">
+                      {contest?.voters?.length || 0}
+                    </span>
+                    <span className="text-gray-600 ml-2 text-xs sm:text-sm">
+                      Total Votes
+                    </span>
                   </div>
+                  <div>
+                    <span className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900">
+                      {contest?.participants?.length || 0}
+                    </span>
+                    <span className="text-gray-600 ml-2 text-xs sm:text-sm">
+                      Contestant
+                    </span>
+                  </div>
+                  <div>
+                    {contest?.payment?.isPaid ? (
+                      <>
+                        <span className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900">
+                          {new Intl.NumberFormat('en-NG', {
+                            style: 'currency',
+                            currency: 'NGN',
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0,
+                          }).format(
+                            (contest.payment.amount || 0) *
+                              (contest.voters?.length || 0)
+                          )}
+                        </span>
+                        <span className="text-gray-600 ml-2 text-xs sm:text-sm">
+                          Total Revenue
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-gray-600 ml-2 text-xs sm:text-sm font-semibold">
+                        Free Contest
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Right Section - Action Buttons */}
-            <div className="flex flex-col gap-3 min-w-fit">
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-3 w-full sm:w-auto lg:min-w-fit">
               <button
                 onClick={() => navigate(`/edit-contest/${contestId}`)}
-                className="flex items-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium"
+                className="flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium"
               >
                 <Edit size={16} />
                 Edit Contest
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium">
+              <button className="flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium">
                 <Share2 size={16} />
                 Share Voters Link
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 mt-10">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8 mt-8 lg:mt-10">
             {/* Left Column - Leaderboard and Voters */}
-            <div className="xl:col-span-2 space-y-8">
+            <div className="xl:col-span-2 space-y-6 lg:space-y-8">
               {/* Leaderboard */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-3xl border border-[#000000] p-6 lg:p-8 shadow-xl">
+              <div className="bg-white/80 backdrop-blur-sm rounded-3xl border border-[#000000] p-4 sm:p-6 lg:p-8 shadow-xl">
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
-                  <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2">
                     <Trophy className="w-5 h-5 text-yellow-500" />
                     Leaderboard
                   </h2>
                   <button
                     onClick={() => navigate(`/leaderboards/${contestId}`)}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-teal-900 hover:text-white transition-colors"
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm"
                   >
                     View Full Leaderboard
                   </button>
                 </div>
 
                 {/* Key Metrics Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl text-center">
-                    <div className="w-10 h-10 mx-auto mb-2 bg-blue-500 rounded-full flex items-center justify-center">
-                      <Users className="w-5 h-5 text-white" />
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-3 sm:p-4 rounded-xl text-center">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-2 bg-blue-500 rounded-full flex items-center justify-center">
+                      <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
-                    <p className="text-2xl font-bold text-blue-700">
+                    <p className="text-lg sm:text-2xl font-bold text-blue-700">
                       {contest?.voters?.length || 0}
                     </p>
                     <p className="text-xs text-blue-600">Total Votes</p>
                   </div>
 
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl text-center">
-                    <div className="w-10 h-10 mx-auto mb-2 bg-green-500 rounded-full flex items-center justify-center">
-                      <Target className="w-5 h-5 text-white" />
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-3 sm:p-4 rounded-xl text-center">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-2 bg-green-500 rounded-full flex items-center justify-center">
+                      <Target className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
-                    <p className="text-2xl font-bold text-green-700">
+                    <p className="text-lg sm:text-2xl font-bold text-green-700">
                       {contest?.positions?.length || 0}
                     </p>
                     <p className="text-xs text-green-600">Positions</p>
                   </div>
 
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl text-center">
-                    <div className="w-10 h-10 mx-auto mb-2 bg-purple-500 rounded-full flex items-center justify-center">
-                      <TrendingUp className="w-5 h-5 text-white" />
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-3 sm:p-4 rounded-xl text-center">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-2 bg-purple-500 rounded-full flex items-center justify-center">
+                      <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
-                    <p className="text-2xl font-bold text-purple-700">
+                    <p className="text-lg sm:text-2xl font-bold text-purple-700">
                       {avgParticipation || 0}%
                     </p>
                     <p className="text-xs text-purple-600">Participation</p>
                   </div>
 
-                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-xl text-center">
-                    <div className="w-10 h-10 mx-auto mb-2 bg-orange-500 rounded-full flex items-center justify-center">
-                      <Trophy className="w-5 h-5 text-white" />
+                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-3 sm:p-4 rounded-xl text-center">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-2 bg-orange-500 rounded-full flex items-center justify-center">
+                      <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
-                    <p className="text-2xl font-bold text-orange-700">
+                    <p className="text-lg sm:text-2xl font-bold text-orange-700">
                       {contest ? getContestProgress(contest) : 0}%
                     </p>
                     <p className="text-xs text-orange-600">Progress</p>
@@ -520,46 +520,43 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
 
                 {/* Top Performers Snapshot */}
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <Crown className="w-5 h-5 text-yellow-500" />
                     Current Leaders by Position
                   </h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {contest?.positions.slice(0, 3).map((data, index) => {
-                      // const top = getTopCandidate(data);
                       return (
                         <div
                           key={data?._id}
-                          className={`p-4 rounded-xl cursor-pointer transition-all hover:shadow-md ${
-                            index === 0
+                          className={`p-3 sm:p-4 rounded-xl cursor-pointer transition-all hover:shadow-md ${index === 0
                               ? "bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200"
                               : index === 1
-                              ? "bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200"
-                              : "bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200"
-                          }`}
+                                ? "bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200"
+                                : "bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200"
+                            }`}
                           onClick={() => setSelectedPositionData(data)}
                         >
                           <div className="flex items-center gap-3">
                             <div
-                              className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                index === 0
+                              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${index === 0
                                   ? "bg-yellow-500 text-white"
                                   : index === 1
-                                  ? "bg-gray-400 text-white"
-                                  : "bg-amber-600 text-white"
-                              }`}
+                                    ? "bg-gray-400 text-white"
+                                    : "bg-amber-600 text-white"
+                                }`}
                             >
                               {index === 0 ? (
-                                <Trophy className="w-4 h-4" />
+                                <Trophy className="w-3 h-3 sm:w-4 sm:h-4" />
                               ) : index === 1 ? (
-                                <Medal className="w-4 h-4" />
+                                <Medal className="w-3 h-3 sm:w-4 sm:h-4" />
                               ) : (
-                                <Award className="w-4 h-4" />
+                                <Award className="w-3 h-3 sm:w-4 sm:h-4" />
                               )}
                             </div>
-                            <div className="flex-1">
-                              <p className="font-semibold text-gray-900 text-sm">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-gray-900 text-sm truncate">
                                 {data.name}
                               </p>
                             </div>
@@ -583,11 +580,11 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                       <div className="w-10 h-10 bg-pink-500 rounded-full flex items-center justify-center">
                         <Crown className="w-5 h-5 text-white" />
                       </div>
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <p className="text-sm text-pink-600 font-medium">
                           Overall Leader
                         </p>
-                        <p className="text-lg font-bold text-pink-800">
+                        <p className="text-base sm:text-lg font-bold text-pink-800 truncate">
                           {topContestant.name}
                         </p>
                         <p className="text-xs text-pink-600">
@@ -602,11 +599,11 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                       <div className="w-10 h-10 bg-teal-500 rounded-full flex items-center justify-center">
                         <TrendingUp className="w-5 h-5 text-white" />
                       </div>
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <p className="text-sm text-teal-600 font-medium">
                           Most Competitive
                         </p>
-                        <p className="text-lg font-bold text-teal-800">
+                        <p className="text-base sm:text-lg font-bold text-teal-800 truncate">
                           {mostCompetitive?.name || "N/A"}
                         </p>
                         <p className="text-xs text-teal-600">
@@ -763,8 +760,7 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                       <div
                         onClick={() =>
                           navigate(
-                            `/contestantdetails/${
-                              contestant.position
+                            `/contestantdetails/${contestant.position
                             }/${encodeURIComponent(contestant.name)}`
                           )
                         }
@@ -835,11 +831,10 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                     <button
                       key={index}
                       onClick={() => goToSection(index)}
-                      className={`w-3 h-3 rounded-full transition-colors ${
-                        index === currentSection
+                      className={`w-3 h-3 rounded-full transition-colors ${index === currentSection
                           ? "bg-orange-400"
                           : "bg-gray-300 hover:bg-gray-400"
-                      }`}
+                        }`}
                     />
                   ))}
                 </div>

@@ -46,9 +46,9 @@ const Contest = () => {
   const tabs = ["All", "Upcoming", "Ongoing", "Completed", "Draft"];
 
   return (
-    <div className="flex">
+    <div className="flex min-h-screen bg-white">
       <Sidebar />
-      <div className="p-6 ml-20">
+      <div className="flex-1 w-full p-6 md:ml-20">
         {/* Header */}
         <h2 className="text-[30px] text-left font-bold text-gray-900 mb-8">
           Contest

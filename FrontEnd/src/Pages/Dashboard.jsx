@@ -98,9 +98,9 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="w-full flex bg-white">
+    <div className="flex min-h-screen bg-white overflow-x-hidden">
       <Sidebar />
-      <div className="flex-1 w-full p-6 ml-20">
+      <div className="flex-1 p-6 md:ml-20 ">
         {/* Menu Area Section */}
         <div className="w-full bg-teal-900 rounded-lg p-6 mb-8">
           {/* Top right notification bell */}
