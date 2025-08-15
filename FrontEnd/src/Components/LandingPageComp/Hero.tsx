@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/Logo.png';
 import heroIcon1 from '../../assets/hero-icon-1.png';
 import heroIcon2 from '../../assets/hero-icon-2.png';
 import heroIcon3 from '../../assets/hero-icon-3.png';
