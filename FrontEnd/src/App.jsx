@@ -1,5 +1,10 @@
-// import { useState } from 'react'
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
 import "./App.css";
 import Login from "./Pages/login";
 import CreateAccount from "./Pages/CreateAccount";
@@ -19,11 +24,19 @@ import ContestantDetails from "./Pages/contestantdetails";
 import Contestant from "./Pages/contestant";
 import VotersDetails from "./Pages/VotersDetails";
 import Mywallet from "./Pages/Mywallet";
+
+import LandingHomePage from "./Pages/LandingPages/Home.jsx";
+import ContestHomePage from "./Pages/LandingPages/Contest.jsx";
+import ContestDetailHomePage from "./Pages/LandingPages/ContestDetails.jsx";
+import VotingFlow from "./Pages/LandingPages/VotingFlow";
+import Footer from "./common/Footer.jsx";
+
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import React, { useEffect } from "react";
+import { useUser } from "./context/UserContext.jsx";
 
-// Simple error boundary component
+// Simple error boundary
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -33,7 +46,6 @@ class ErrorBoundary extends React.Component {
     return { hasError: true, error };
   }
   componentDidCatch(error, errorInfo) {
-    // Log error to terminal (dev server) and browser console
     console.error("ErrorBoundary caught an error:", error, errorInfo);
   }
   render() {
@@ -49,9 +61,29 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+// Protected Route
+function ProtectedRoute({ children }) {
+  const { user } = useUser();
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
+// Layout wrapper for Footer
+function Layout({ children }) {
+  const location = useLocation();
+  const footerPaths = ["/", "/contests", "/contest-details", "/vote"];
+  return (
+    <>
+      {children}
+      {footerPaths.includes(location.pathname) && <Footer />}
+    </>
+  );
+}
+
 function App() {
   useEffect(() => {
-    // Global error handler for uncaught errors
     window.onerror = function (message, source, lineno, colno, error) {
       console.error(
         "Global error handler:",
@@ -62,59 +94,137 @@ function App() {
         error
       );
     };
-    // Global handler for unhandled promise rejections
     window.onunhandledrejection = function (event) {
       console.error("Unhandled promise rejection:", event.reason);
     };
   }, []);
-  // const [count, setCount] = useState(0)
 
   return (
     <Router>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
+      <ToastContainer position="top-right" autoClose={3000} theme="colored" />
       <ErrorBoundary>
-        <Routes>
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/" element={<Login />} />
-          <Route path="/create-account" element={<CreateAccount />} />
-          <Route path="/organizer-account" element={<OrganizerAccount />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/input-code" element={<InputCode />} />
-          <Route path="/password-reset" element={<PasswordReset />} />
-          <Route
-            path="/create-spotlight-contest"
-            element={<Createspotlightcontest />}
-          />
-          <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/role-selection" element={<RoleSelectionPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/contest" element={<Contest />} />
-          <Route
-            path="/contest-details/:contestId"
-            element={<Contestdetails />}
-          />
-          <Route path="/edit-contest/:contestId" element={<Editcontest />} />
-          <Route path="/leaderboards/:contestId" element={<Leaderboards />} />
-          <Route
-            path="/contestantdetails/:position/:contestantId/:contestId"
-            element={<ContestantDetails />}
-          />
-          <Route path="/contestant/:contestId" element={<Contestant />} />
-          <Route path="/voters-details/:contestId" element={<VotersDetails />} />
-          <Route path="/mywallet" element={<Mywallet />} />
-        </Routes>
+        <Layout>
+          <Routes>
+            {/* Public Routes with Footer */}
+            <Route path="/" element={<LandingHomePage />} />
+            <Route path="/contests" element={<ContestHomePage />} />
+            <Route path="/contest-details" element={<ContestDetailHomePage />} />
+            <Route path="/vote" element={<VotingFlow />} />
+
+            {/* Auth Public Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/create-account" element={<CreateAccount />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/input-code" element={<InputCode />} />
+            <Route path="/password-reset" element={<PasswordReset />} />
+
+            {/* Protected Routes */}
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/organizer-account"
+              element={
+                <ProtectedRoute>
+                  <OrganizerAccount />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/create-spotlight-contest"
+              element={
+                <ProtectedRoute>
+                  <Createspotlightcontest />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/role-selection"
+              element={
+                <ProtectedRoute>
+                  <RoleSelectionPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/contest"
+              element={
+                <ProtectedRoute>
+                  <Contest />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/contest-details/:contestId"
+              element={
+                <ProtectedRoute>
+                  <Contestdetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/edit-contest/:contestId"
+              element={
+                <ProtectedRoute>
+                  <Editcontest />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/leaderboards/:contestId"
+              element={
+                <ProtectedRoute>
+                  <Leaderboards />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/contestantdetails/:position/:contestantId/:contestId"
+              element={
+                <ProtectedRoute>
+                  <ContestantDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/contestant/:contestId"
+              element={
+                <ProtectedRoute>
+                  <Contestant />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/voters-details/:contestId"
+              element={
+                <ProtectedRoute>
+                  <VotersDetails />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mywallet"
+              element={
+                <ProtectedRoute>
+                  <Mywallet />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Layout>
       </ErrorBoundary>
     </Router>
   );
