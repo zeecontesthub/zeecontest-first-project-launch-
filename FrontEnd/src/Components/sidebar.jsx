@@ -42,7 +42,7 @@ const Sidebar = () => {
   const handleClosePopup = () => setIsPopupOpen(false);
 
   return (
-    <>
+    <div className="lg:ml-[10rem]">
       {/* Desktop Sidebar */}
       <div className="hidden sm:flex fixed top-0 left-0 h-screen w-60 bg-teal-900 flex-col z-40">
         {/* Logo Section */}
@@ -154,7 +154,7 @@ const Sidebar = () => {
         className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 flex justify-between items-center px-1 h-20 shadow-lg"
         style={{ minHeight: 72, maxHeight: 80 }} // Ensures enough height for all icons
       >
-        {navItems.map((item, idx) => (
+        {navItems.map((item) => (
           <button
             key={item.key}
             onClick={() => handleNavClick(item)}
@@ -189,7 +189,7 @@ const Sidebar = () => {
 
       {/* Contest Popup */}
       <ContestPopup isOpen={isPopupOpen} onClose={handleClosePopup} />
-    </>
+    </div>
   );
 };
 

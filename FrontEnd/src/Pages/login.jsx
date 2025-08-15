@@ -17,9 +17,15 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [infoMsg, setInfoMsg] = useState("");
-  const { setUser } = useUser();
+  const { setUser, user } = useUser();
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     const email = window.localStorage.getItem("emailForSignIn");
