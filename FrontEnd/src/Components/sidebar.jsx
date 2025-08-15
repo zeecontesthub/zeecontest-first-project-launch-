@@ -42,7 +42,8 @@ const Sidebar = () => {
   const handleClosePopup = () => setIsPopupOpen(false);
 
   return (
-    <div className="lg:ml-[10rem]">
+    <div>
+      {/* className="lg:ml-[10rem]" */}
       {/* Desktop Sidebar */}
       <div className="hidden sm:flex fixed top-0 left-0 h-screen w-60 bg-teal-900 flex-col z-40">
         {/* Logo Section */}

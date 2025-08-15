@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import CTABg from '../../assets/footer-background.jpg';
+import CTABg from "../../assets/footer-background.jpg";
 
 const CTA = () => {
   const [email, setEmail] = useState('');
