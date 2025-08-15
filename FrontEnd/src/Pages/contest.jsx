@@ -46,7 +46,7 @@ const Contest = () => {
   const tabs = ["All", "Upcoming", "Ongoing", "Completed", "Draft"];
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex min-h-screen bg-white lg:gap-[10rem]">
       <Sidebar />
       <div className="flex-1 w-full p-6 md:ml-20">
         {/* Header */}

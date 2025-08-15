@@ -1,6 +1,6 @@
 import { FaTelegram, FaXTwitter } from 'react-icons/fa6';
 import { FaInstagram, FaFacebookF, FaLinkedinIn } from 'react-icons/fa';
-import logo from '../assets/logo.png';
+import logo from '../assets/Logo.png';
 
 const Footer = () => {
   return (

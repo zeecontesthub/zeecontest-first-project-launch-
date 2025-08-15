@@ -1,4 +1,4 @@
-import logo from '../../assets/logo.png';
+import logo from '../../assets/Logo.png';
 const Header = () => {
   return (
     <div className='absolute top-0 left-0 w-full z-50 py-4 px-20 flex items-center justify-between'>

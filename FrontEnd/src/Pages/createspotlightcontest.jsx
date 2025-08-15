@@ -402,7 +402,7 @@ const CreateSpotlightContest = () => {
   ];
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="flex bg-white min-h-screen lg:gap-[10rem]">
       <Sidebar />
       
       {/* Main Container with improved mobile responsiveness */}
@@ -410,7 +410,7 @@ const CreateSpotlightContest = () => {
         
         {/* Header Section */}
         <div className="mb-4 sm:mb-6">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-gray-900 leading-tight">
+          <h2 className="text-center text-xl sm:text-2xl md:text-3xl font-semibold text-gray-900 leading-tight">
             Create Spotlight Contest
           </h2>
         </div>

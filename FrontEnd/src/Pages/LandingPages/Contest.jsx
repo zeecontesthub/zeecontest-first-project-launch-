@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/Logo.png';
 import ContestListing from '../../Components/LandingPageComp/contest/ContestListing';
 
 const Contest = () => {
