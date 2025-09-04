@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Edit, Eye, Share2 } from "lucide-react";
 import Sidebar from "../Components/sidebar";
@@ -24,6 +23,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import positionData from "../data/positionData";
 import { toast } from "react-toastify";
+import VotersLink from "../Components/voterslink";
+import ContestActionConfirm from "../Components/ContestActionConfirm";
 
 const Contestdetails = ({ isPaidContest, voterFee }) => {
   const { contestId } = useParams();
@@ -32,6 +33,9 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
   const [currentSection, setCurrentSection] = useState(0);
   const [countdown, setCountdown] = useState("");
   const [selectedPositionData, setSelectedPositionData] = useState({});
+  const [isVotersLinkOpen, setIsVotersLinkOpen] = useState(false);
+  const [isActionConfirmOpen, setIsActionConfirmOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
   const navigate = useNavigate();
 
   // Simulated contest start and end date/time for countdown
@@ -308,13 +312,18 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
     return top;
   }
 
-  const topContestant = getTopContestant(selectedPositionData);
+  // Modified handleSectionAction to show confirmation popup
+  const handleSectionAction = () => {
+    setPendingAction(currentData.title);
+    setIsActionConfirmOpen(true);
+  };
 
-  const handleSectionAction = async () => {
+  // Actual action handler after confirmation
+  const handleConfirmedAction = async () => {
     if (!contest) return;
     let updatedFields = {};
 
-    if (currentData.title === "Start Contest") {
+    if (pendingAction === "Start Contest") {
       const now = new Date();
       updatedFields = {
         startDate: now.toISOString().split("T")[0],
@@ -325,11 +334,11 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
         },
         status: "ongoing",
       };
-    } else if (currentData.title === "Pause Contest") {
+    } else if (pendingAction === "Pause Contest") {
       updatedFields = {
         status: "pause",
       };
-    } else if (currentData.title === "End Contest") {
+    } else if (pendingAction === "End Contest") {
       const now = new Date();
       updatedFields = {
         endDate: now.toISOString().split("T")[0],
@@ -350,13 +359,49 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
       console.error("Failed to update contest:", err);
       toast.error("Failed to update contest!");
     }
+    setIsActionConfirmOpen(false);
+    setPendingAction(null);
   };
 
-  return (
-    <div className="flex min-h-screen">
-      <Sidebar />
+  // Get the voting link for this contest
+  const votingLink = `${window.location.origin}/contest-details`;
 
-      <div className="flex-1 p-4 sm:p-6 md:ml-20 ">
+  // Always define topContestant for overall leader
+  const topContestant = React.useMemo(() => {
+    // Find the contestant with the most votes across all positions
+    if (!contest?.positions || contest.positions.length === 0) return { name: "No Votes Yet", votes: 0 };
+    let globalVoteCounts = {};
+    let contestantNames = {};
+    contest.positions.forEach((position) => {
+      if (position.contestants) {
+        position.contestants.forEach((contestant) => {
+          contestantNames[contestant._id] = contestant.name;
+        });
+      }
+      if (position.voters) {
+        position.voters.forEach((voter) => {
+          if (voter.votedFor) {
+            globalVoteCounts[voter.votedFor] = (globalVoteCounts[voter.votedFor] || 0) + 1;
+          }
+        });
+      }
+    });
+    let topId = null;
+    let topVotes = 0;
+    Object.entries(globalVoteCounts).forEach(([id, votes]) => {
+      if (votes > topVotes) {
+        topId = id;
+        topVotes = votes;
+      }
+    });
+    if (!topId) return { name: "No Votes Yet", votes: 0 };
+    return { name: contestantNames[topId] || "No Votes Yet", votes: topVotes };
+  }, [contest]);
+
+  return (
+    <div className="flex min-h-screen overflow-x-hidden lg:gap-[10rem]">
+      <Sidebar />
+      <div className="flex-1 p-6 md:ml-20 ">
         {/* Header */}
         <h2 className="text-2xl sm:text-[30px] text-left font-bold text-gray-900 mb-6 sm:mb-8">
           Contest
@@ -449,11 +494,15 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                 <Edit size={16} />
                 Edit Contest
               </button>
-              <button className="flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium">
+              <button
+                className="flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium"
+                onClick={() => setIsVotersLinkOpen(true)}
+              >
                 <Share2 size={16} />
                 Share Voters Link
               </button>
             </div>
+            <VotersLink open={isVotersLinkOpen} onClose={() => setIsVotersLinkOpen(false)} link={votingLink} />
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8 mt-8 lg:mt-10">
@@ -824,6 +873,12 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                   {currentData.icon}
                   {currentData.buttonText}
                 </button>
+                <ContestActionConfirm
+                  open={isActionConfirmOpen}
+                  onClose={() => setIsActionConfirmOpen(false)}
+                  action={pendingAction}
+                  onConfirm={handleConfirmedAction}
+                />
 
                 {/* Navigation Dots */}
                 <div className="flex justify-center mt-4 gap-2">

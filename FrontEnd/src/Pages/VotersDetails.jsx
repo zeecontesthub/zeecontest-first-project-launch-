@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import VotersRegistrationLink from "../Components/votersregistrationlink";
 
 const VotersDetails = () => {
   const { contestId } = useParams();
@@ -25,6 +26,9 @@ const VotersDetails = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const navigate = useNavigate();
+  const [isVotersRegLinkOpen, setIsVotersRegLinkOpen] = useState(false);
+  const votersRegLink = `${window.location.origin}/voterregistration/${contestId}`;
+  
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -126,10 +130,9 @@ const VotersDetails = () => {
   ];
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-white overflow-x-hidden lg:gap-[10rem]">
       <Sidebar />
-
-      <div className="flex-1 w-full p-3 md:p-6 ml-0 md:ml-20">
+      <div className="flex-1 p-6 md:ml-20 ">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
@@ -200,16 +203,17 @@ const VotersDetails = () => {
             {/* Right Section - Action Buttons */}
             <div className="flex flex-col gap-3 min-w-fit">
               <button
-                onClick={() => navigate(`/edit-contest/${contestId}`)}
                 className="flex items-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium"
+                onClick={() => setIsVotersRegLinkOpen(true)}
               >
-                <Edit size={16} />
-                Edit Contest
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium">
                 <Share2 size={16} />
-                Share Voters Link
+                Share Voters Registration Link
               </button>
+              <VotersRegistrationLink
+                open={isVotersRegLinkOpen}
+                onClose={() => setIsVotersRegLinkOpen(false)}
+                link={votersRegLink}
+              />
             </div>
           </div>
           {/* Voter Details Table */}
@@ -256,63 +260,6 @@ const VotersDetails = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Registration Form Section */}
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
-                <h3 className="text-lg font-bold mb-4 text-gray-900">
-                  Register Voter
-                </h3>
-                <form
-                  className="flex flex-col md:flex-row gap-4 items-center"
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    // Add registration logic here (e.g., API call or local state update)
-                    // For now, just clear the form
-                    setRegistrationForm({ name: "", email: "", registrationDate: "" });
-                  }}
-                >
-                  <input
-                    type="text"
-                    placeholder="Full Name"
-                    value={registrationForm?.name || ""}
-                    onChange={(e) =>
-                      setRegistrationForm((f) => ({ ...f, name: e.target.value }))
-                    }
-                    className="w-full md:w-1/4 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    required
-                  />
-                  <input
-                    type="email"
-                    placeholder="Email Address"
-                    value={registrationForm?.email || ""}
-                    onChange={(e) =>
-                      setRegistrationForm((f) => ({ ...f, email: e.target.value }))
-                    }
-                    className="w-full md:w-1/4 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    required
-                  />
-                  <input
-                    type="date"
-                    placeholder="Registration Date"
-                    value={registrationForm?.registrationDate || ""}
-                    onChange={(e) =>
-                      setRegistrationForm((f) => ({
-                        ...f,
-                        registrationDate: e.target.value,
-                      }))
-                    }
-                    className="w-full md:w-1/4 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    required
-                  />
-                  <button
-                    type="submit"
-                    className="px-6 py-3 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 transition-colors"
-                  >
-                    Register
-                  </button>
-                </form>
-              </div>
-
               {/* Registration Preview Table Section */}
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden mb-8">
                 <div className="p-6 border-b border-gray-200">

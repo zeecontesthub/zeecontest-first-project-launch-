@@ -55,10 +55,9 @@ const Contestant = () => {
   const totalContestants = allContestants.length;
 
   return (
-    <div className="flex min-h-screen overflow-x-hidden">
+    <div className="flex min-h-screen bg-white overflow-x-hidden lg:gap-[10rem]">
       <Sidebar />
-
-      <div className="flex-1 p-4 sm:p-6 md:ml-20 overflow-x-hidden max-w-full">
+      <div className="flex-1 p-6 md:ml-20 ">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
@@ -125,22 +124,6 @@ const Contestant = () => {
                   </div>
                 </div>
               </div>
-            </div>
-
-
-            {/* Right Section - Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              <button
-                onClick={() => navigate(`/edit-contest/${contestId}`)}
-                className="flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium"
-              >
-                <Edit size={16} />
-                <span className="whitespace-nowrap">Edit Contest</span>
-              </button>
-              <button className="flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium">
-                <Share2 size={16} />
-                <span className="whitespace-nowrap">Share Link</span>
-              </button>
             </div>
           </div>
         </div>

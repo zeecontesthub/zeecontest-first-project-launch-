@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Check } from 'lucide-react';
+import VotersCode from '../../Components/LandingPageComp/contest/VotersCode';
 
 const VotingFlow = () => {
   // Voting flow state
@@ -8,6 +9,8 @@ const VotingFlow = () => {
   const [currentStep, setCurrentStep] = useState('cast');
   const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
   const [votes, setVotes] = useState({});
+  const [showVotersCode, setShowVotersCode] = useState(false);
+  const [finalVotes, setFinalVotes] = useState({});
 
   // Position and candidate data
   const positions = [
@@ -82,8 +85,19 @@ const VotingFlow = () => {
   };
 
   const handleSubmitVotes = () => {
+    setShowVotersCode(true);
+    setFinalVotes(votes);
+  };
+
+  const handleVotersCodeClose = () => {
+    setShowVotersCode(false);
+  };
+
+  const handleVotersCodeSubmit = (code) => {
+    setShowVotersCode(false);
+    // You can add code verification logic here
     alert('Votes submitted successfully!');
-    console.log('Final votes:', votes);
+    console.log('Final votes:', finalVotes, 'Voters code:', code);
   };
 
   // Cast Vote Page
@@ -249,6 +263,12 @@ const VotingFlow = () => {
           >
             Cast my votes
           </button>
+
+          <VotersCode
+            open={showVotersCode}
+            onClose={handleVotersCodeClose}
+            onSubmit={handleVotersCodeSubmit}
+          />
 
           <button
             onClick={handleBackToCasting}

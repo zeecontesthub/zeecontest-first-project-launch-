@@ -26,10 +26,12 @@ import VotersDetails from "./Pages/VotersDetails";
 import Mywallet from "./Pages/Mywallet";
 
 import LandingHomePage from "./Pages/LandingPages/Home.jsx";
-import ContestHomePage from "./Pages/LandingPages/Contest.jsx";
-import ContestDetailHomePage from "./Pages/LandingPages/ContestDetails.jsx";
+import ContestHomePage from "./Pages/LandingPages/vContest.jsx";
+import ContestDetailHomePage from "./Pages/LandingPages/vContestDetails.jsx";
 import VotingFlow from "./Pages/LandingPages/VotingFlow";
 import Footer from "./common/Footer.jsx";
+import VoterRegistration from "./Pages/LandingPages/VoterRegistration";
+import VContestantDetails from "./Pages/LandingPages/vcontestantdetails";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -107,9 +109,18 @@ function App() {
           <Routes>
             {/* Public Routes with Footer */}
             <Route path="/" element={<LandingHomePage />} />
-            <Route path="/contests" element={<ContestHomePage />} />
-            <Route path="/contest-details" element={<ContestDetailHomePage />} />
+            <Route path="/vcontests" element={<ContestHomePage />} />
+            <Route path="/vcontest-details" element={<ContestDetailHomePage />} />
             <Route path="/vote" element={<VotingFlow />} />
+            {/* Public Voter Registration Route */}
+            <Route
+              path="/voterregistration/:contestId"
+              element={<VoterRegistration />}
+            />
+            <Route
+              path="/vcontestantdetails/:position/:contestantId/:contestId"
+              element={<VContestantDetails />}
+            />
 
             {/* Auth Public Routes */}
             <Route path="/login" element={<Login />} />

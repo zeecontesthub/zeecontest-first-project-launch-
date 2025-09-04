@@ -156,7 +156,7 @@ const Dashboard = () => {
                 ))
             ) : (
               <p className="text-gray-500 italic w-120">
-                No upcoming contest. Click create contest to get started.
+                No upcoming contest.
               </p>
             )}
           </div>
@@ -186,7 +186,7 @@ const Dashboard = () => {
                 ))
             ) : (
               <p className="text-gray-500 italic w-120">
-                No ongoing contest. Click create contest to get started.
+                No ongoing contest. 
               </p>
             )}
           </div>
@@ -216,7 +216,7 @@ const Dashboard = () => {
                 ))
             ) : (
               <p className="text-gray-500 italic w-120">
-                No completed contest. Click create contest to get started.
+                No completed contest.
               </p>
             )}
           </div>

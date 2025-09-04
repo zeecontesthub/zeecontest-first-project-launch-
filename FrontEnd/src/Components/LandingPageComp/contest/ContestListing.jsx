@@ -215,7 +215,7 @@ const ContestListing = () => {
                 {/* Action Button */}
                 <button
                   className={buttonConfig.classes}
-                  onClick={() => navigate('/contest-details')}
+                  onClick={() => navigate('/vcontest-details')}
                 >
                   {buttonConfig.text}
                 </button>

@@ -29,6 +29,7 @@ import {
 } from "chart.js";
 import positionData from "../data/positionData";
 import axios from "axios";
+import VotersLink from "../Components/voterslink";
 
 ChartJS.register(
   ArcElement,
@@ -69,6 +70,7 @@ const Leaderboards = () => {
   const { contestId } = useParams();
   const [contest, setContest] = useState(null);
   const [activeTab, setActiveTab] = useState("");
+  const [isVotersLinkOpen, setIsVotersLinkOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -226,10 +228,13 @@ const Leaderboards = () => {
       ? `${sortedContestants[0].votes - sortedContestants[1].votes} votes`
       : "0 votes";
 
+  // Get the voting link for this contest
+  const votingLink = `${window.location.origin}/contest-details`;
+
   return (
-    <div className="flex min-h-screen overflow-x-hidden">
+    <div className="flex min-h-screen bg-white overflow-x-hidden lg:gap-[10rem]">
       <Sidebar />
-      <div className="flex-1 p-4 sm:p-6 md:ml-20 overflow-x-hidden max-w-full ">
+      <div className="flex-1 p-6 md:ml-20 ">
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => navigate(-1)}
@@ -312,11 +317,15 @@ const Leaderboards = () => {
                 <Edit size={16} />
                 Edit Contest
               </button>
-              <button className="flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium">
+              <button
+                className="flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium"
+                onClick={() => setIsVotersLinkOpen(true)}
+              >
                 <Share2 size={16} />
                 Share Voters Link
               </button>
             </div>
+            <VotersLink open={isVotersLinkOpen} onClose={() => setIsVotersLinkOpen(false)} link={votingLink} />
           </div>
 
           {/* Key Metrics Dashboard */}

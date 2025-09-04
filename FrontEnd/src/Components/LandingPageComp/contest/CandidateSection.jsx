@@ -68,7 +68,10 @@ const CandidateSection = ({
 
               <button
                 className='w-full bg-[#034045] hover:bg-[#045a60] text-white py-3 rounded-lg font-medium transition-colors duration-200 cursor-pointer'
-                onClick={() => {}}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/vcontestantdetails/${activePosition}/${candidate.id}/1`); // Replace 1 with contestId if available
+                }}
               >
                 View Profile
               </button>

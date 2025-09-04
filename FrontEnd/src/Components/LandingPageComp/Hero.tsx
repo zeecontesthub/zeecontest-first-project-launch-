@@ -25,7 +25,7 @@ const Hero = () => {
         <div className='hidden md:flex items-center space-x-8'>
           <ul className='flex items-center space-x-8'>
             <li className='text-white text-lg lg:text-xl hover:text-[#E67347] transition-colors font-medium'>
-              <Link to='/contests' className='flex items-center space-x-2'>
+              <Link to='/vcontests' className='flex items-center space-x-2'>
                 <span>Contests</span>
               </Link>
             </li>

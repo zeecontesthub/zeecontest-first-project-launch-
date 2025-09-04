@@ -37,7 +37,7 @@ const Hero = () => {
           <ul className='flex items-center space-x-8'>
             <li className='relative text-white text-lg lg:text-xl font-medium'>
               <Link
-                to='/contests'
+                to='/vcontests'
                 className='flex items-center space-x-2 group'
               >
                 <span className='relative'>

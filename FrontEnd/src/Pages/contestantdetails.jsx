@@ -19,6 +19,7 @@ import {
 import axios from "axios";
 import { toast } from "react-toastify";
 import { uploadToCloudinary } from "../actions/cloudinaryAction";
+import CandidateLink from "../Components/candidatelink";
 
 const ContestantDetails = () => {
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ const ContestantDetails = () => {
     position: "",
     email: "",
   });
+  const [isCandidateLinkOpen, setIsCandidateLinkOpen] = useState(false);
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -137,6 +139,9 @@ const ContestantDetails = () => {
     }
   };
 
+  // Get the candidate link for this contestant
+  const candidateLink = `${window.location.origin}/vcontestantdetails/${position}/${contestantId}/${contestId}`;
+
   if (!currentContestant) {
     return (
       <div className="flex min-h-screen">
@@ -163,7 +168,7 @@ const ContestantDetails = () => {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-white overflow-x-hidden lg:gap-[10rem]">
       <Sidebar />
       <div className="flex-1 p-6 md:ml-20 ">
         <div className="mx-auto p-6 min-h-screen">
@@ -181,8 +186,8 @@ const ContestantDetails = () => {
           </div>
           {/* Profile Section */}
           <div className="bg-white rounded-lg p-6 mb-6 shadow-sm">
-            <div className="flex items-start gap-6">
-              <div className="w-32 h-32 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-r from-orange-400 to-red-400 flex items-center justify-center text-white text-4xl font-bold">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+              <div className="w-32 h-32 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-r from-orange-400 to-red-400 flex items-center justify-center text-white text-4xl font-bold mb-4 md:mb-0">
                 {currentContestant.image ? (
                   <img
                     src={currentContestant.image}
@@ -193,25 +198,27 @@ const ContestantDetails = () => {
                   currentContestant.name.charAt(0)
                 )}
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-3">
-                  <h1 className="text-3xl text-left font-bold text-gray-900">
+              <div className="flex-1 w-full">
+                <div className="flex flex-col items-center md:items-start gap-3 mb-3">
+                  <h1 className="text-3xl text-center md:text-left font-bold text-gray-900">
                     {currentContestant.name}
                   </h1>
-                  {currentContestant.rank === 1 && (
-                    <Crown className="w-8 h-8 text-yellow-500" />
-                  )}
-                  {currentContestant.rank === 2 && (
-                    <Medal className="w-8 h-8 text-gray-400" />
-                  )}
-                  {currentContestant.rank === 3 && (
-                    <Award className="w-8 h-8 text-orange-600" />
-                  )}
+                  <div className="flex gap-2">
+                    {currentContestant.rank === 1 && (
+                      <Crown className="w-8 h-8 text-yellow-500" />
+                    )}
+                    {currentContestant.rank === 2 && (
+                      <Medal className="w-8 h-8 text-gray-400" />
+                    )}
+                    {currentContestant.rank === 3 && (
+                      <Award className="w-8 h-8 text-orange-600" />
+                    )}
+                  </div>
                 </div>
-                <p className="text-gray-500 text-left mb-6 leading-relaxed">
+                <p className="text-gray-500 text-center md:text-left mb-6 leading-relaxed">
                   {currentContestant.email || "Email not provided."}
                 </p>
-                <p className="text-gray-500 text-left mb-6 leading-relaxed">
+                <p className="text-gray-500 text-center md:text-left mb-6 leading-relaxed">
                   {currentContestant.bio ||
                     "Dedicated candidate committed to excellence and positive change in leadership."}
                 </p>
@@ -245,7 +252,7 @@ const ContestantDetails = () => {
                     <div className="text-sm text-gray-600">Vote Share</div>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-6 mb-6 text-sm">
+                <div className="flex flex-wrap gap-6 mb-6 text-sm justify-center md:justify-start">
                   <div>
                     <span className="text-gray-600">Contest: </span>
                     <span className="font-semibold text-gray-900">
@@ -259,7 +266,7 @@ const ContestantDetails = () => {
                     </span>
                   </div>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-col md:flex-row gap-3 w-full justify-center md:justify-start">
                   <button
                     onClick={() => {
                       setEditForm({
@@ -271,15 +278,23 @@ const ContestantDetails = () => {
                       });
                       setShowEditModal(true);
                     }}
-                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors justify-center md:justify-start"
                   >
                     <Edit size={16} />
                     Edit Details
                   </button>
-                  <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                  <button
+                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors justify-center md:justify-start"
+                    onClick={() => setIsCandidateLinkOpen(true)}
+                  >
                     <Share2 size={16} />
-                    Share Candidate Link
+                    Share Contestant Link
                   </button>
+                  <CandidateLink
+                    open={isCandidateLinkOpen}
+                    onClose={() => setIsCandidateLinkOpen(false)}
+                    link={candidateLink}
+                  />
                 </div>
               </div>
             </div>
