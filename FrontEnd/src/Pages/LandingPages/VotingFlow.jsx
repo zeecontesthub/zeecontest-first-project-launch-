@@ -99,9 +99,15 @@ const VotingFlow = () => {
               >
                 <ChevronLeft className='w-8 h-8 text-gray-900' />
               </button>
+<<<<<<< HEAD
               <p className='text-2xl font-bold text-gray-900'>
                 Cast your vote
               </p>
+=======
+              <h1 className='text-2xl font-bold text-gray-900'>
+                Cast your vote
+              </h1>
+>>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
             </div>
 
             <div className='mb-8'>

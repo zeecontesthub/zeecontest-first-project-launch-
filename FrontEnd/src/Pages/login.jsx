@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
 <<<<<<< HEAD
+<<<<<<< HEAD
 // import { Link, useNavigate } from "react-router-dom";
 =======
 import { toast } from "react-toastify";
 >>>>>>> oscar-branch
+=======
+import { toast } from "react-toastify";
+>>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
 import backgroundImage from "../assets/Image.png";
 import Logo from "../assets/Logo.png";
 import { sendOTPLink } from "../actions/userActions";
@@ -16,31 +20,45 @@ import {
 import { auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import { useUser } from "../context/UserContext";
 >>>>>>> oscar-branch
+=======
+import { useUser } from "../context/UserContext";
+>>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [infoMsg, setInfoMsg] = useState("");
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
   const { setUser, user } = useUser();
 >>>>>>> oscar-branch
+=======
+  const { setUser, user } = useUser();
+>>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
 
   const navigate = useNavigate();
 
   useEffect(() => {
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
     if (user) {
       navigate("/dashboard");
     }
   }, [user, navigate]);
 
   useEffect(() => {
+<<<<<<< HEAD
 >>>>>>> oscar-branch
+=======
+>>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
     const email = window.localStorage.getItem("emailForSignIn");
 
     if (isSignInWithEmailLink(auth, window.location.href)) {
@@ -56,11 +74,17 @@ const Login = () => {
           console.log("✅ Logged in user:", user);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
           // Show toast notification on successful login
           toast.success("Login successful");
 
 >>>>>>> oscar-branch
+=======
+          // Show toast notification on successful login
+          toast.success("Login successful");
+
+>>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
           // Get Firebase token
           const token = await user.getIdToken();
 
@@ -114,11 +138,17 @@ const Login = () => {
       // console.log("✅ Google login successful:", user);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       // Show toast notification on successful login
       toast.success("Login successful");
 
 >>>>>>> oscar-branch
+=======
+      // Show toast notification on successful login
+      toast.success("Login successful");
+
+>>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
       const token = await user.getIdToken();
 
       const apiResult = await fetch("/api/users/save-user", {
@@ -138,10 +168,15 @@ const Login = () => {
       // console.log(data);
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
       setUser(data.user); // Set user in context
 
 >>>>>>> oscar-branch
+=======
+      setUser(data.user); // Set user in context
+
+>>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
       const role = data.user?.role; // optional chaining to avoid crashes
 
       navigate(role ? "/dashboard" : "/role-selection");

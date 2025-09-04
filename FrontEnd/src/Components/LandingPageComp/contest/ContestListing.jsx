@@ -168,9 +168,15 @@ const ContestListing = () => {
 
               {/* Contest Details */}
               <div className='p-6'>
+<<<<<<< HEAD
                 <p className='text-xl font-bold text-[#034045] mb-4'>
                   {contest.title}
                 </p>
+=======
+                <h3 className='text-xl font-bold text-[#034045] mb-4'>
+                  {contest.title}
+                </h3>
+>>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
 
                 {/* Stats Row */}
                 <div className='flex justify-between items-center mb-6 text-sm text-gray-600'>

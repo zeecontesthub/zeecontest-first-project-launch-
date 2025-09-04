@@ -4,9 +4,13 @@ import cors from "cors";
 import dotenv from "dotenv";
 import userRoutes from "./routes/userRoutes.js";
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import contestRoutes from "./routes/contestRoutes.js";
 >>>>>>> oscar-branch
+=======
+import contestRoutes from "./routes/contestRoutes.js";
+>>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
 import path from "path";
 import { fileURLToPath } from "url";
 import expressStaticGzip from "express-static-gzip";
@@ -27,9 +31,13 @@ app.use(express.json()); // ✅ Parse JSON before route handling
 // ✅ API routes
 app.use("/api/users", userRoutes);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 app.use("/api/contest", contestRoutes);
 >>>>>>> oscar-branch
+=======
+app.use("/api/contest", contestRoutes);
+>>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
 
 // ✅ Serve static frontend
 app.use(

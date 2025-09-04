@@ -119,9 +119,15 @@ const ContestDetailPage = () => {
               >
                 <ChevronLeft className='w-8 h-8 text-gray-900' />
               </button>
+<<<<<<< HEAD
               <p className='text-2xl font-bold text-gray-900'>
                 {contestData.title}
               </p>
+=======
+              <h1 className='text-2xl font-bold text-gray-900'>
+                {contestData.title}
+              </h1>
+>>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
             </div>
           </div>
         </div>
@@ -138,9 +144,15 @@ const ContestDetailPage = () => {
               </div>
 
               <div className='flex-grow'>
+<<<<<<< HEAD
                 <p className='text-2xl md:text-3xl font-bold text-gray-900 mb-2'>
                   {contestData.title}
                 </p>
+=======
+                <h2 className='text-2xl md:text-3xl font-bold text-gray-900 mb-2'>
+                  {contestData.title}
+                </h2>
+>>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
                 <p className='text-gray-600 text-lg mb-4'>
                   {contestData.description}
                 </p>

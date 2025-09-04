@@ -44,7 +44,10 @@ export const updateUserRole = async (req, res) => {
   }
 };
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
 
 export const updateUserProfile = async (req, res) => {
   const { name, userImage, orgName, orgAbout, uid } = req.body;
@@ -67,4 +70,7 @@ export const updateUserProfile = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+<<<<<<< HEAD
 >>>>>>> oscar-branch
+=======
+>>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
