@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
+<<<<<<< HEAD
 // import { Link, useNavigate } from "react-router-dom";
+=======
+import { toast } from "react-toastify";
+>>>>>>> oscar-branch
 import backgroundImage from "../assets/Image.png";
 import Logo from "../assets/Logo.png";
 import { sendOTPLink } from "../actions/userActions";
@@ -11,15 +15,32 @@ import {
 } from "firebase/auth";
 import { auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
+<<<<<<< HEAD
+=======
+import { useUser } from "../context/UserContext";
+>>>>>>> oscar-branch
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [infoMsg, setInfoMsg] = useState("");
+<<<<<<< HEAD
+=======
+  const { setUser, user } = useUser();
+>>>>>>> oscar-branch
 
   const navigate = useNavigate();
 
   useEffect(() => {
+<<<<<<< HEAD
+=======
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
+>>>>>>> oscar-branch
     const email = window.localStorage.getItem("emailForSignIn");
 
     if (isSignInWithEmailLink(auth, window.location.href)) {
@@ -34,6 +55,12 @@ const Login = () => {
           const user = result.user;
           console.log("✅ Logged in user:", user);
 
+<<<<<<< HEAD
+=======
+          // Show toast notification on successful login
+          toast.success("Login successful");
+
+>>>>>>> oscar-branch
           // Get Firebase token
           const token = await user.getIdToken();
 
@@ -86,6 +113,12 @@ const Login = () => {
       const user = result.user;
       // console.log("✅ Google login successful:", user);
 
+<<<<<<< HEAD
+=======
+      // Show toast notification on successful login
+      toast.success("Login successful");
+
+>>>>>>> oscar-branch
       const token = await user.getIdToken();
 
       const apiResult = await fetch("/api/users/save-user", {
@@ -104,6 +137,11 @@ const Login = () => {
 
       // console.log(data);
 
+<<<<<<< HEAD
+=======
+      setUser(data.user); // Set user in context
+
+>>>>>>> oscar-branch
       const role = data.user?.role; // optional chaining to avoid crashes
 
       navigate(role ? "/dashboard" : "/role-selection");

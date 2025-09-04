@@ -6,6 +6,12 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true },
   role: { type: String, default: null },
   name: String,
+<<<<<<< HEAD
+=======
+  userImage: { type: String },
+  orgName: { type: String, default: null },
+  orgAbout: { type: String, default: null },
+>>>>>>> oscar-branch
   createdAt: { type: Date, default: Date.now },
 });
 
