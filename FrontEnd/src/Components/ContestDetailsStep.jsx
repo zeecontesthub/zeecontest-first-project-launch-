@@ -1,120 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-import React, { useState } from 'react';
-import DatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
-=======
-import React, { useState } from "react";
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
-
-// Mock DatePicker component since react-datepicker isn't available
-const DatePicker = ({ selected, onChange, minDate, dateFormat, className, placeholderText }) => {
-  const formatDate = (date) => {
-    if (!date) return '';
-    return date.toISOString().split('T')[0];
-  };
-
-  const handleDateChange = (e) => {
-    const value = e.target.value;
-    if (value) {
-      onChange(new Date(value));
-    } else {
-      onChange(null);
-    }
-  };
-
-  return (
-    <input
-      type="date"
-      value={selected ? formatDate(selected) : ''}
-      onChange={handleDateChange}
-      min={minDate ? formatDate(minDate) : ''}
-      className={className}
-      placeholder={placeholderText}
-    />
-  );
-};
-
-const ContestDetailsStep = ({
-  formData = {
-    contestName: '',
-    contestDescription: '',
-    startDate: null,
-    endDate: null,
-    startTime: { startTimeHour: '', startTimeMinute: '', startTimeAmPm: 'AM' },
-    endTime: { endTimeHour: '', endTimeMinute: '', endTimeAmPm: 'AM' },
-    payment: { isPaid: false, amount: '' },
-    allowMultipleVotes: false
-  },
-  onInputChange = () => {},
-  positions = [],
-  onAddPosition = () => {},
-  onUpdatePosition = () => {},
-  onRemovePosition = () => {},
-  setCreateContest = () => {},
-}) => {
-  const [editIndex, setEditIndex] = useState(null);
-
-  const handleEditClick = (index) => {
-    setEditIndex(index);
-  };
-
-  const handleSaveClick = () => {
-    setEditIndex(null);
-  };
-
-  return (
-    <div className="space-y-6 sm:space-y-8">
-      {/* Basic Content Information */}
-      <div className="bg-[#FBF7F7] p-4 sm:p-6 lg:p-10 rounded-lg">
-        <div>
-          <h2 className="text-lg sm:text-xl text-left font-semibold text-gray-900 mb-4 sm:mb-6">
-            Basic Content Information
-          </h2>
-          <div className="space-y-4 sm:space-y-6">
-            {/* Contest Name */}
-            <div>
-              <label className="block text-left text-sm font-medium text-gray-700 mb-2">
-                Contest Name
-              </label>
-              <input
-                type="text"
-                value={formData.contestName}
-                onChange={(e) => {
-                  onInputChange("contestName", e.target.value);
-                  setCreateContest((prev) => ({
-                    ...prev,
-                    title: e.target.value,
-                  }));
-                }}
-                placeholder="Enter the Name of your Contest"
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors text-sm sm:text-base"
-              />
-            </div>
-
-            {/* Contest Description */}
-            <div>
-              <label className="block text-sm text-left font-medium text-gray-700 mb-2">
-                Contest Description
-              </label>
-              <textarea
-                value={formData.contestDescription}
-                onChange={(e) => {
-                  onInputChange("contestDescription", e.target.value);
-                  setCreateContest((prev) => ({
-                    ...prev,
-                    description: e.target.value,
-                  }));
-                }}
-                placeholder="Describe your contest"
-                rows={4}
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors resize-none text-sm sm:text-base"
-              />
-            </div>
-
-<<<<<<< HEAD
-export default ContestDetailsStep;
-=======
 import React, { useState } from "react";
 
 // Mock DatePicker component since react-datepicker isn't available
@@ -222,8 +105,6 @@ const ContestDetailsStep = ({
               />
             </div>
 
-=======
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
             {/* Date Fields */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 text-left">
               <div>
@@ -765,9 +646,4 @@ const ContestDetailsStep = ({
   );
 };
 
-<<<<<<< HEAD
 export default ContestDetailsStep;
->>>>>>> oscar-branch
-=======
-export default ContestDetailsStep;
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8

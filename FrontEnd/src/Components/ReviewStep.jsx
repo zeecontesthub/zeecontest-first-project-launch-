@@ -1,98 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-import React from 'react';
-=======
-import { Edit, Calendar, Clock, DollarSign, Users, ImageIcon } from "lucide-react";
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
-
-const ReviewStep = ({
-  coverImage,
-  logoImage,
-  formData = {
-    contestName: '',
-    contestDescription: '',
-    startDate: '',
-    endDate: '',
-    startTime: { startTimeHour: '', startTimeMinute: '', startTimeAmPm: 'AM' },
-    endTime: { endTimeHour: '', endTimeMinute: '', endTimeAmPm: 'AM' },
-    payment: { isPaid: false, amount: '' },
-    allowMultipleVotes: false
-  },
-  contestants = [],
-  onEditStep = () => {},
-  onPublish = () => {},
-}) => {
-  const formatTime = (timeObj) => {
-    if (!timeObj) return "Not specified";
-    return `${timeObj.startTimeHour || timeObj.endTimeHour || "--"}:${
-      timeObj.startTimeMinute || timeObj.endTimeMinute || "--"
-    } ${timeObj.startTimeAmPm || timeObj.endTimeAmPm || "AM"}`;
-  };
-
-  const ReviewSection = ({ title, children, onEdit, stepIndex }) => (
-    <div className="mb-6 sm:mb-8">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 space-y-2 sm:space-y-0">
-        <h2 className="text-base sm:text-lg font-semibold text-gray-900">{title}</h2>
-        <button
-          className="text-teal-600 hover:text-teal-800 text-sm font-medium flex items-center space-x-1 self-start sm:self-auto"
-          onClick={() => onEdit(stepIndex)}
-        >
-          <Edit className="w-4 h-4" />
-          <span>Edit</span>
-        </button>
-      </div>
-      {children}
-    </div>
-  );
-
-  const InfoField = ({ label, value, icon: Icon }) => (
-    <div className="mb-3 sm:mb-4">
-      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">
-        {Icon && <Icon className="w-4 h-4 inline mr-1" />}
-        {label}
-      </label>
-      <div className="bg-white p-2 sm:p-3 rounded border border-gray-200 text-sm sm:text-base">
-        {value || "Not specified"}
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="space-y-6 sm:space-y-8 bg-[#FBF7F7] p-4 sm:p-6 lg:p-10">
-      {/* Page Header - Mobile */}
-      <div className="sm:hidden mb-6">
-        <h1 className="text-xl font-bold text-gray-900 mb-2">Review Contest</h1>
-        <p className="text-sm text-gray-600">Review all contest details before publishing</p>
-      </div>
-
-      {/* Cover Image Section */}
-      <ReviewSection title="Cover Image" onEdit={onEditStep} stepIndex={1}>
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 sm:p-4 text-center bg-white">
-          {coverImage ? (
-            <div className="relative">
-              <img
-                src={
-                  typeof coverImage === "string"
-                    ? coverImage
-                    : URL.createObjectURL(coverImage)
-                }
-                alt="Cover"
-                className="max-h-32 sm:max-h-48 lg:max-h-64 w-full object-contain mx-auto rounded"
-              />
-              <div className="absolute top-2 right-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
-                ✓ Uploaded
-              </div>
-            </div>
-          ) : (
-            <div className="py-8 sm:py-12">
-              <ImageIcon className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-500 text-sm sm:text-base">No cover image uploaded</p>
-            </div>
-          )}
-        </div>
-<<<<<<< HEAD
-    );
-=======
 import {
   Edit,
   Calendar,
@@ -210,45 +115,19 @@ const ReviewStep = ({
                 className='max-h-20 sm:max-h-24 lg:max-h-32 mx-auto rounded'
               />
               <div className='absolute top-2 right-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded'>
-=======
-      </ReviewSection>
-
-      {/* Contest Logo Section */}
-      <ReviewSection title="Contest Logo" onEdit={onEditStep} stepIndex={1}>
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 sm:p-4 text-center bg-white">
-          {logoImage ? (
-            <div className="relative">
-              <img
-                src={
-                  typeof logoImage === "string"
-                    ? logoImage
-                    : URL.createObjectURL(logoImage)
-                }
-                alt="Logo"
-                className="max-h-20 sm:max-h-24 lg:max-h-32 mx-auto rounded"
-              />
-              <div className="absolute top-2 right-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded">
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
                 ✓ Uploaded
               </div>
             </div>
           ) : (
-<<<<<<< HEAD
             <div className='py-6 sm:py-8'>
               <ImageIcon className='w-6 h-6 sm:w-8 sm:h-8 text-gray-400 mx-auto mb-2' />
               <p className='text-gray-500 text-sm'>No logo image uploaded</p>
-=======
-            <div className="py-6 sm:py-8">
-              <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-500 text-sm">No logo image uploaded</p>
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
             </div>
           )}
         </div>
       </ReviewSection>
 
       {/* Basic Contest Information */}
-<<<<<<< HEAD
       <ReviewSection
         title='Basic Contest Information'
         onEdit={onEditStep}
@@ -284,42 +163,11 @@ const ReviewStep = ({
             <InfoField
               label='End Time'
               value={formatTime(formData.endTime)}
-=======
-      <ReviewSection title="Basic Contest Information" onEdit={onEditStep} stepIndex={0}>
-        <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-          <InfoField label="Contest Name" value={formData.contestName} />
-          <InfoField label="Contest Description" value={formData.contestDescription} />
-          
-          {/* Date and Time - Responsive Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <InfoField 
-              label="Start Date" 
-              value={formData.startDate} 
-              icon={Calendar}
-            />
-            <InfoField 
-              label="End Date" 
-              value={formData.endDate} 
-              icon={Calendar}
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-            <InfoField 
-              label="Start Time" 
-              value={formatTime(formData.startTime)} 
-              icon={Clock}
-            />
-            <InfoField 
-              label="End Time" 
-              value={formatTime(formData.endTime)} 
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
               icon={Clock}
             />
           </div>
 
           {/* Payment Setup */}
-<<<<<<< HEAD
           <InfoField
             label='Is this a paid contest?'
             value={
@@ -340,30 +188,11 @@ const ReviewStep = ({
                   ? `$${formData.payment.amount}`
                   : 'Not specified'
               }
-=======
-          <InfoField 
-            label="Is this a paid contest?" 
-            value={
-              formData?.payment?.isPaid === true
-                ? "Yes"
-                : formData?.payment?.isPaid === false
-                ? "No"
-                : "Not specified"
-            }
-            icon={DollarSign}
-          />
-          
-          {formData?.payment?.isPaid === true && (
-            <InfoField 
-              label="Amount each voter should pay" 
-              value={formData?.payment?.amount ? `$${formData.payment.amount}` : "Not specified"}
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
               icon={DollarSign}
             />
           )}
 
           {/* Voters Setting */}
-<<<<<<< HEAD
           <InfoField
             label='Allow multiple votes'
             value={
@@ -372,16 +201,6 @@ const ReviewStep = ({
                 : formData.allowMultipleVotes === false
                 ? 'No'
                 : 'Not specified'
-=======
-          <InfoField 
-            label="Allow multiple votes" 
-            value={
-              formData.allowMultipleVotes === true
-                ? "Yes"
-                : formData.allowMultipleVotes === false
-                ? "No"
-                : "Not specified"
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
             }
             icon={Users}
           />
@@ -389,7 +208,6 @@ const ReviewStep = ({
       </ReviewSection>
 
       {/* Contestant List */}
-<<<<<<< HEAD
       <ReviewSection title='Contestant List' onEdit={onEditStep} stepIndex={2}>
         {contestants.length === 0 ? (
           <div className='bg-white border border-gray-200 rounded-lg p-6 sm:p-8 text-center'>
@@ -397,18 +215,10 @@ const ReviewStep = ({
             <p className='text-gray-500 text-sm sm:text-base'>
               No contestants added yet
             </p>
-=======
-      <ReviewSection title="Contestant List" onEdit={onEditStep} stepIndex={2}>
-        {contestants.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 text-center">
-            <Users className="w-8 h-8 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-500 text-sm sm:text-base">No contestants added yet</p>
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
           </div>
         ) : (
           <>
             {/* Mobile: Card Layout */}
-<<<<<<< HEAD
             <div className='lg:hidden space-y-3'>
               {contestants.map((contestant, index) => (
                 <div
@@ -421,41 +231,20 @@ const ReviewStep = ({
                         <img
                           src={
                             typeof contestant.image === 'string'
-=======
-            <div className="lg:hidden space-y-3">
-              {contestants.map((contestant, index) => (
-                <div key={contestant.id} className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-start space-x-3">
-                    <div className="flex-shrink-0">
-                      {contestant.image ? (
-                        <img
-                          src={
-                            typeof contestant.image === "string"
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
                               ? contestant.image
                               : URL.createObjectURL(contestant.image)
                           }
                           alt={contestant.name}
-<<<<<<< HEAD
                           className='w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover'
                         />
                       ) : (
                         <div className='w-12 h-12 sm:w-16 sm:h-16 bg-gray-300 rounded-full flex items-center justify-center'>
                           <span className='text-sm sm:text-base font-medium text-gray-600'>
                             {contestant.name?.charAt(0) || '?'}
-=======
-                          className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-300 rounded-full flex items-center justify-center">
-                          <span className="text-sm sm:text-base font-medium text-gray-600">
-                            {contestant.name?.charAt(0) || "?"}
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
                           </span>
                         </div>
                       )}
                     </div>
-<<<<<<< HEAD
                     <div className='flex-1 min-w-0'>
                       <h3 className='font-semibold text-gray-900 text-sm sm:text-base'>
                         {contestant.name}
@@ -465,28 +254,12 @@ const ReviewStep = ({
                       </p>
                       {contestant.bio && (
                         <p className='text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2'>
-=======
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
-                        {contestant.name}
-                      </h3>
-                      <p className="text-xs sm:text-sm text-teal-600 font-medium">
-                        {contestant.position}
-                      </p>
-                      {contestant.bio && (
-                        <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2">
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
                           {contestant.bio}
                         </p>
                       )}
                     </div>
-<<<<<<< HEAD
                     <div className='flex-shrink-0'>
                       <span className='text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded'>
-=======
-                    <div className="flex-shrink-0">
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
                         #{index + 1}
                       </span>
                     </div>
@@ -496,7 +269,6 @@ const ReviewStep = ({
             </div>
 
             {/* Desktop: Table Layout */}
-<<<<<<< HEAD
             <div className='hidden lg:block overflow-x-auto'>
               <table className='min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden'>
                 <thead>
@@ -511,27 +283,10 @@ const ReviewStep = ({
                       Position
                     </th>
                     <th className='px-4 py-3 text-left text-sm font-medium text-gray-700'>
-=======
-            <div className="hidden lg:block overflow-x-auto">
-              <table className="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                      Image
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                      Name
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
-                      Position
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
                       Bio
                     </th>
                   </tr>
                 </thead>
-<<<<<<< HEAD
                 <tbody className='divide-y divide-gray-200'>
                   {contestants.map((contestant, index) => (
                     <tr
@@ -543,43 +298,20 @@ const ReviewStep = ({
                           <img
                             src={
                               typeof contestant.image === 'string'
-=======
-                <tbody className="divide-y divide-gray-200">
-                  {contestants.map((contestant, index) => (
-                    <tr
-                      key={contestant.id}
-                      className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                    >
-                      <td className="px-4 py-3">
-                        {contestant.image ? (
-                          <img
-                            src={
-                              typeof contestant.image === "string"
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
                                 ? contestant.image
                                 : URL.createObjectURL(contestant.image)
                             }
                             alt={contestant.name}
-<<<<<<< HEAD
                             className='w-10 h-10 rounded-full object-cover'
                           />
                         ) : (
                           <div className='w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center'>
                             <span className='text-xs font-medium text-gray-600'>
                               {contestant.name?.charAt(0) || '?'}
-=======
-                            className="w-10 h-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                            <span className="text-xs font-medium text-gray-600">
-                              {contestant.name?.charAt(0) || "?"}
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
                             </span>
                           </div>
                         )}
                       </td>
-<<<<<<< HEAD
                       <td className='px-4 py-3 font-medium text-gray-900'>
                         {contestant.name}
                       </td>
@@ -587,15 +319,6 @@ const ReviewStep = ({
                         {contestant.position}
                       </td>
                       <td className='px-4 py-3 text-gray-600 max-w-xs truncate'>
-=======
-                      <td className="px-4 py-3 font-medium text-gray-900">
-                        {contestant.name}
-                      </td>
-                      <td className="px-4 py-3 text-teal-600 font-medium">
-                        {contestant.position}
-                      </td>
-                      <td className="px-4 py-3 text-gray-600 max-w-xs truncate">
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
                         {contestant.bio}
                       </td>
                     </tr>
@@ -605,23 +328,12 @@ const ReviewStep = ({
             </div>
 
             {/* Summary Stats */}
-<<<<<<< HEAD
             <div className='mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg'>
               <div className='flex items-center justify-between text-sm'>
                 <span className='text-blue-800 font-medium'>
                   Total Contestants: {contestants.length}
                 </span>
                 <span className='text-blue-600'>Ready to publish ✓</span>
-=======
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-blue-800 font-medium">
-                  Total Contestants: {contestants.length}
-                </span>
-                <span className="text-blue-600">
-                  Ready to publish ✓
-                </span>
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
               </div>
             </div>
           </>
@@ -629,50 +341,29 @@ const ReviewStep = ({
       </ReviewSection>
 
       {/* Mobile Action Bar */}
-<<<<<<< HEAD
       <div className='sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4'>
         <button
           onClick={onPublish}
           className='w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-md font-medium transition-colors'
-=======
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-        <button
-          onClick={onPublish}
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-4 rounded-md font-medium transition-colors"
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
         >
           Publish Contest
         </button>
       </div>
 
       {/* Desktop Action Area */}
-<<<<<<< HEAD
       <div className='hidden sm:block text-center pt-6'>
         <button
           onClick={onPublish}
           className='bg-orange-500 hover:bg-orange-600 text-white py-3 px-8 rounded-md font-medium transition-colors text-lg'
-=======
-      <div className="hidden sm:block text-center pt-6">
-        <button
-          onClick={onPublish}
-          className="bg-orange-500 hover:bg-orange-600 text-white py-3 px-8 rounded-md font-medium transition-colors text-lg"
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
         >
           Publish Contest
         </button>
       </div>
 
       {/* Mobile spacing for fixed button */}
-<<<<<<< HEAD
       <div className='sm:hidden h-20'></div>
     </div>
   );
->>>>>>> oscar-branch
-=======
-      <div className="sm:hidden h-20"></div>
-    </div>
-  );
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
 };
 
 export default ReviewStep;

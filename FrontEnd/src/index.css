@@ -1,22 +1,5 @@
-<<<<<<< HEAD
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
-<<<<<<< HEAD
-=======
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap");
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
-@import "tailwindcss";
-=======
 @import 'tailwindcss';
-
-.scrollbar-hidden::-webkit-scrollbar {
-  display: none;
-}
-
-.scrollbar-hidden {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
-}
->>>>>>> oscar-branch
 
 .scrollbar-hidden::-webkit-scrollbar {
   display: none;
@@ -28,7 +11,7 @@
 }
 
 :root {
-  font-family: "Poppins", system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Poppins', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -47,21 +30,6 @@ a {
   text-decoration: inherit;
 }
 a:hover {
-<<<<<<< HEAD
-<<<<<<< HEAD
-  color: #E67347;
-=======
-  color: #e67347;
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
-}
-
-body {
-  margin: 0;
-  min-height: 40vh;
-  /* Removed display: flex and place-items: center to allow full width */
-  background-color: #ffffff;
-<<<<<<< HEAD
-=======
   color: #e67347;
 }
 
@@ -70,8 +38,6 @@ body {
   min-height: 40vh;
   /* Removed display: flex and place-items: center to allow full width */
   background-color: #ffffff;
-=======
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
   /* Add padding-bottom for mobile bottom nav height */
   padding-bottom: 5.5rem; /* 88px, matches h-20 in Tailwind for bottom nav */
 }
@@ -80,10 +46,6 @@ body {
   body {
     padding-bottom: 0;
   }
-<<<<<<< HEAD
->>>>>>> oscar-branch
-=======
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
 }
 
 h1 {
@@ -92,11 +54,7 @@ h1 {
 }
 
 button {
-<<<<<<< HEAD
-  border-radius: 8px;
-=======
   /* border-radius: 8px; */
->>>>>>> oscar-branch
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
@@ -109,15 +67,7 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-@media (prefers-color-scheme: light) {
-=======
 /* @media (prefers-color-scheme: light) {
->>>>>>> oscar-branch
-=======
-/* @media (prefers-color-scheme: light) {
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
   :root {
     color: #213547;
     background-color: #ffffff;
@@ -128,9 +78,6 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 } */
 
 /* MobileNav.css */
@@ -146,8 +93,4 @@ button:focus-visible {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
->>>>>>> oscar-branch
 }
-=======
-} */
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8

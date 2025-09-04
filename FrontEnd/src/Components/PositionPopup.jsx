@@ -1,54 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-import React, { useState } from 'react';
-import { X } from 'lucide-react';
-=======
-import React, { useState } from "react";
-import { X } from "lucide-react";
-import { toast } from "react-toastify";
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
-
-const PositionPopup = ({ isOpen, onClose, onAddPosition }) => {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-
-  if (!isOpen) return null;
-
-  const handleAddPosition = () => {
-    if (name.trim() === "") {
-      toast.error("Position name is required");
-      return;
-    }
-    onAddPosition({ name, description });
-    setName("");
-    setDescription("");
-  };
-
-  const handleClose = () => {
-    setName("");
-    setDescription("");
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 bg-[#000000]/60 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 relative">
-        {/* Close Button */}
-        <button
-          onClick={handleClose}
-          className="absolute top-6 right-6 text-gray-500 hover:text-gray-700 transition-colors"
-          aria-label="Close popup"
-        >
-          <X className="h-6 w-6" />
-        </button>
-
-        {/* Header */}
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Add Position</h2>
-        </div>
-<<<<<<< HEAD
-    );
-=======
 import React, { useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
@@ -91,8 +40,6 @@ const PositionPopup = ({ isOpen, onClose, onAddPosition }) => {
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900">Add Position</h2>
         </div>
-=======
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
 
         {/* Input Fields */}
         <div className="space-y-4">
@@ -134,10 +81,6 @@ const PositionPopup = ({ isOpen, onClose, onAddPosition }) => {
       </div>
     </div>
   );
-<<<<<<< HEAD
->>>>>>> oscar-branch
-=======
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
 };
 
 export default PositionPopup;

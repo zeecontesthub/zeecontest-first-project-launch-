@@ -110,15 +110,9 @@ const VotingPositionsSection = ({
                   <div className='w-10 h-10 md:w-12 md:h-12 bg-black rounded-full flex items-center justify-center'></div>
 
                   <div>
-<<<<<<< HEAD
-                    <p className='text-base md:text-lg font-semibold text-gray-900'>
-                      {candidate.name}
-                    </p>
-=======
                     <h3 className='text-base md:text-lg font-semibold text-gray-900'>
                       {candidate.name}
                     </h3>
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
                     <p className='text-gray-600 text-sm'>
                       {candidate.votes} Votes
                     </p>

@@ -24,15 +24,9 @@ const CandidateSection = ({
     <div className='w-full mx-auto px-4 py-8'>
       <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-8'>
         <div>
-<<<<<<< HEAD
           <p className='text-3xl font-bold text-gray-900 mb-2'>
             {activePosition} Candidates
           </p>
-=======
-          <h2 className='text-3xl font-bold text-gray-900 mb-2'>
-            {activePosition} Candidates
-          </h2>
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
           <p className='text-gray-600'>
             Select your preferred candidate for the{' '}
             {activePosition.toLowerCase()} position
@@ -57,15 +51,9 @@ const CandidateSection = ({
             <div className='bg-black h-64 flex items-center justify-center relative'></div>
 
             <div className='p-6 bg-gray-100'>
-<<<<<<< HEAD
               <p className='text-xl font-bold text-gray-900 mb-3'>
                 {candidate.name}
               </p>
-=======
-              <h3 className='text-xl font-bold text-gray-900 mb-3'>
-                {candidate.name}
-              </h3>
->>>>>>> 4cb84f74b69a8693bca6b47fe8eeddbf07295aa8
 
               <p className='text-gray-600 text-sm mb-4 leading-relaxed'>
                 {candidate.description}
