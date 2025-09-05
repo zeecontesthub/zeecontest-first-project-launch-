@@ -5,12 +5,14 @@ import WhyUs from '../../Components/LandingPageComp/WhyUs';
 import FAQ from '../../Components/LandingPageComp/FAQ';
 import Testimonial from '../../Components/LandingPageComp/Testimonial';
 import CTA from '../../Components/LandingPageComp/CTA';
+import ContestPreview from '../../Components/LandingPageComp/ContestPreview';
 
 function App() {
   return (
     <>
       <Hero />
       <Roles />
+      <ContestPreview />
       <HowItWorks />
       <WhyUs />
       <FAQ />
