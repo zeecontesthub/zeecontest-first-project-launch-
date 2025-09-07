@@ -525,20 +525,12 @@ const CreateSpotlightContest = () => {
                 Back
               </button>
               <button
-                onClick={currentStep === steps.length - 1 ? onPublish : nextStep}
+                onClick={nextStep}
                 className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors text-sm ${isUploading ? "opacity-50 cursor-not-allowed" : ""
-                  } ${currentStep === steps.length - 1
-                    ? isFormValid()
-                      ? "bg-orange-500 hover:bg-orange-600 text-white"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-orange-500 hover:bg-orange-600 text-white"
-                  }`}
-                disabled={
-                  isUploading ||
-                  (currentStep === steps.length - 1 && !isFormValid())
-                }
+                  } bg-orange-500 hover:bg-orange-600 text-white`}
+                disabled={isUploading}
               >
-                {currentStep === steps.length - 1 ? "Publish" : "Next"}
+                Next
               </button>
             </div>
             <button
@@ -569,22 +561,15 @@ const CreateSpotlightContest = () => {
               >
                 Back
               </button>
-              <button
-                onClick={currentStep === steps.length - 1 ? onPublish : nextStep}
-                className={`px-6 py-2 lg:px-8 lg:py-3 rounded-lg font-medium transition-colors ${isUploading ? "opacity-50 cursor-not-allowed" : ""
-                  } ${currentStep === steps.length - 1
-                    ? isFormValid()
-                      ? "bg-orange-500 hover:bg-orange-600 text-white"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-orange-500 hover:bg-orange-600 text-white"
-                  }`}
-                disabled={
-                  isUploading ||
-                  (currentStep === steps.length - 1 && !isFormValid())
-                }
-              >
-                {currentStep === steps.length - 1 ? "Publish" : "Next"}
-              </button>
+              {currentStep !== steps.length - 1 && (
+                <button
+                  onClick={nextStep}
+                  className={`px-6 py-2 lg:px-8 lg:py-3 rounded-lg font-medium transition-colors ${isUploading ? "opacity-50 cursor-not-allowed" : ""} bg-orange-500 hover:bg-orange-600 text-white`}
+                  disabled={isUploading}
+                >
+                  Next
+                </button>
+              )}
             </div>
           </div>
         </div>

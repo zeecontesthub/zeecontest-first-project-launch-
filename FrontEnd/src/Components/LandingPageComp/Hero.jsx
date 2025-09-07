@@ -49,7 +49,7 @@ const Hero = () => {
           </ul>
           <Link to='/login'>
             <button className='bg-[#E67347] rounded-full text-white py-3 px-6 font-semibold shadow-md hover:shadow-lg transform hover:scale-105 transition-transform duration-300'>
-              Login
+              Login to your Organizer Account
             </button>
           </Link>
         </div>
