@@ -24,13 +24,13 @@ const Hero = () => {
       {/* NAVBAR */}
       <div className='z-50 py-4 px-4 md:px-8 lg:px-34 flex items-center justify-between w-full'>
         {/* Logo */}
-        <div>
+        <Link to='/'>
           <img
             src={logo}
             alt='logo'
             className='w-[120px] h-[52px] sm:w-[150px] sm:h-[66px] lg:w-[190px] lg:h-[83px]'
           />
-        </div>
+        </Link>
 
         {/* Desktop Nav */}
         <div className='hidden md:flex items-center space-x-8'>
@@ -42,6 +42,14 @@ const Hero = () => {
               >
                 <span className='relative'>
                   Contests
+                  <span className='absolute left-0 bottom-0 w-0 h-[2px] bg-[#E67347] group-hover:w-full transition-all duration-300'></span>
+                </span>
+              </Link>
+            </li>
+            <li className='relative text-white text-lg lg:text-xl font-medium'>
+              <Link to='/contact' className='flex items-center space-x-2 group'>
+                <span className='relative'>
+                  Contact
                   <span className='absolute left-0 bottom-0 w-0 h-[2px] bg-[#E67347] group-hover:w-full transition-all duration-300'></span>
                 </span>
               </Link>
