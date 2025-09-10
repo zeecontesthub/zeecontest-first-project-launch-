@@ -340,6 +340,26 @@ const ReviewStep = ({
         )}
       </ReviewSection>
 
+      {/* Contest Type Summary Section */}
+      <div className='mb-6 sm:mb-8'>
+        <h2 className='text-base sm:text-lg font-semibold text-gray-900 mb-2'>
+          Contest Type
+        </h2>
+        <div className={`p-4 rounded-lg border ${formData.contestType === 'open' ? 'bg-green-50 border-green-200 text-green-900' : 'bg-blue-50 border-blue-200 text-blue-900'}`}>
+          {formData.contestType === 'open' ? (
+            <>
+              <span className='font-medium'>Open Contest</span>
+              <p className='text-sm mt-1'>Voters will verify their identity with Google before voting. No registration required.</p>
+            </>
+          ) : (
+            <>
+              <span className='font-medium'>Closed Contest</span>
+              <p className='text-sm mt-1'>Voters must register before voting. Registration form will be required.</p>
+            </>
+          )}
+        </div>
+      </div>
+
       {/* Mobile Action Bar */}
       <div className='sm:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4'>
         <button

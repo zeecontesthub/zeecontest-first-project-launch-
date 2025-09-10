@@ -260,21 +260,19 @@ const Mywallet = () => {
 
             <div className='bg-white text-left rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-200'>
               <div className='flex items-center gap-3 mb-4 sm:mb-6'>
-                <div className='p-2 bg-orange-100 rounded-xl'>
-                  <Clock className='w-5 h-5 text-orange-600' />
+                <div className='p-2 bg-blue-100 rounded-xl'>
+                  <Download className='w-5 h-5 text-blue-600' />
                 </div>
                 <div>
-                  <p className='text-xs text-gray-600'>Pending Withdrawals</p>
+                  <p className='text-xs text-gray-600'>Total Withdrawals</p>
                   <p className='text-xl sm:text-2xl font-bold text-gray-900'>
-                    {formatCurrency(walletData.pendingWithdrawals)}
+                    {formatCurrency(50000)}
                   </p>
                 </div>
               </div>
-              <div className='flex items-center gap-2 text-orange-600'>
-                <Clock className='w-4 h-4' />
-                <span className='text-xs sm:text-sm font-medium'>
-                  Processing
-                </span>
+              <div className='flex items-center gap-2 text-blue-600'>
+                <Download className='w-4 h-4' />
+                <span className='text-xs sm:text-sm font-medium'>All time</span>
               </div>
             </div>
           </div>

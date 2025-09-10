@@ -36,6 +36,54 @@ const VotingPositionsSection = ({
     },
   ];
 
+  // Canonical positions data for ID lookup
+  const canonicalPositions = [
+    {
+      name: 'President',
+      candidates: [
+        { id: 1, name: 'James Williamson', avatar: null },
+        { id: 2, name: 'Sarah Johnson', avatar: null },
+        { id: 3, name: 'Michael Brown', avatar: null },
+        { id: 4, name: 'Emily Davis', avatar: null },
+        { id: 5, name: 'David Wilson', avatar: null },
+      ],
+    },
+    {
+      name: 'Vice-President',
+      candidates: [
+        { id: 6, name: 'Alice Cooper', avatar: null },
+        { id: 7, name: 'Bob Miller', avatar: null },
+        { id: 8, name: 'Carol White', avatar: null },
+        { id: 9, name: 'Daniel Green', avatar: null },
+        { id: 10, name: 'Eva Martinez', avatar: null },
+      ],
+    },
+    {
+      name: 'Secretary',
+      candidates: [
+        { id: 11, name: 'Frank Anderson', avatar: null },
+        { id: 12, name: 'Grace Taylor', avatar: null },
+        { id: 13, name: 'Henry Lee', avatar: null },
+      ],
+    },
+    {
+      name: 'PRO',
+      candidates: [
+        { id: 14, name: 'Kate Phillips', avatar: null },
+        { id: 15, name: 'Liam Murphy', avatar: null },
+        { id: 16, name: 'Maya Patel', avatar: null },
+      ],
+    },
+    {
+      name: 'Treasurer',
+      candidates: [
+        { id: 17, name: 'Olivia Scott', avatar: null },
+        { id: 18, name: 'Paul Robinson', avatar: null },
+        { id: 19, name: 'Quinn Adams', avatar: null },
+      ],
+    },
+  ];
+
   const getPositionColors = (position, isActive) => {
     if (isActive) {
       return 'bg-[#034045] text-white';
@@ -61,6 +109,13 @@ const VotingPositionsSection = ({
   };
 
   const currentCandidates = candidatesData[activePosition] || [];
+
+  const getCanonicalCandidateId = (positionName, candidateName) => {
+    const pos = canonicalPositions.find((p) => p.name === positionName);
+    if (!pos) return null;
+    const cand = pos.candidates.find((c) => c.name === candidateName);
+    return cand ? cand.id : null;
+  };
 
   return (
     <div className='w-full mx-auto mt-6'>
@@ -119,11 +174,27 @@ const VotingPositionsSection = ({
                   </div>
                 </div>
 
-                {candidate.position === 1 && (
-                  <div className='mt-3 sm:mt-0 bg-[#00B25F] text-white px-4 md:px-6 py-2 rounded-[20px] font-medium text-sm'>
-                    Leading
-                  </div>
-                )}
+                {/* Leading tag and Vote Button aligned */}
+                <div className='flex items-center gap-3 mt-3 sm:mt-0'>
+                  {candidate.position === 1 && (
+                    <div className='bg-[#00B25F] text-white px-4 md:px-6 py-2 rounded-[20px] font-medium text-sm'>
+                      Leading
+                    </div>
+                  )}
+                  <button
+                    className='bg-orange-500 hover:bg-orange-600 text-white px-4 md:px-6 py-2 rounded-[20px] font-medium text-sm transition-colors'
+                    onClick={() => {
+                      const canonicalId = getCanonicalCandidateId(activePosition, candidate.name);
+                      window.location.href = `/vote?position=${encodeURIComponent(
+                        activePosition
+                      )}&candidateId=${encodeURIComponent(canonicalId)}&candidateName=${encodeURIComponent(
+                        candidate.name
+                      )}`;
+                    }}
+                  >
+                    Vote
+                  </button>
+                </div>
               </div>
             ))}
           </div>

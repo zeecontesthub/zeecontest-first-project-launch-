@@ -229,7 +229,7 @@ const Leaderboards = () => {
       : "0 votes";
 
   // Get the voting link for this contest
-  const votingLink = `${window.location.origin}/contest-details`;
+  const votingLink = "http://localhost:5173/vote";
 
   return (
     <div className="flex min-h-screen bg-white overflow-x-hidden lg:gap-[10rem]">

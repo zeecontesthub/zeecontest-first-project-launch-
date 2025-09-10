@@ -69,6 +69,7 @@ const CreateSpotlightContest = () => {
       amount: 0,
     },
     allowMultipleVotes: createContest?.allowMultipleVotes || false,
+    contestType: createContest?.contestType || 'closed', // new field
   });
 
   // State for security settings
@@ -380,6 +381,8 @@ const CreateSpotlightContest = () => {
       isUploading={isUploading}
     />,
     <Security
+      contestType={formData.contestType}
+      onContestTypeChange={(type) => setFormData((prev) => ({ ...prev, contestType: type }))}
       isVoterRegistrationEnabled={isVoterRegistrationEnabled}
       onToggleVoterRegistration={() => setIsVoterRegistrationEnabled(!isVoterRegistrationEnabled)}
     />,
@@ -513,7 +516,7 @@ const CreateSpotlightContest = () => {
         />
 
         {/* Navigation Buttons - Mobile Optimized */}
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 -mx-3 sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:static">
+        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 pb-16 -mx-3 sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:static z-30">
           {/* Mobile: Stacked Layout */}
           <div className="flex flex-col space-y-3 sm:hidden">
             <div className="flex space-x-3">
@@ -541,6 +544,16 @@ const CreateSpotlightContest = () => {
             >
               Save as Draft
             </button>
+            {/* Add extra margin for publish button if on last step */}
+            {currentStep === steps.length - 1 && (
+              <button
+                onClick={onPublish}
+                className={`w-full px-4 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors text-sm mb-8 ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
+                disabled={isUploading}
+              >
+                Publish Contest
+              </button>
+            )}
           </div>
 
           {/* Desktop: Horizontal Layout */}

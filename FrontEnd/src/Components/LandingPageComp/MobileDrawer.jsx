@@ -16,7 +16,7 @@ export default function MobileDrawer({ open, toggleDrawer }) {
         {/* Navigation Links */}
         <nav className='flex flex-col items-center space-y-6 px-6 w-full'>
           <Link
-            to='/contests'
+            to='/vcontests'
             className='text-xl font-medium text-center py-2 px-4 rounded-lg text-gray-800 hover:bg-gray-100 transition-colors w-full'
             onClick={toggleDrawer(false)}
           >
@@ -35,7 +35,7 @@ export default function MobileDrawer({ open, toggleDrawer }) {
               className='w-full bg-[#E67347] text-white py-3 px-6 rounded-full font-semibold text-center transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg'
               onClick={toggleDrawer(false)}
             >
-              Login
+              Login to your Organizer Account
             </button>
           </Link>
         </nav>

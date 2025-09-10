@@ -364,7 +364,7 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
   };
 
   // Get the voting link for this contest
-  const votingLink = `${window.location.origin}/contest-details`;
+  const votingLink = "http://localhost:5173/vote";
 
   // Always define topContestant for overall leader
   const topContestant = React.useMemo(() => {

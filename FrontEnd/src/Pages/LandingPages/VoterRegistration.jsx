@@ -5,6 +5,7 @@ const VoterRegistration = () => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const contestName = "Your Contest Name"; // Replace with actual contest name or fetch it from props/context
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -26,6 +27,9 @@ const VoterRegistration = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md mx-auto">
         <h2 className="text-2xl font-bold text-center text-gray-900 mb-6">Voter Registration</h2>
+        <p className="text-gray-700 text-center mb-4">
+          Kindly Drop your Full Name and Email to be a registered voter for this {contestName ? contestName : "contest"}
+        </p>
         {submitted ? (
           <div className="text-center">
             <h3 className="text-lg font-semibold text-green-700 mb-2">Registration Successful!</h3>

@@ -34,6 +34,7 @@ const VotersRegistrationLink = ({ open, onClose, link }) => {
         style={{ minWidth: "0", width: "100%", maxWidth: "400px" }}
       >
         <h2 className="text-lg font-bold mb-4 text-gray-900 text-center">Share Voters Registration Link</h2>
+        
         <div className="mb-4">
           <input
             type="text"

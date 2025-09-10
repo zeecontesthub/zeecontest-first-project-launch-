@@ -129,6 +129,16 @@ const VotersDetails = () => {
     // Add more as needed or fetch from backend
   ];
 
+  // Pagination for registration preview table
+  const regItemsPerPage = 10;
+  const [regCurrentPage, setRegCurrentPage] = useState(1);
+  const regTotalPages = Math.ceil(registrationData.length / regItemsPerPage);
+  const regStartIndex = (regCurrentPage - 1) * regItemsPerPage;
+  const regPaginatedData = registrationData.slice(
+    regStartIndex,
+    regStartIndex + regItemsPerPage
+  );
+
   return (
     <div className="flex min-h-screen bg-white overflow-x-hidden lg:gap-[10rem]">
       <Sidebar />
@@ -274,6 +284,7 @@ const VotersDetails = () => {
                   <table className="w-full text-left">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
+                        <th className="text-left py-4 px-6 font-semibold text-gray-900">S/N</th>
                         <th className="text-left py-4 px-6 font-semibold text-gray-900">
                           Full Name
                         </th>
@@ -286,12 +297,13 @@ const VotersDetails = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {registrationData.length > 0 ? (
-                        registrationData.map((reg) => (
+                      {regPaginatedData.length > 0 ? (
+                        regPaginatedData.map((reg, idx) => (
                           <tr
                             key={reg.id}
                             className="hover:bg-gray-50 transition-colors group"
                           >
+                            <td className="py-4 px-6 text-gray-900 font-medium">{regStartIndex + idx + 1}</td>
                             <td className="py-4 px-6 font-medium text-gray-900">
                               {reg.name}
                             </td>
@@ -305,7 +317,7 @@ const VotersDetails = () => {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="3" className="py-12 text-center text-gray-500">
+                          <td colSpan="4" className="py-12 text-center text-gray-500">
                             No registrations found
                           </td>
                         </tr>
@@ -313,14 +325,62 @@ const VotersDetails = () => {
                     </tbody>
                   </table>
                 </div>
+                {/* Pagination for registration preview table */}
+                {regTotalPages > 1 && (
+                  <div className="flex items-center justify-between px-6 py-4 bg-gray-50 border-t border-gray-200">
+                    <div className="text-sm text-gray-700">
+                      Showing {regStartIndex + 1} to {Math.min(regStartIndex + regItemsPerPage, registrationData.length)} of {registrationData.length} registrations
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setRegCurrentPage(Math.max(1, regCurrentPage - 1))}
+                        disabled={regCurrentPage === 1}
+                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Previous
+                      </button>
+                      {Array.from({ length: regTotalPages }, (_, i) => i + 1).map(
+                        (page) => (
+                          <button
+                            key={page}
+                            onClick={() => setRegCurrentPage(page)}
+                            className={`px-3 py-1 text-sm border rounded-md transition-colors ${
+                              regCurrentPage === page
+                                ? "bg-orange-600 text-white border-blue-600"
+                                : "border-gray-300 hover:bg-gray-100"
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        )
+                      )}
+                      <button
+                        onClick={() => setRegCurrentPage(Math.min(regTotalPages, regCurrentPage + 1))}
+                        disabled={regCurrentPage === regTotalPages}
+                        className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Table Section */}
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              {/* Voters Details Section */}
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden mb-8">
+                <div className="p-6 border-b border-gray-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">
+                    Voters Details
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-2">
+                    List of all voters who have cast their votes
+                  </p>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead className="bg-gray-50 border-b border-gray-200">
                       <tr>
+                        <th className="text-left py-4 px-6 font-semibold text-gray-900">S/N</th>
                         <th
                           className="text-left py-4 px-6 font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
                           onClick={() => handleSort("name")}
@@ -346,11 +406,12 @@ const VotersDetails = () => {
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {paginatedData.length > 0 ? (
-                        paginatedData.map((voter) => (
+                        paginatedData.map((voter, idx) => (
                           <tr
                             key={voter?.id}
                             className="hover:bg-gray-50 transition-colors group"
                           >
+                            <td className="py-4 px-6 text-gray-900 font-medium">{startIndex + idx + 1}</td>
                             <td className="py-4 px-6">
                               <div className="font-medium text-gray-900">
                                 {voter.name}
@@ -372,7 +433,7 @@ const VotersDetails = () => {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan="3" className="py-12 text-center">
+                          <td colSpan="4" className="py-12 text-center">
                             <div className="flex flex-col items-center gap-3">
                               <div className="p-3 bg-gray-100 rounded-full">
                                 <Users className="w-8 h-8 text-gray-400" />
@@ -392,20 +453,15 @@ const VotersDetails = () => {
                     </tbody>
                   </table>
                 </div>
-
-                {/* Pagination */}
+                {/* Pagination for voters details section */}
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between px-6 py-4 bg-gray-50 border-t border-gray-200">
                     <div className="text-sm text-gray-700">
-                      Showing {startIndex + 1} to{" "}
-                      {Math.min(startIndex + itemsPerPage, filteredData.length)}{" "}
-                      of {filteredData.length} results
+                      Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredData.length)} of {filteredData.length} voters
                     </div>
                     <div className="flex gap-2">
                       <button
-                        onClick={() =>
-                          setCurrentPage(Math.max(1, currentPage - 1))
-                        }
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                         disabled={currentPage === 1}
                         className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >
@@ -427,9 +483,7 @@ const VotersDetails = () => {
                         )
                       )}
                       <button
-                        onClick={() =>
-                          setCurrentPage(Math.min(totalPages, currentPage + 1))
-                        }
+                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                         disabled={currentPage === totalPages}
                         className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                       >

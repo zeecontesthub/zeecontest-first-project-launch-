@@ -27,7 +27,7 @@ const Header = () => {
       <div className='hidden md:flex items-center space-x-8'>
         <ul className='flex items-center space-x-8'>
           <li className='relative text-gray-800 text-lg font-medium'>
-            <Link to='/contests' className='flex items-center space-x-2 group'>
+            <Link to='/vcontests' className='flex items-center space-x-2 group'>
               <span className='relative'>
                 Contests
                 <span className='absolute left-0 bottom-0 w-0 h-[2px] bg-[#E67347] group-hover:w-full transition-all duration-300'></span>
@@ -45,7 +45,7 @@ const Header = () => {
         </ul>
         <Link to='/login'>
           <button className='bg-[#E67347] rounded-full text-white py-3 px-6 font-semibold shadow-md hover:shadow-lg transform hover:scale-105 transition-transform duration-300'>
-            Login
+            Login to your Organizer Account
           </button>
         </Link>
       </div>

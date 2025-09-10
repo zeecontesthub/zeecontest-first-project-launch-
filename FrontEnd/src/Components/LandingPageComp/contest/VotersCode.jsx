@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
 
 const VotersCode = ({ open, onClose, onSubmit }) => {
+  const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [showToast, setShowToast] = useState(false);
+
+  const validateEmail = (email) => {
+    // Simple email regex
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    setError('');
+  };
 
   const handleChange = (e) => {
     const value = e.target.value.replace(/\D/g, '');
@@ -15,12 +26,17 @@ const VotersCode = ({ open, onClose, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!validateEmail(email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
     if (code.length !== 6) {
       setError('Please enter a valid 6-digit code.');
       return;
     }
-    onSubmit(code);
+    onSubmit({ email, code });
     setCode('');
+    setEmail('');
     setShowToast(true);
     setTimeout(() => {
       setShowToast(false);
@@ -39,8 +55,17 @@ const VotersCode = ({ open, onClose, onSubmit }) => {
           >
             &times;
           </button>
-          <h2 className='text-2xl font-bold mb-4 text-center text-[#034045]'>Enter Voters Code</h2>
-          <form onSubmit={handleSubmit} className='flex flex-col items-center'>
+          <h2 className='text-2xl font-bold mb-4 text-center text-[#034045]'>Enter Email and Code </h2>
+          <form onSubmit={handleSubmit} className='flex flex-col items-center w-full'>
+            <input
+              type='email'
+              value={email}
+              onChange={handleEmailChange}
+              className='text-center text-base border border-gray-300 rounded-lg px-4 py-3 mb-3 w-full focus:outline-none focus:ring-2 focus:ring-[#034045]'
+              placeholder='Email address'
+              required
+              autoFocus
+            />
             <input
               type='text'
               inputMode='numeric'
@@ -50,13 +75,12 @@ const VotersCode = ({ open, onClose, onSubmit }) => {
               onChange={handleChange}
               className='text-center text-xl tracking-widest border border-gray-300 rounded-lg px-4 py-3 mb-3 w-full focus:outline-none focus:ring-2 focus:ring-[#034045]'
               placeholder='6-digit code'
-              autoFocus
             />
             {error && <p className='text-red-500 text-sm mb-2'>{error}</p>}
             <button
               type='submit'
               className='w-full bg-[#034045] hover:bg-[#045a60] text-white py-3 rounded-lg font-medium transition-colors duration-200 cursor-pointer mt-2'
-              disabled={code.length !== 6}
+              disabled={!validateEmail(email) || code.length !== 6}
             >
               Submit
             </button>

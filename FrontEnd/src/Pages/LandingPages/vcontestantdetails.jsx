@@ -201,6 +201,26 @@ const VContestantDetails = () => {
                 <span className="font-semibold text-gray-900">{position}</span>
               </div>
             </div>
+
+            {/* Cast Your Vote Button */}
+            <div className="flex justify-center w-full">
+              <button
+                className="mt-8 w-full max-w-xs bg-[#034045] hover:bg-[#045a60] text-white py-4 rounded-lg font-bold text-lg transition-colors shadow-lg"
+                onClick={() => {
+                  navigate('/vote', {
+                    state: {
+                      preselect: {
+                        position,
+                        contestantId: currentContestant.id || currentContestant._id,
+                        contestId,
+                      },
+                    },
+                  });
+                }}
+              >
+                Cast Your Vote
+              </button>
+            </div>
           </div>
         </div>
 

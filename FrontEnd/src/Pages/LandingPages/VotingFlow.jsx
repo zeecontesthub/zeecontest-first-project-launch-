@@ -1,16 +1,23 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Check } from 'lucide-react';
 import VotersCode from '../../Components/LandingPageComp/contest/VotersCode';
+import OpenContestRegistration from '../../Components/LandingPageComp/contest/OpenContestRegistration';
 
 const VotingFlow = () => {
+  // Simulate contest type for demo: 'open' or 'closed'
+  const [contestType, setContestType] = useState('open'); // now stateful
+
   // Voting flow state
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentStep, setCurrentStep] = useState('cast');
   const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
   const [votes, setVotes] = useState({});
   const [showVotersCode, setShowVotersCode] = useState(false);
+  const [showOpenContestPopup, setShowOpenContestPopup] = useState(false);
   const [finalVotes, setFinalVotes] = useState({});
+  const [multiplier, setMultiplier] = useState(1);
 
   // Position and candidate data
   const positions = [
@@ -31,33 +38,60 @@ const VotingFlow = () => {
         { id: 7, name: 'Bob Miller', avatar: null },
         { id: 8, name: 'Carol White', avatar: null },
         { id: 9, name: 'Daniel Green', avatar: null },
+        { id: 10, name: 'Eva Martinez', avatar: null },
       ],
     },
     {
       name: 'Secretary',
       candidates: [
-        { id: 10, name: 'Frank Anderson', avatar: null },
-        { id: 11, name: 'Grace Taylor', avatar: null },
-        { id: 12, name: 'Henry Lee', avatar: null },
+        { id: 11, name: 'Frank Anderson', avatar: null },
+        { id: 12, name: 'Grace Taylor', avatar: null },
+        { id: 13, name: 'Henry Lee', avatar: null },
       ],
     },
     {
       name: 'PRO',
       candidates: [
-        { id: 13, name: 'Kate Phillips', avatar: null },
-        { id: 14, name: 'Liam Murphy', avatar: null },
-        { id: 15, name: 'Maya Patel', avatar: null },
+        { id: 14, name: 'Kate Phillips', avatar: null },
+        { id: 15, name: 'Liam Murphy', avatar: null },
+        { id: 16, name: 'Maya Patel', avatar: null },
       ],
     },
     {
       name: 'Treasurer',
       candidates: [
-        { id: 16, name: 'Olivia Scott', avatar: null },
-        { id: 17, name: 'Paul Robinson', avatar: null },
-        { id: 18, name: 'Quinn Adams', avatar: null },
+        { id: 17, name: 'Olivia Scott', avatar: null },
+        { id: 18, name: 'Paul Robinson', avatar: null },
+        { id: 19, name: 'Quinn Adams', avatar: null },
       ],
     },
   ];
+
+  // Preselect logic from query params
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const position = params.get('position');
+    const candidateId = params.get('candidateId');
+    if (position && candidateId) {
+      const posIndex = positions.findIndex((p) => p.name === position);
+      if (posIndex !== -1) {
+        setCurrentPositionIndex(posIndex);
+        // Wait for position index to update, then set the vote
+        setTimeout(() => {
+          const candidateObj = positions[posIndex].candidates.find(
+            (c) => String(c.id) === String(candidateId)
+          );
+          if (candidateObj) {
+            setVotes((prev) => ({
+              ...prev,
+              [position]: candidateObj,
+            }));
+          }
+        }, 0);
+      }
+    }
+    // eslint-disable-next-line
+  }, [location.search]);
 
   const currentPosition = positions[currentPositionIndex];
 
@@ -85,7 +119,11 @@ const VotingFlow = () => {
   };
 
   const handleSubmitVotes = () => {
-    setShowVotersCode(true);
+    if (contestType === 'open') {
+      setShowOpenContestPopup(true);
+    } else {
+      setShowVotersCode(true);
+    }
     setFinalVotes(votes);
   };
 
@@ -93,11 +131,21 @@ const VotingFlow = () => {
     setShowVotersCode(false);
   };
 
+  const handleOpenContestClose = () => {
+    setShowOpenContestPopup(false);
+  };
+
+  const handleOpenContestGoogleVerify = () => {
+    setShowOpenContestPopup(false);
+    alert('Google verification simulated! (Backend not implemented)');
+    // You can simulate a successful vote here
+  };
+
   const handleVotersCodeSubmit = (code) => {
     setShowVotersCode(false);
     // You can add code verification logic here
     alert('Votes submitted successfully!');
-    console.log('Final votes:', finalVotes, 'Voters code:', code);
+    console.log('Final votes:', finalVotes, 'Voters code:', code, 'Multiplier:', multiplier);
   };
 
   // Cast Vote Page
@@ -113,9 +161,30 @@ const VotingFlow = () => {
               >
                 <ChevronLeft className='w-8 h-8 text-gray-900' />
               </button>
-              <h1 className='text-2xl font-bold text-gray-900'>
+              <h1 className='text-[20px] font-semibold text-gray-900'>
                 Cast your vote
               </h1>
+            </div>
+
+            {/* Contest type toggle for demo */}
+            <div className='flex justify-end mb-4'>
+              <div className='flex items-center gap-2'>
+                <span className='text-sm text-gray-700'>Demo as:</span>
+                <button
+                  className={`px-3 py-1 rounded-l border border-gray-300 text-sm font-medium ${contestType === 'open' ? 'bg-[#034045] text-white' : 'bg-white text-gray-700'}`}
+                  onClick={() => setContestType('open')}
+                  type='button'
+                >
+                  Open Contest
+                </button>
+                <button
+                  className={`px-3 py-1 rounded-r border border-gray-300 text-sm font-medium ${contestType === 'closed' ? 'bg-[#034045] text-white' : 'bg-white text-gray-700'}`}
+                  onClick={() => setContestType('closed')}
+                  type='button'
+                >
+                  Closed Contest
+                </button>
+              </div>
             </div>
 
             <div className='mb-8'>
@@ -213,7 +282,7 @@ const VotingFlow = () => {
           >
             <ChevronLeft className='w-8 h-8 text-gray-900' />
           </button>
-          <h1 className='text-2xl font-bold text-gray-900'>
+          <h1 className='text-[20px] font-semibold text-gray-900'>
             Review your votes
           </h1>
         </div>
@@ -251,6 +320,26 @@ const VotingFlow = () => {
           ))}
         </div>
 
+        {/* Vote Multiplier Section */}
+        <div className='mb-6 p-4 bg-[#F3F7F6] rounded-lg border border-[#034045]/20'>
+          <label htmlFor='vote-multiplier' className='block text-gray-800 font-medium mb-2'>
+            Vote Multiplier
+          </label>
+          <div className='flex items-center gap-3'>
+            <input
+              id='vote-multiplier'
+              type='number'
+              min={1}
+              value={multiplier}
+              onChange={e => setMultiplier(Math.max(1, Number(e.target.value)))}
+              className='w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#034045] text-lg font-semibold text-gray-900 bg-white'
+            />
+            <span className='text-gray-700'>
+              Each selected candidate will receive <span className='font-bold'>{multiplier}</span> vote{multiplier > 1 ? 's' : ''}.
+            </span>
+          </div>
+        </div>
+
         <div className='space-y-4'>
           <button
             onClick={handleSubmitVotes}
@@ -264,10 +353,16 @@ const VotingFlow = () => {
             Cast my votes
           </button>
 
+          {/* Popups for open/closed contest simulation */}
           <VotersCode
             open={showVotersCode}
             onClose={handleVotersCodeClose}
             onSubmit={handleVotersCodeSubmit}
+          />
+          <OpenContestRegistration
+            open={showOpenContestPopup}
+            onClose={handleOpenContestClose}
+            onGoogleVerify={handleOpenContestGoogleVerify}
           />
 
           <button
