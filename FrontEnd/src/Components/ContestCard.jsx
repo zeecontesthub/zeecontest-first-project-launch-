@@ -16,12 +16,24 @@ const ContestCard = ({ contest }) => {
       : navigate(`/contest-details/${contest?._id}`);
   };
 
+  // Flatten all contestants from all positions
+
+  const allContestants =
+    contest?.positions?.flatMap((pos) =>
+      pos.contestants?.map((contestant) => ({
+        ...contestant,
+        position: pos?.name,
+      }))
+    ) || [];
+
+  const totalContestants = allContestants.length;
+
   return (
     <div className="bg-teal-900 rounded-lg overflow-hidden">
       {/* Contest Image */}
       <div className="h-48 overflow-hidden">
         <img
-          src={contest?.contestLogoImageUrl || PlaceHolderImage}
+          src={contest?.coverImageUrl || PlaceHolderImage}
           alt={contest?.title}
           className="w-full h-full object-cover"
         />
@@ -44,9 +56,7 @@ const ContestCard = ({ contest }) => {
 
           <div>
             <p className="text-gray-400 text-xs">Contestants</p>
-            <p className="text-white font-bold">
-              {contest?.participants?.length}
-            </p>
+            <p className="text-white font-bold">{totalContestants}</p>
           </div>
 
           <button

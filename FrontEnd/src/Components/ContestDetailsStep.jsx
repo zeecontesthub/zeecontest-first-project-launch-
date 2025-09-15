@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
 // Mock DatePicker component since react-datepicker isn't available
+// eslint-disable-next-line no-unused-vars
 const DatePicker = ({ selected, onChange, minDate, dateFormat, className, placeholderText }) => {
   const formatDate = (date) => {
     if (!date) return '';

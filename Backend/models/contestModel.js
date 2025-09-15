@@ -61,15 +61,15 @@ const contestSchema = new mongoose.Schema({
     required: true,
   },
   firebaseUid: { type: String, required: true }, // From userModel
-  startDate: { type: Date, required: true },
-  endDate: { type: Date, required: true },
+  startDate: { type: Date },
+  endDate: { type: Date },
   startTime: {
-    startTimeHour: { type: String },
-    startTimeMinute: { type: String },
+    startTimeHour: { type: String, default: "00" }, // e.g., "08"
+    startTimeMinute: { type: String, default: "00" },
     startTimeAmPm: { type: String, default: "AM" },
   }, // e.g., "08:00 AM"
   endTime: {
-    endTimeHour: { type: String },
+    endTimeHour: { type: String, default: "00" }, // e.g., "05"
     endTimeMinute: { type: String, default: "00" },
     endTimeAmPm: { type: String, default: "AM" },
   }, // e.g., "05:00 PM"

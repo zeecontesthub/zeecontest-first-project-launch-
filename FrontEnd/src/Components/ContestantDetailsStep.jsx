@@ -277,7 +277,7 @@ const ContestantDetailsStep = ({
           ) : (
             <div className="divide-y divide-gray-200">
               {contestants.map((contestant) => (
-                <div key={contestant.id} className="p-4 sm:p-6">
+                <div key={contestant?.dateId} className="p-4 sm:p-6">
                   {/* Mobile Card Layout */}
                   <div className="lg:hidden">
                     <div className="flex items-start space-x-4">
@@ -326,7 +326,7 @@ const ContestantDetailsStep = ({
                             <button
                               type="button"
                               disabled={isUploading}
-                              onClick={() => onRemoveContestant(contestant.id)}
+                              onClick={() => onRemoveContestant(contestant?.position, contestant?.dateId)}
                               className={`p-2 text-red-400 hover:text-red-600 transition-colors rounded-full hover:bg-red-50 ${
                                 isUploading ? "opacity-50 cursor-not-allowed" : ""
                               }`}
@@ -390,7 +390,7 @@ const ContestantDetailsStep = ({
                       <button
                         type="button"
                         disabled={isUploading}
-                        onClick={() => onRemoveContestant(contestant.id)}
+                        onClick={() => onRemoveContestant(contestant?.position, contestant?.dateId)}
                         className={`text-red-400 hover:text-red-600 transition-colors ${
                           isUploading ? "opacity-50 cursor-not-allowed" : ""
                         }`}

@@ -205,10 +205,24 @@ const CreateSpotlightContest = () => {
       )
     );
 
-    setContestants((prev) => [...prev, { ...contestantForm, id: Date.now() }]);
+    setContestants((prev) => [
+      ...prev,
+      { ...contestantForm, dateId: Date.now() },
+    ]);
     setCreateContest((prev) => ({
       ...prev,
-      contestants: [...contestants, { ...contestantForm, id: Date.now() }],
+      contestants: [...contestants, { ...contestantForm, dateId: Date.now() }],
+      positions: prev.positions.map((pos) =>
+        pos.name === contestantForm.position
+          ? {
+              ...pos,
+              contestants: [
+                ...(Array.isArray(pos.contestants) ? pos.contestants : []),
+                { ...contestantForm, dateId: Date.now() },
+              ],
+            }
+          : pos
+      ),
     }));
 
     setContestantForm({
@@ -220,21 +234,29 @@ const CreateSpotlightContest = () => {
     });
   };
 
-  const onRemoveContestant = (id) => {
+  const onRemoveContestant = (position, id) => {
     setPositions((prev) =>
       prev.map((pos) =>
-        pos.name === contestantForm.position
+        pos.name === position
           ? {
               ...pos,
-              contestants: pos.contestants.filter((c) => c.id !== id),
+              contestants: pos.contestants.filter((c) => c.dateId !== id),
             }
           : pos
       )
     );
-    setContestants((prev) => prev.filter((c) => c.id !== id));
+    setContestants((prev) => prev.filter((c) => c.dateId !== id));
     setCreateContest((prev) => ({
       ...prev,
-      contestants: contestants.filter((c) => c.id !== id),
+      contestants: contestants.filter((c) => c.dateId !== id),
+      positions: positions.map((pos) =>
+        pos.name === position
+          ? {
+              ...pos,
+              contestants: pos.contestants.filter((c) => c.dateId !== id),
+            }
+          : pos
+      ),
     }));
   };
 
@@ -381,7 +403,9 @@ const CreateSpotlightContest = () => {
     />,
     <Security
       isVoterRegistrationEnabled={isVoterRegistrationEnabled}
-      onToggleVoterRegistration={() => setIsVoterRegistrationEnabled(!isVoterRegistrationEnabled)}
+      onToggleVoterRegistration={() =>
+        setIsVoterRegistrationEnabled(!isVoterRegistrationEnabled)
+      }
     />,
     <ReviewStep
       coverImage={coverImage}
@@ -404,10 +428,9 @@ const CreateSpotlightContest = () => {
   return (
     <div className="flex bg-white min-h-screen lg:gap-[10rem]">
       <Sidebar />
-      
+
       {/* Main Container with improved mobile responsiveness */}
       <div className="flex-1 p-3 sm:p-4 md:p-6 lg:ml-20 w-full max-w-5xl mx-auto">
-        
         {/* Header Section */}
         <div className="mb-4 sm:mb-6">
           <h2 className="text-center text-xl sm:text-2xl md:text-3xl font-semibold text-gray-900 leading-tight">
@@ -429,7 +452,9 @@ const CreateSpotlightContest = () => {
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
                   className="bg-orange-500 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${((currentStep + 1) / stepTitles.length) * 100}%` }}
+                  style={{
+                    width: `${((currentStep + 1) / stepTitles.length) * 100}%`,
+                  }}
                 />
               </div>
             </div>
@@ -472,9 +497,7 @@ const CreateSpotlightContest = () => {
         </div>
 
         {/* Step Content */}
-        <div className="mb-6 md:mb-8">
-          {steps[currentStep]}
-        </div>
+        <div className="mb-6 md:mb-8">{steps[currentStep]}</div>
 
         {/* Position Popup */}
         <PositionPopup
@@ -496,7 +519,9 @@ const CreateSpotlightContest = () => {
                 Back
               </button>
               <button
-                onClick={currentStep === steps.length - 1 ? onPublish : nextStep}
+                onClick={
+                  currentStep === steps.length - 1 ? onPublish : nextStep
+                }
                 className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors text-sm ${
                   isUploading ? "opacity-50 cursor-not-allowed" : ""
                 } ${
@@ -545,7 +570,9 @@ const CreateSpotlightContest = () => {
                 Back
               </button>
               <button
-                onClick={currentStep === steps.length - 1 ? onPublish : nextStep}
+                onClick={
+                  currentStep === steps.length - 1 ? onPublish : nextStep
+                }
                 className={`px-6 py-2 lg:px-8 lg:py-3 rounded-lg font-medium transition-colors ${
                   isUploading ? "opacity-50 cursor-not-allowed" : ""
                 } ${

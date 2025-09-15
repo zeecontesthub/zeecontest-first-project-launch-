@@ -108,8 +108,11 @@ function App() {
             {/* Public Routes with Footer */}
             <Route path="/" element={<LandingHomePage />} />
             <Route path="/contests" element={<ContestHomePage />} />
-            <Route path="/contest-details" element={<ContestDetailHomePage />} />
-            <Route path="/vote" element={<VotingFlow />} />
+            <Route
+              path="/contest-detail/:contestId"
+              element={<ContestDetailHomePage />}
+            />
+            <Route path="/vote/:contestId" element={<VotingFlow />} />
 
             {/* Auth Public Routes */}
             <Route path="/login" element={<Login />} />

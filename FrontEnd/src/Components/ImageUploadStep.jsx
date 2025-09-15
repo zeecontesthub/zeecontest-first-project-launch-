@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { FileText, Loader2 } from "lucide-react";
+import React, { useEffect } from "react";
+import { FileText } from "lucide-react";
 
 const ImageUploadStep = ({
   coverImage,
@@ -8,7 +8,6 @@ const ImageUploadStep = ({
   isUploading = false,
 }) => {
   const handleDragOver = (e) => e.preventDefault();
-  const [isType, setIsType] = useState("");
 
   const handleDrop = (e, type) => {
     e.preventDefault();
@@ -31,13 +30,6 @@ const ImageUploadStep = ({
 
   const FileUploadArea = ({ type, title, file }) => (
     <div className="mb-6 sm:mb-8 relative">
-      {isUploading && isType === type && (
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center rounded-lg z-20">
-          <Loader2 className="animate-spin w-8 h-8 sm:w-10 sm:h-10 text-white mb-2" />
-          <p className="text-white text-xs sm:text-sm">Uploading...</p>
-        </div>
-      )}
-
       <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
         {title}
       </h3>
@@ -54,22 +46,25 @@ const ImageUploadStep = ({
           onDragOver={handleDragOver}
           onDrop={(e) => !isUploading && handleDrop(e, type)}
           onClick={() => {
-            setIsType(type);
             !isUploading &&
               document.getElementById(`file-input-${type}`).click();
           }}
         >
           <FileText className="mx-auto h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-gray-400 mb-3 sm:mb-4" />
-          
+
           {/* Mobile-first text layout */}
           <div className="space-y-2 sm:space-y-1">
             <p className="text-sm sm:text-base text-gray-600">
-              <span className="hidden sm:inline">Drag and Drop your Image here</span>
+              <span className="hidden sm:inline">
+                Drag and Drop your Image here
+              </span>
               <span className="sm:hidden">Tap to select image</span>
             </p>
-            <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">Or</p>
+            <p className="text-xs sm:text-sm text-gray-500 hidden sm:block">
+              Or
+            </p>
           </div>
-          
+
           <button
             disabled={isUploading}
             className={`mt-3 sm:mt-4 px-4 sm:px-6 py-2 rounded-md font-medium transition-colors text-sm sm:text-base w-full sm:w-auto ${
@@ -90,13 +85,15 @@ const ImageUploadStep = ({
             className="hidden"
           />
         </div>
-        
+
         {/* Image Preview */}
         {file && (
           <div className="mt-3 sm:mt-4">
             <div className="relative">
               <img
-                src={typeof file === "string" ? file : URL.createObjectURL(file)}
+                src={
+                  typeof file === "string" ? file : URL.createObjectURL(file)
+                }
                 alt={type}
                 className="max-h-32 sm:max-h-48 lg:max-h-64 w-full object-contain mx-auto rounded border border-gray-200"
               />
@@ -105,11 +102,13 @@ const ImageUploadStep = ({
                 {typeof file === "string" ? "Current image" : file.name}
               </div>
             </div>
-            
+
             {/* Image details for larger screens */}
             <div className="hidden sm:block mt-2 text-center">
               <p className="text-xs text-gray-500">
-                {typeof file === "string" ? "Current image" : `${file.name} - ${(file.size / 1024 / 1024).toFixed(2)} MB`}
+                {typeof file === "string"
+                  ? "Current image"
+                  : `${file.name} - ${(file.size / 1024 / 1024).toFixed(2)} MB`}
               </p>
             </div>
           </div>
@@ -123,12 +122,14 @@ const ImageUploadStep = ({
       {/* Header - Optional, can be added if needed */}
       <div className="sm:hidden mb-4">
         <h2 className="text-lg font-semibold text-gray-900">Upload Images</h2>
-        <p className="text-sm text-gray-600 mt-1">Add cover and logo images for your contest</p>
+        <p className="text-sm text-gray-600 mt-1">
+          Add cover and logo images for your contest
+        </p>
       </div>
-      
+
       <FileUploadArea type="cover" title="Cover Image" file={coverImage} />
       <FileUploadArea type="logo" title="Contest Logo" file={logoImage} />
-      
+
       {/* Mobile-specific tips */}
       <div className="sm:hidden bg-blue-50 border border-blue-200 rounded-lg p-3">
         <h4 className="text-sm font-medium text-blue-900 mb-1">Tips:</h4>

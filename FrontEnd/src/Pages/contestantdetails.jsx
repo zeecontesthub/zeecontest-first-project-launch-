@@ -34,6 +34,7 @@ const ContestantDetails = () => {
     email: "",
   });
 
+
   useEffect(() => {
     const fetchContest = async () => {
       try {
@@ -163,7 +164,7 @@ const ContestantDetails = () => {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen lg:gap-[10rem]">
       <Sidebar />
       <div className="flex-1 p-6 md:ml-20 ">
         <div className="mx-auto p-6 min-h-screen">

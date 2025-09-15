@@ -43,6 +43,16 @@ const Editcontest = () => {
   // State for images
   const [coverImage, setCoverImage] = useState(BannerImage);
   const [logoImage, setLogoImage] = useState(LogoImage);
+  // Flatten all contestants from all positions
+  const allContestants =
+    contest?.positions?.flatMap((pos) =>
+      pos.contestants?.map((contestant) => ({
+        ...contestant,
+        position: pos?.name,
+      }))
+    ) || [];
+
+  // const totalContestants = allContestants.length;
 
   useEffect(() => {
     if (contest) {
@@ -70,8 +80,8 @@ const Editcontest = () => {
         },
         allowMultipleVotes: contest.allowMultipleVotes || false,
       });
-      setPositions(contest.positions || []);
-      setContestants(contest.participants || []);
+      setPositions(contest?.positions || []);
+      setContestants(allContestants || []);
     }
   }, [contest]);
 
@@ -102,7 +112,9 @@ const Editcontest = () => {
   const logoInputRef = useRef(null);
 
   const [positions, setPositions] = useState(
-    contest?.positions && contest.positions.length > 0 ? contest.positions : []
+    contest?.positions && contest?.positions.length > 0
+      ? contest?.positions
+      : []
   );
 
   // Enhanced editing state management
@@ -130,12 +142,12 @@ const Editcontest = () => {
   // Start editing a position
   const startEditing = (position) => {
     setEditingPositionId(position._id);
-    setTempPositionName(position.name);
+    setTempPositionName(position?.name);
     setTempPositionDescription(position.description);
     // Store original data for cancel functionality
     setOriginalPositionData({
-      name: position.name,
-      description: position.description,
+      name: position?.name,
+      description: position?.description,
     });
   };
 
@@ -147,10 +159,10 @@ const Editcontest = () => {
         positions.map((pos) =>
           pos.id === editingPositionId
             ? {
-              ...pos,
-              name: originalPositionData.name,
-              description: originalPositionData.description,
-            }
+                ...pos,
+                name: originalPositionData?.name,
+                description: originalPositionData?.description,
+              }
             : pos
         )
       );
@@ -169,10 +181,10 @@ const Editcontest = () => {
       positions.map((pos) =>
         pos._id === editingPositionId
           ? {
-            ...pos,
-            name: tempPositionName,
-            description: tempPositionDescription,
-          }
+              ...pos,
+              name: tempPositionName,
+              description: tempPositionDescription,
+            }
           : pos
       )
     );
@@ -196,10 +208,10 @@ const Editcontest = () => {
   const navigate = useNavigate();
 
   // Start editing a contestant
-  const startEditingContestant = (contestant) => { };
-  const cancelEditingContestant = () => { };
-  const saveEditingContestant = () => { };
-  const updateTempContestant = (field, value) => { };
+  const startEditingContestant = (contestant) => {};
+  const cancelEditingContestant = () => {};
+  const saveEditingContestant = () => {};
+  const updateTempContestant = (field, value) => {};
 
   const handleBrowseClick = () => {
     fileInputRef.current.click();
@@ -255,6 +267,32 @@ const Editcontest = () => {
 
   const onPublishEdit = async () => {
     try {
+      let status = "upcoming"; // default
+
+      if (formData.startDate) {
+        const now = new Date();
+
+        // Build start datetime
+        const startDateTime = new Date(formData.startDate);
+
+        if (formData.startTime) {
+          let hour = parseInt(formData.startTime.startTimeHour, 10);
+          if (formData.startTime.startTimeAmPm === "PM" && hour < 12)
+            hour += 12;
+          startDateTime.setHours(
+            hour,
+            parseInt(formData.startTime.startTimeMinute, 10),
+            0,
+            0
+          );
+        }
+
+        if (now >= startDateTime) {
+          // If start datetime is past, set status to "ongoing" or keep existing
+          status = contest?.status === "completed" ? "completed" : "ongoing";
+        }
+      }
+
       const payload = {
         title: formData.contestName,
         description: formData.contestDescription,
@@ -268,16 +306,15 @@ const Editcontest = () => {
         contestLogoImageUrl: logoImage,
         payment: formData.payment,
         allowMultipleVotes: formData.allowMultipleVotes,
-        status: contest?.status || "upcoming",
+        status, // computed status
         type: "spot-light",
         uid: user?.firebaseUid,
-        _id: contest?._id || null, // Include contest ID if editing
+        _id: contest?._id || null,
       };
 
       const res = await axios.post("/api/contest/create-contest", payload);
 
       if (res.data && res.data.contest) {
-        // setUserContests(res.data.contest);
         toast.success("Contest Edited successfully");
       }
     } catch (err) {
@@ -348,7 +385,9 @@ const Editcontest = () => {
                           d="M4 12a8 8 0 018-8v8H4z"
                         ></path>
                       </svg>
-                      <p className="text-xs sm:text-sm text-teal-300">Uploading...</p>
+                      <p className="text-xs sm:text-sm text-teal-300">
+                        Uploading...
+                      </p>
                     </div>
                   ) : (
                     <div className="absolute inset-0 bg-[#000000]/50 flex flex-col items-center justify-center text-white">
@@ -377,7 +416,11 @@ const Editcontest = () => {
 
             {/* Logo Section */}
             <div className="p-4 sm:p-6">
-              <div className={`${logoIsUploading ? "opacity-70" : ""} relative w-20 h-20 sm:w-24 sm:h-24`}>
+              <div
+                className={`${
+                  logoIsUploading ? "opacity-70" : ""
+                } relative w-20 h-20 sm:w-24 sm:h-24`}
+              >
                 <div className="w-full h-full bg-white border-2 border-gray-200 rounded-full flex items-center justify-center">
                   <img
                     src={logoImage}
@@ -449,7 +492,9 @@ const Editcontest = () => {
                 </label>
                 <textarea
                   value={formData?.contestDescription}
-                  onChange={(e) => onInputChange("contestDescription", e.target.value)}
+                  onChange={(e) =>
+                    onInputChange("contestDescription", e.target.value)
+                  }
                   placeholder="Describe your contest"
                   rows={4}
                   className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
@@ -465,7 +510,10 @@ const Editcontest = () => {
                   <DatePicker
                     selected={formData.startDate ? formData.startDate : null}
                     onChange={(date) => {
-                      onInputChange("startDate", date ? date.toISOString().split("T")[0] : "");
+                      onInputChange(
+                        "startDate",
+                        date ? date.toISOString().split("T")[0] : ""
+                      );
                       setFormData((prev) => ({
                         ...prev,
                         startDate: date ? date.toISOString().split("T")[0] : "",
@@ -485,13 +533,20 @@ const Editcontest = () => {
                   <DatePicker
                     selected={formData.endDate ? formData.endDate : null}
                     onChange={(date) => {
-                      onInputChange("endDate", date ? date.toISOString().split("T")[0] : "");
+                      onInputChange(
+                        "endDate",
+                        date ? date.toISOString().split("T")[0] : ""
+                      );
                       setFormData((prev) => ({
                         ...prev,
                         endDate: date ? date.toISOString().split("T")[0] : "",
                       }));
                     }}
-                    minDate={formData.startDate ? new Date(formData.startDate) : new Date()}
+                    minDate={
+                      formData.startDate
+                        ? new Date(formData.startDate)
+                        : new Date()
+                    }
                     dateFormat="yyyy-MM-dd"
                     className="w-full px-3 py-2 text-sm sm:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     placeholderText="Select end date"
@@ -512,7 +567,10 @@ const Editcontest = () => {
                         });
                         setFormData((prev) => ({
                           ...prev,
-                          startTime: { ...prev.startTime, startTimeHour: e.target.value },
+                          startTime: {
+                            ...prev.startTime,
+                            startTimeHour: e.target.value,
+                          },
                         }));
                       }}
                       className="flex-1 min-w-0 px-1 sm:px-2 py-2 sm:py-3 text-sm bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors"
@@ -527,7 +585,9 @@ const Editcontest = () => {
                         );
                       })}
                     </select>
-                    <span className="flex items-center text-sm sm:text-base">:</span>
+                    <span className="flex items-center text-sm sm:text-base">
+                      :
+                    </span>
                     <select
                       value={formData?.startTime?.startTimeMinute || ""}
                       onChange={(e) => {
@@ -537,7 +597,10 @@ const Editcontest = () => {
                         });
                         setFormData((prev) => ({
                           ...prev,
-                          startTime: { ...prev.startTime, startTimeMinute: e.target.value },
+                          startTime: {
+                            ...prev.startTime,
+                            startTimeMinute: e.target.value,
+                          },
                         }));
                       }}
                       className="flex-1 min-w-0 px-1 sm:px-2 py-2 sm:py-3 text-sm bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors"
@@ -561,7 +624,10 @@ const Editcontest = () => {
                         });
                         setFormData((prev) => ({
                           ...prev,
-                          startTime: { ...prev.startTime, startTimeAmPm: e.target.value },
+                          startTime: {
+                            ...prev.startTime,
+                            startTimeAmPm: e.target.value,
+                          },
                         }));
                       }}
                       className="flex-1 min-w-0 px-1 sm:px-2 py-2 sm:py-3 text-sm bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors"
@@ -587,7 +653,10 @@ const Editcontest = () => {
                         });
                         setFormData((prev) => ({
                           ...prev,
-                          endTime: { ...prev.endTime, endTimeHour: e.target.value },
+                          endTime: {
+                            ...prev.endTime,
+                            endTimeHour: e.target.value,
+                          },
                         }));
                       }}
                       className="flex-1 min-w-0 px-1 sm:px-2 py-2 sm:py-3 text-sm bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors"
@@ -602,7 +671,9 @@ const Editcontest = () => {
                         );
                       })}
                     </select>
-                    <span className="flex items-center text-sm sm:text-base">:</span>
+                    <span className="flex items-center text-sm sm:text-base">
+                      :
+                    </span>
                     <select
                       value={formData?.endTime?.endTimeMinute || ""}
                       onChange={(e) => {
@@ -612,7 +683,10 @@ const Editcontest = () => {
                         });
                         setFormData((prev) => ({
                           ...prev,
-                          endTime: { ...prev.endTime, endTimeMinute: e.target.value },
+                          endTime: {
+                            ...prev.endTime,
+                            endTimeMinute: e.target.value,
+                          },
                         }));
                       }}
                       className="flex-1 min-w-0 px-1 sm:px-2 py-2 sm:py-3 text-sm bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors"
@@ -636,7 +710,10 @@ const Editcontest = () => {
                         });
                         setFormData((prev) => ({
                           ...prev,
-                          endTime: { ...prev.endTime, endTimeAmPm: e.target.value },
+                          endTime: {
+                            ...prev.endTime,
+                            endTimeAmPm: e.target.value,
+                          },
                         }));
                       }}
                       className="flex-1 min-w-0 px-1 sm:px-2 py-2 sm:py-3 text-sm bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors"
@@ -688,17 +765,18 @@ const Editcontest = () => {
                               value={
                                 editingPositionId === position._id
                                   ? tempPositionName
-                                  : position.name
+                                  : position?.name
                               }
                               onChange={(e) =>
                                 editingPositionId === position._id
                                   ? updateTempPosition("name", e.target.value)
                                   : null
                               }
-                              className={`w-full min-w-[120px] px-2 py-1 text-sm transition-all duration-200 ${editingPositionId === position._id
-                                ? "border-2 border-orange-500 rounded focus:outline-none focus:ring-2 focus:ring-orange-200 bg-white"
-                                : "border-transparent bg-transparent cursor-default"
-                                }`}
+                              className={`w-full min-w-[120px] px-2 py-1 text-sm transition-all duration-200 ${
+                                editingPositionId === position._id
+                                  ? "border-2 border-orange-500 rounded focus:outline-none focus:ring-2 focus:ring-orange-200 bg-white"
+                                  : "border-transparent bg-transparent cursor-default"
+                              }`}
                               readOnly={editingPositionId !== position._id}
                             />
                           </td>
@@ -712,13 +790,17 @@ const Editcontest = () => {
                               }
                               onChange={(e) =>
                                 editingPositionId === position._id
-                                  ? updateTempPosition("description", e.target.value)
+                                  ? updateTempPosition(
+                                      "description",
+                                      e.target.value
+                                    )
                                   : null
                               }
-                              className={`w-full min-w-[150px] px-2 py-1 text-sm transition-all duration-200 ${editingPositionId === position._id
-                                ? "border-2 border-orange-500 rounded focus:outline-none focus:ring-2 focus:ring-orange-200 bg-white"
-                                : "border-transparent bg-transparent cursor-default"
-                                }`}
+                              className={`w-full min-w-[150px] px-2 py-1 text-sm transition-all duration-200 ${
+                                editingPositionId === position._id
+                                  ? "border-2 border-orange-500 rounded focus:outline-none focus:ring-2 focus:ring-orange-200 bg-white"
+                                  : "border-transparent bg-transparent cursor-default"
+                              }`}
                               readOnly={editingPositionId !== position._id}
                             />
                           </td>
@@ -810,31 +892,31 @@ const Editcontest = () => {
                         <tr key={contestant.id}>
                           <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
-                              {contestant.image ? (
+                              {contestant?.image ? (
                                 <img
                                   src={
-                                    typeof contestant.image === "string"
-                                      ? contestant.image
-                                      : URL.createObjectURL(contestant.image)
+                                    typeof contestant?.image === "string"
+                                      ? contestant?.image
+                                      : URL.createObjectURL(contestant?.image)
                                   }
-                                  alt={contestant.name}
+                                  alt={contestant?.name}
                                   className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
                                 />
                               ) : (
                                 <span className="text-gray-600 text-xs font-medium">
-                                  {contestant.name?.charAt(0) || "?"}
+                                  {contestant?.name?.charAt(0) || "?"}
                                 </span>
                               )}
                             </div>
                           </td>
                           <td className="px-3 sm:px-6 py-4 text-sm text-left font-medium text-gray-900 whitespace-nowrap">
                             <div className="max-w-[100px] sm:max-w-[150px] truncate">
-                              {contestant.name}
+                              {contestant?.name}
                             </div>
                           </td>
                           <td className="px-3 sm:px-6 py-4 text-sm text-left text-gray-500 whitespace-nowrap">
                             <div className="max-w-[80px] sm:max-w-[120px] truncate">
-                              {contestant.position}
+                              {contestant?.position}
                             </div>
                           </td>
                           <td className="hidden sm:table-cell px-3 sm:px-6 py-4 text-sm text-left text-gray-600 hover:text-blue-800 cursor-pointer">
@@ -874,8 +956,9 @@ const Editcontest = () => {
               <button
                 onClick={onPublishEdit}
                 disabled={isUploading}
-                className={`${isUploading ? "opacity-30" : ""
-                  } bg-orange-500 hover:bg-orange-600 text-white px-6 sm:px-8 py-3 rounded-md font-medium transition-colors order-1 sm:order-2`}
+                className={`${
+                  isUploading ? "opacity-30" : ""
+                } bg-orange-500 hover:bg-orange-600 text-white px-6 sm:px-8 py-3 rounded-md font-medium transition-colors order-1 sm:order-2`}
               >
                 {isUploading ? "Saving..." : "Save"}
               </button>
@@ -888,22 +971,22 @@ const Editcontest = () => {
         isOpen={isContestantPopupOpen}
         onClose={() => setIsContestantPopupOpen(false)}
         onAddContestant={(newContestant) => {
-          if (newContestant.name.trim() === "") return;
+          if (newContestant?.name.trim() === "") return;
 
           setContestants([...contestants, { ...newContestant }]);
 
           setPositions((prev) =>
             prev.map((pos) =>
-              pos.name === newContestant.position
+              pos?.name === newContestant?.position
                 ? {
-                  ...pos,
-                  contestants: [
-                    ...(Array.isArray(pos.contestants)
-                      ? pos.contestants
-                      : []),
-                    { ...newContestant, dateId: Date.now() },
-                  ],
-                }
+                    ...pos,
+                    contestants: [
+                      ...(Array.isArray(pos.contestants)
+                        ? pos.contestants
+                        : []),
+                      { ...newContestant, dateId: Date.now() },
+                    ],
+                  }
                 : pos
             )
           );

@@ -38,6 +38,8 @@ const Contestant = () => {
       }))
     ) || [];
 
+    // console.log(allContestants, contest?.positions);
+
   // Filter contestants based on selected position
   const filteredContestants =
     selectedPosition === "All"
@@ -55,7 +57,7 @@ const Contestant = () => {
   const totalContestants = allContestants.length;
 
   return (
-    <div className="flex min-h-screen overflow-x-hidden">
+    <div className="flex min-h-screen overflow-x-hidden lg:gap-[10rem]">
       <Sidebar />
 
       <div className="flex-1 p-4 sm:p-6 md:ml-20 overflow-x-hidden max-w-full">

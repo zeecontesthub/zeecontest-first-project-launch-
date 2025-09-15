@@ -224,6 +224,8 @@ export const updateContestant = async (req, res) => {
       if (!newPos)
         return res.status(404).json({ message: "New position not found" });
 
+      console.log(avatar);
+
       contestant.name = name;
       contestant.bio = bio;
       contestant.image = avatar;
@@ -267,23 +269,20 @@ export const deleteContestant = async (req, res) => {
     const contest = await Contest.findById(contestId);
     if (!contest) return res.status(404).json({ message: "Contest not found" });
 
-    // Remove from positions[].contestants
-    const position = contest.positions.find((p) =>
-      p.contestants.some((c) => c._id.toString() === contestantId)
-    );
-    if (!position)
-      return res
-        .status(404)
-        .json({ message: "Contestant not found in any position" });
+    // Remove from positions[].contestants & voters
+    contest.positions.forEach((position) => {
+      // Remove contestant from this position
+      position.contestants = position.contestants.filter(
+        (c) => c._id.toString() !== contestantId
+      );
 
-    position.contestants = position.contestants.filter(
-      (c) => c._id.toString() !== contestantId
-    );
+      // Remove votes tied to this contestant in this position
+      position.voters = position.voters.filter(
+        (v) => v.votedFor?.toString() !== contestantId
+      );
+    });
 
-    // Remove votes tied to this contestant
-    position.voters = position.voters.filter(
-      (v) => v.votedFor?.toString() !== contestantId
-    );
+    // Remove votes tied to this contestant globally in contest.voters
     contest.voters = contest.voters.filter(
       (v) => v.votedFor?.toString() !== contestantId
     );
@@ -297,5 +296,106 @@ export const deleteContestant = async (req, res) => {
     res.json({ message: "Contestant deleted successfully", contest });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+export const addVote = async (req, res) => {
+  try {
+    const { contestId } = req.params;
+    const { voterName, voterEmail, participantId, positionId } = req.body;
+
+    if (!contestId || !participantId || !positionId) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Find contest
+    const contest = await Contest.findById(contestId);
+    if (!contest) {
+      return res.status(404).json({ message: "Contest not found" });
+    }
+
+    // Ensure position exists
+    const position = contest.positions.id(positionId);
+    if (!position) {
+      return res.status(404).json({ message: "Position not found" });
+    }
+
+    // Ensure participant exists in that position
+    const contestant = position.contestants.id(participantId);
+    if (!contestant) {
+      return res
+        .status(404)
+        .json({ message: "Participant not found in this position" });
+    }
+
+    // Prevent duplicate votes (per contest) unless multiple votes are allowed
+    const alreadyVoted = contest.voters.some(
+      (v) => v.email === voterEmail && !contest.allowMultipleVotes
+    );
+    if (alreadyVoted) {
+      return res.status(400).json({ message: "You have already voted" });
+    }
+
+    // Add vote globally in contest.voters
+    contest.voters.push({
+      name: voterName,
+      email: voterEmail,
+      votedFor: participantId,
+    });
+
+    // Add vote inside this specific position
+    position.voters.push({
+      name: voterName,
+      email: voterEmail,
+      votedFor: participantId,
+    });
+
+    await contest.save();
+
+    return res.status(200).json({
+      message: "Vote recorded successfully",
+      votedFor: contestant.name,
+      position: position.name,
+    });
+  } catch (error) {
+    console.error("Error adding vote:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Get contests with pagination, search, and filters
+export const getAllContests = async (req, res) => {
+  try {
+    const { page = 1, limit = 30, q = "", status, type } = req.query;
+
+    const query = {
+      status: { $ne: "draft" }, // Exclude drafts
+    };
+
+    if (q) query.title = { $regex: q, $options: "i" };
+    if (status) query.status = status; // optional filter for non-draft statuses
+    if (type) query.type = type; // optional filter
+
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const lim = Math.min(Math.max(parseInt(limit, 10) || 30, 1), 100);
+
+    const [contests, total] = await Promise.all([
+      Contest.find(query)
+        .sort({ createdAt: -1 })
+        .skip((pageNum - 1) * lim)
+        .limit(lim),
+      Contest.countDocuments(query),
+    ]);
+
+    res.status(200).json({
+      contests,
+      total,
+      hasMore: pageNum * lim < total,
+      page: pageNum,
+      limit: lim,
+    });
+  } catch (err) {
+    console.error("Failed to fetch contests:", err.message);
+    res.status(500).json({ message: "Server error" });
   }
 };

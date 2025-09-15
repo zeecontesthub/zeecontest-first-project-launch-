@@ -332,7 +332,6 @@ const SettingsPage = () => {
                 </div>
 
                 {/* Action Buttons */}
-                {isEditing && (
                   <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
                     <button
                       type="button"
@@ -361,7 +360,6 @@ const SettingsPage = () => {
                       )}
                     </button>
                   </div>
-                )}
               </div>
             </form>
           </div>

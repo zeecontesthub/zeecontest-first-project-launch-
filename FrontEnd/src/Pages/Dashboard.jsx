@@ -43,8 +43,7 @@ const Dashboard = () => {
       }
     };
     fetchContests();
-  }, [user, userContests, setUserContests]);
-
+  }, [user]);
 
   //   {
   //     id: 1,
@@ -162,7 +161,7 @@ const Dashboard = () => {
             )}
           </div>
         </div>
-              
+
         {/* Ongoing Contests Section */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
@@ -246,7 +245,9 @@ const Dashboard = () => {
                   <ContestCard key={contest._id} contest={contest} />
                 ))
             ) : (
-              <p className="text-gray-500 italic">No contest saved as drafts.</p>
+              <p className="text-gray-500 italic">
+                No contest saved as drafts.
+              </p>
             )}
           </div>
         </div>

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 
 import React, { useEffect, useState } from "react";
 import { Edit, Eye, Share2 } from "lucide-react";
@@ -221,9 +222,9 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
     // Find contestant with max votes
     let top = { name: "N/A", votes: 0 };
     position.contestants.forEach((contestant) => {
-      const votes = voteCounts[contestant._id] || 0;
+      const votes = voteCounts[contestant?._id] || 0;
       if (votes > top.votes) {
-        top = { name: contestant.name, votes };
+        top = { name: contestant?.name, votes };
       }
     });
 
@@ -300,9 +301,9 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
     // Find contestant with max votes
     let top = { name: "No Votes Yet", votes: 0 };
     position.contestants.forEach((contestant) => {
-      const votes = voteCounts[contestant._id] || 0;
+      const votes = voteCounts[contestant?._id] || 0;
       if (votes > top.votes) {
-        top = { name: contestant.name, votes };
+        top = { name: contestant?.name, votes };
       }
     });
     return top;
@@ -313,11 +314,18 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
   const handleSectionAction = async () => {
     if (!contest) return;
     let updatedFields = {};
+    const now = new Date();
+
+    // Helper to return midnight UTC ISO string
+    const getUTCMidnightISO = (date) => {
+      return new Date(
+        Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+      ).toISOString();
+    };
 
     if (currentData.title === "Start Contest") {
-      const now = new Date();
       updatedFields = {
-        startDate: now.toISOString().split("T")[0],
+        startDate: getUTCMidnightISO(now), // "2025-08-24T00:00:00.000Z"
         startTime: {
           startTimeHour: now.getHours() % 12 || 12,
           startTimeMinute: now.getMinutes().toString().padStart(2, "0"),
@@ -330,9 +338,8 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
         status: "pause",
       };
     } else if (currentData.title === "End Contest") {
-      const now = new Date();
       updatedFields = {
-        endDate: now.toISOString().split("T")[0],
+        endDate: getUTCMidnightISO(now), // "2025-08-24T00:00:00.000Z"
         endTime: {
           endTimeHour: now.getHours() % 12 || 12,
           endTimeMinute: now.getMinutes().toString().padStart(2, "0"),
@@ -341,6 +348,8 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
         status: "completed",
       };
     }
+
+    console.log(updatedFields);
 
     try {
       await axios.put(`/api/contest/${contest._id}/status`, updatedFields);
@@ -352,8 +361,57 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
     }
   };
 
+  // Flatten all contestants from all positions
+  const allContestants =
+    contest?.positions?.flatMap((pos) =>
+      pos.contestants?.map((contestant) => ({
+        ...contestant,
+        position: pos.name,
+      }))
+    ) || [];
+
+  const totalContestants = allContestants.length;
+
+  useEffect(() => {
+    if (!contest || contest.status === "completed") return;
+
+    // Build end datetime
+    let endDate = new Date(contest.endDate); // already ISO midnight
+    if (contest.endTime) {
+      let hour = parseInt(contest.endTime.endTimeHour, 10);
+      let minute = parseInt(contest.endTime.endTimeMinute, 10);
+
+      if (contest.endTime.endTimeAmPm === "PM" && hour < 12) hour += 12;
+      if (contest.endTime.endTimeAmPm === "AM" && hour === 12) hour = 0;
+
+      endDate.setHours(hour, minute, 0, 0);
+    }
+
+    const checkIfEnded = async () => {
+      const now = new Date();
+
+      if (now >= endDate) {
+        try {
+          await axios.put(`/api/contest/${contest._id}/status`, {
+            status: "completed",
+          });
+          setContest((prev) => ({ ...prev, status: "completed" }));
+          console.log("Contest marked as completed automatically.");
+        } catch (err) {
+          console.error("Failed to update contest:", err);
+        }
+      }
+    };
+
+    // Check immediately and then every 2 minute
+    checkIfEnded();
+    const interval = setInterval(checkIfEnded, 120 * 1000);
+
+    return () => clearInterval(interval);
+  }, [contest]);
+
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen lg:gap-[10rem]">
       <Sidebar />
 
       <div className="flex-1 p-4 sm:p-6 md:ml-20 ">
@@ -406,7 +464,7 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                   </div>
                   <div>
                     <span className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900">
-                      {contest?.participants?.length || 0}
+                      {totalContestants || 0}
                     </span>
                     <span className="text-gray-600 ml-2 text-xs sm:text-sm">
                       Contestant
@@ -416,9 +474,9 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                     {contest?.payment?.isPaid ? (
                       <>
                         <span className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900">
-                          {new Intl.NumberFormat('en-NG', {
-                            style: 'currency',
-                            currency: 'NGN',
+                          {new Intl.NumberFormat("en-NG", {
+                            style: "currency",
+                            currency: "NGN",
                             minimumFractionDigits: 0,
                             maximumFractionDigits: 0,
                           }).format(
@@ -530,22 +588,24 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                       return (
                         <div
                           key={data?._id}
-                          className={`p-3 sm:p-4 rounded-xl cursor-pointer transition-all hover:shadow-md ${index === 0
+                          className={`p-3 sm:p-4 rounded-xl cursor-pointer transition-all hover:shadow-md ${
+                            index === 0
                               ? "bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200"
                               : index === 1
-                                ? "bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200"
-                                : "bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200"
-                            }`}
+                              ? "bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200"
+                              : "bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200"
+                          }`}
                           onClick={() => setSelectedPositionData(data)}
                         >
                           <div className="flex items-center gap-3">
                             <div
-                              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${index === 0
+                              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${
+                                index === 0
                                   ? "bg-yellow-500 text-white"
                                   : index === 1
-                                    ? "bg-gray-400 text-white"
-                                    : "bg-amber-600 text-white"
-                                }`}
+                                  ? "bg-gray-400 text-white"
+                                  : "bg-amber-600 text-white"
+                              }`}
                             >
                               {index === 0 ? (
                                 <Trophy className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -585,10 +645,10 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                           Overall Leader
                         </p>
                         <p className="text-base sm:text-lg font-bold text-pink-800 truncate">
-                          {topContestant.name}
+                          {topContestant?.name}
                         </p>
                         <p className="text-xs text-pink-600">
-                          Leading {topContestant.votes} votes
+                          Leading {topContestant?.votes} votes
                         </p>
                       </div>
                     </div>
@@ -680,6 +740,11 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                       let hour = parseInt(contest.startTime.startTimeHour, 10);
                       if (contest.startTime.startTimeAmPm === "PM" && hour < 12)
                         hour += 12;
+                      if (
+                        contest.startTime.startTimeAmPm === "AM" &&
+                        hour === 12
+                      )
+                        hour = 0;
                       startDate.setHours(
                         hour,
                         parseInt(contest.startTime.startTimeMinute, 10),
@@ -687,11 +752,14 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                         0
                       );
                     }
+
                     const endDate = new Date(contest?.endDate);
                     if (contest?.endTime) {
                       let hour = parseInt(contest.endTime.endTimeHour, 10);
                       if (contest.endTime.endTimeAmPm === "PM" && hour < 12)
                         hour += 12;
+                      if (contest.endTime.endTimeAmPm === "AM" && hour === 12)
+                        hour = 0;
                       endDate.setHours(
                         hour,
                         parseInt(contest.endTime.endTimeMinute, 10),
@@ -699,41 +767,73 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                         0
                       );
                     }
+
                     const now = new Date();
-                    if (contest?.status === "completed" || now > endDate) {
+
+                    // ✅ Contest paused
+                    if (contest?.status === "pause") {
                       return (
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">
-                          Contest{" "}
-                          <span className="text-orange-600 font-bold">
-                            Ended
-                          </span>
-                        </h3>
+                        <>
+                          <h3 className="text-lg font-bold text-gray-900 mb-2">
+                            Contest{" "}
+                            <span className="text-orange-600 font-bold">
+                              Paused
+                            </span>
+                          </h3>
+                        </>
                       );
-                    } else if (now < startDate) {
+                    }
+                    // ✅ Contest completed or ended
+                    else if (contest?.status === "completed" || now > endDate) {
                       return (
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">
-                          Contest{" "}
-                          <span className="text-orange-600 font-bold">
-                            Starts
-                          </span>{" "}
-                          In
-                        </h3>
+                        <>
+                          <h3 className="text-lg font-bold text-gray-900 mb-2">
+                            Contest{" "}
+                            <span className="text-orange-600 font-bold">
+                              Ended
+                            </span>
+                          </h3>
+                          <p className="text-xl font-semibold text-orange-600">
+                            Contest Ended
+                          </p>
+                        </>
                       );
-                    } else {
+                    }
+                    // ✅ Contest not started yet
+                    else if (now < startDate) {
                       return (
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">
-                          Contest{" "}
-                          <span className="text-orange-600 font-bold">
-                            Ends
-                          </span>{" "}
-                          In
-                        </h3>
+                        <>
+                          <h3 className="text-lg font-bold text-gray-900 mb-2">
+                            Contest{" "}
+                            <span className="text-orange-600 font-bold">
+                              Starts
+                            </span>{" "}
+                            In
+                          </h3>
+                          <p className="text-xl font-semibold text-orange-600">
+                            {countdown}
+                          </p>
+                        </>
+                      );
+                    }
+                    // ✅ Contest ongoing
+                    else {
+                      return (
+                        <>
+                          <h3 className="text-lg font-bold text-gray-900 mb-2">
+                            Contest{" "}
+                            <span className="text-orange-600 font-bold">
+                              Ends
+                            </span>{" "}
+                            In
+                          </h3>
+                          <p className="text-xl font-semibold text-orange-600">
+                            {countdown}
+                          </p>
+                        </>
                       );
                     }
                   })()}
-                  <p className="text-xl font-semibold text-orange-600">
-                    {countdown}
-                  </p>
                 </div>
               </div>
 
@@ -752,7 +852,7 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                 </div>
 
                 <div className="space-y-3">
-                  {contest?.participants.map((contestant, index) => (
+                  {allContestants?.slice(0, 5).map((contestant, index) => (
                     <div
                       key={index}
                       className="flex items-center justify-between p-3 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
@@ -760,8 +860,7 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                       <div
                         onClick={() =>
                           navigate(
-                            `/contestantdetails/${contestant.position
-                            }/${encodeURIComponent(contestant.name)}`
+                            `/contestantdetails/${contestant?.position}/${contestant?._id}/${contestId}/`
                           )
                         }
                         className="flex items-center gap-3 cursor-pointer"
@@ -769,16 +868,16 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                         {contestant?.image ? (
                           <img
                             src={contestant?.image}
-                            alt={contestant.name}
+                            alt={contestant?.name}
                             className="w-10 h-10 rounded-full object-cover"
                           />
                         ) : (
                           <div className="w-10 h-10 bg-gradient-to-r from-orange-400 to-red-400 rounded-full flex items-center justify-center text-white">
-                            {contestant.name.charAt(0)}
+                            {contestant?.name.charAt(0)}
                           </div>
                         )}
                         <span className="font-medium text-gray-900">
-                          {contestant.name}
+                          {contestant?.name}
                         </span>
                       </div>
                     </div>
@@ -831,10 +930,11 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                     <button
                       key={index}
                       onClick={() => goToSection(index)}
-                      className={`w-3 h-3 rounded-full transition-colors ${index === currentSection
+                      className={`w-3 h-3 rounded-full transition-colors ${
+                        index === currentSection
                           ? "bg-orange-400"
                           : "bg-gray-300 hover:bg-gray-400"
-                        }`}
+                      }`}
                     />
                   ))}
                 </div>
