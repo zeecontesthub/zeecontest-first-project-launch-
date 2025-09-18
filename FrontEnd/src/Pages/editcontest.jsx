@@ -324,10 +324,9 @@ const Editcontest = () => {
   };
 
   return (
-    <div className="flex min-h-screen overflow-x-hidden">
+    <div className="flex min-h-screen bg-white overflow-x-hidden lg:gap-[10rem]">
       <Sidebar />
-
-      <div className="flex-1 p-4 sm:p-6 md:ml-20 overflow-x-hidden ">
+      <div className="flex-1 p-6 md:ml-20 ">
         {/* Header */}
         <div className="flex items-center mb-6 sm:mb-8 gap-4">
           <button

@@ -43,54 +43,7 @@ const Dashboard = () => {
       }
     };
     fetchContests();
-  }, [user]);
-
-  //   {
-  //     id: 1,
-  //     title: "Imaginarium Contest",
-  //     image: Image1,
-  //     votes: 10,
-  //     contestants: 10,
-  //   },
-  //   {
-  //     id: 2,
-  //     title: "Magic Carpet Contest",
-  //     image: Image2,
-  //     votes: 10,
-  //     contestants: 10,
-  //   },
-  //   {
-  //     id: 3,
-  //     title: "Lolllllllla Contest",
-  //     image: Image3,
-  //     votes: 10,
-  //     contestants: 10,
-  //   },
-  // ];
-
-  // const completedContests = [
-  //   {
-  //     id: 1,
-  //     title: "Imaginarium Contest",
-  //     image: Image1,
-  //     votes: 10,
-  //     contestants: 10,
-  //   },
-  //   {
-  //     id: 2,
-  //     title: "Magic Carpet Contest",
-  //     image: Image2,
-  //     votes: 10,
-  //     contestants: 10,
-  //   },
-  //   {
-  //     id: 3,
-  //     title: "Lola Contest",
-  //     image: Image3,
-  //     votes: 10,
-  //     contestants: 10,
-  //   },
-  // ];
+  }, [user, userContests, setUserContests]);
 
   const handleSpotlightClick = () => {
     navigate("/create-spotlight-contest");
@@ -155,9 +108,7 @@ const Dashboard = () => {
                   <ContestCard key={contest._id} contest={contest} />
                 ))
             ) : (
-              <p className="text-gray-500 italic w-120">
-                No upcoming contest. Click create contest to get started.
-              </p>
+              <p className="text-gray-500 italic w-120">No upcoming contest.</p>
             )}
           </div>
         </div>
@@ -185,9 +136,7 @@ const Dashboard = () => {
                   <ContestCard key={contest._id} contest={contest} />
                 ))
             ) : (
-              <p className="text-gray-500 italic w-120">
-                No ongoing contest. Click create contest to get started.
-              </p>
+              <p className="text-gray-500 italic w-120">No ongoing contest.</p>
             )}
           </div>
         </div>
@@ -216,7 +165,7 @@ const Dashboard = () => {
                 ))
             ) : (
               <p className="text-gray-500 italic w-120">
-                No completed contest. Click create contest to get started.
+                No completed contest.
               </p>
             )}
           </div>

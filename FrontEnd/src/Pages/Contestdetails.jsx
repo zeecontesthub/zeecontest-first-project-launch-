@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars */
-
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Edit, Eye, Share2 } from "lucide-react";
 import Sidebar from "../Components/sidebar";
 import BannerImage from "../assets/Rectangle _5189.png";
@@ -25,18 +24,23 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import positionData from "../data/positionData";
 import { toast } from "react-toastify";
+import VotersLink from "../Components/voterslink";
+import ContestActionConfirm from "../Components/ContestActionConfirm";
 
+// eslint-disable-next-line no-unused-vars
 const Contestdetails = ({ isPaidContest, voterFee }) => {
   const { contestId } = useParams();
   const [contest, setContest] = useState(null);
-  const [activeTab, setActiveTab] = useState(0);
+  // const [activeTab, setActiveTab] = useState(0);
   const [currentSection, setCurrentSection] = useState(0);
   const [countdown, setCountdown] = useState("");
+  // eslint-disable-next-line no-unused-vars
   const [selectedPositionData, setSelectedPositionData] = useState({});
+  const [isVotersLinkOpen, setIsVotersLinkOpen] = useState(false);
+  const [isActionConfirmOpen, setIsActionConfirmOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
   const navigate = useNavigate();
-
-  // Simulated contest start and end date/time for countdown
-  // These should be replaced with actual values from backend or global state
+  // const [positionData, setPositionData] = useState({});
   useEffect(() => {
     if (!contest) return;
 
@@ -103,8 +107,6 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
     return () => clearInterval(interval);
   }, [contest]);
 
-  // console.log(contest);
-
   useEffect(() => {
     const fetchContest = async () => {
       try {
@@ -117,27 +119,6 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
     };
     if (contestId) fetchContest();
   }, [contestId]);
-
-  // const totalGlobalVotes = Object.values(positionData).reduce(
-  //   (acc, pos) => acc + pos.votersCount,
-  //   0
-  // );
-  // const totalContestants = Object.values(positionData).reduce(
-  //   (acc, pos) => acc + pos.contestants.length,
-  //   0
-  // );
-  // const totalPositions = Object.keys(positionData).length;
-  // const mostCompetitive = Object.entries(positionData).reduce((prev, current) =>
-  //   current[1].votersCount > prev[1].votersCount ? current : prev
-  // );
-
-  // Calculate participation metrics
-  const avgParticipation = (
-    ((contest?.voters?.length || 0) / (contest?.positions?.length * 50)) *
-    100
-  ).toFixed(1);
-
-  // const contestProgress = 65; // This could be calculated based on time elapsed
 
   const sections = [
     {
@@ -197,15 +178,6 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
     )
     .slice(0, 5);
 
-  // const voterDetails = [
-  //   { fullName: "Keji-Ayodeji Eniibukun", email: "jakeayodeji@gmail.com" },
-  //   { fullName: "Keji-Ayodeji Eniibukun", email: "jakeayodeji@gmail.com" },
-  //   { fullName: "Keji-Ayodeji Eniibukun", email: "jakeayodeji@gmail.com" },
-  //   { fullName: "Keji-Ayodeji Eniibukun", email: "jakeayodeji@gmail.com" },
-  //   { fullName: "Keji-Ayodeji Eniibukun", email: "jakeayodeji@gmail.com" },
-  //   { fullName: "Keji-Ayodeji Eniibukun", email: "jakeayodeji@gmail.com" },
-  // ];
-
   // Utility to get top candidate for a position
   function getTopCandidate(position) {
     if (!position || !position.contestants || !position.voters)
@@ -230,19 +202,6 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
 
     return top;
   }
-
-  function getPositionTotalVotes(position) {
-    if (!position || !position.voters) return 0;
-    return position.voters.length;
-  }
-
-  const mostCompetitive = React.useMemo(() => {
-    if (!contest?.positions || contest.positions.length === 0) return null;
-    // Find the position with the highest number of votes
-    return contest.positions.reduce((prev, curr) =>
-      getPositionTotalVotes(curr) > getPositionTotalVotes(prev) ? curr : prev
-    );
-  }, [contest]);
 
   function formatDate(dateString) {
     if (!dateString) return "";
@@ -288,30 +247,14 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
     return Math.round((elapsed / total) * 100);
   }
 
-  function getTopContestant(position) {
-    if (!position || !position.contestants || !position.voters)
-      return { name: "No Votes Yet", votes: 0 };
-    // Count votes for each contestant
-    const voteCounts = {};
-    position.voters.forEach((voter) => {
-      if (voter.votedFor) {
-        voteCounts[voter.votedFor] = (voteCounts[voter.votedFor] || 0) + 1;
-      }
-    });
-    // Find contestant with max votes
-    let top = { name: "No Votes Yet", votes: 0 };
-    position.contestants.forEach((contestant) => {
-      const votes = voteCounts[contestant?._id] || 0;
-      if (votes > top.votes) {
-        top = { name: contestant?.name, votes };
-      }
-    });
-    return top;
-  }
+  // Modified handleSectionAction to show confirmation popup
+  const handleSectionAction = () => {
+    setPendingAction(currentData.title);
+    setIsActionConfirmOpen(true);
+  };
 
-  const topContestant = getTopContestant(selectedPositionData);
-
-  const handleSectionAction = async () => {
+  // Actual action handler after confirmation
+  const handleConfirmedAction = async () => {
     if (!contest) return;
     let updatedFields = {};
     const now = new Date();
@@ -333,7 +276,7 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
         },
         status: "ongoing",
       };
-    } else if (currentData.title === "Pause Contest") {
+    } else if (pendingAction === "Pause Contest") {
       updatedFields = {
         status: "pause",
       };
@@ -359,6 +302,8 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
       console.error("Failed to update contest:", err);
       toast.error("Failed to update contest!");
     }
+    setIsActionConfirmOpen(false);
+    setPendingAction(null);
   };
 
   // Flatten all contestants from all positions
@@ -369,8 +314,6 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
         position: pos.name,
       }))
     ) || [];
-
-  const totalContestants = allContestants.length;
 
   useEffect(() => {
     if (!contest || contest.status === "completed") return;
@@ -410,11 +353,171 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
     return () => clearInterval(interval);
   }, [contest]);
 
-  return (
-    <div className="flex min-h-screen lg:gap-[10rem]">
-      <Sidebar />
+  const [votingLink, setVotingLink] = useState(
+    `${window?.location?.origin}/vote/${contestId}`
+  );
 
-      <div className="flex-1 p-4 sm:p-6 md:ml-20 ">
+  // ✅ Total votes for a given position
+  const getPositionTotalVotes = (pos, contest) => {
+    if (!pos || !contest) return 0;
+
+    if (contest.isClosedContest) {
+      // closed: look at contest.closedContestVoters
+      return (
+        contest.closedContestVoters?.reduce((sum, voter) => {
+          const count =
+            voter.votedFor?.filter((v) => v.positionTitle === pos.name)
+              .length || 0;
+          return sum + count * (voter.multiplier || 1);
+        }, 0) || 0
+      );
+    }
+
+    // open: normal position.voters array
+    return pos.voters?.reduce((sum, v) => sum + (v.multiplier || 1), 0) || 0;
+  };
+
+  // ✅ Highest-voted contestant for a given position
+  const getTopContestant = (pos, contest) => {
+    if (!pos?.contestants || !contest)
+      return { name: "No Votes Yet", votes: 0 };
+
+    const voteMap = {};
+
+    if (contest.isClosedContest) {
+      contest.closedContestVoters?.forEach((voter) => {
+        const matches = voter.votedFor?.filter(
+          (v) => v.positionTitle === pos.name
+        );
+        matches?.forEach((match) => {
+          voteMap[match.votedFor] =
+            (voteMap[match.votedFor] || 0) + (voter.multiplier || 1);
+        });
+      });
+    } else {
+      pos.voters?.forEach((v) => {
+        if (v.votedFor) {
+          voteMap[v.votedFor] =
+            (voteMap[v.votedFor] || 0) + (v.multiplier || 1);
+        }
+      });
+    }
+
+    let top = { name: "No Votes Yet", votes: 0 };
+    pos.contestants.forEach((c) => {
+      const votes = voteMap[c._id] || 0;
+      if (votes > top.votes) top = { name: c.name, votes };
+    });
+
+    return top;
+  };
+
+  /* ---------------- Derived Counts ---------------- */
+  // Overall top contestant across *all* positions
+  const topContestant = useMemo(() => {
+    if (!contest?.positions) return { name: "No Votes Yet", votes: 0 };
+
+    const counts = {};
+    const names = {};
+
+    contest.positions.forEach((p) =>
+      p.contestants?.forEach((c) => (names[c._id] = c.name))
+    );
+
+    if (contest.isClosedContest) {
+      contest.closedContestVoters?.forEach((voter) => {
+        voter.votedFor?.forEach((vote) => {
+          counts[vote.votedFor] =
+            (counts[vote.votedFor] || 0) + (voter.multiplier || 1);
+        });
+      });
+    } else {
+      contest.positions.forEach((p) => {
+        p.voters?.forEach((v) => {
+          counts[v.votedFor] = (counts[v.votedFor] || 0) + (v.multiplier || 1);
+        });
+      });
+    }
+
+    let topId = null,
+      max = 0;
+    for (const [id, v] of Object.entries(counts)) {
+      if (v > max) {
+        max = v;
+        topId = id;
+      }
+    }
+
+    return topId
+      ? { name: names[topId], votes: max }
+      : { name: "No Votes Yet", votes: 0 };
+  }, [contest]);
+
+  // Most competitive position
+  const mostCompetitive = useMemo(() => {
+    if (!contest?.positions?.length) return null;
+    return contest.positions.reduce((a, b) =>
+      getPositionTotalVotes(b, contest) > getPositionTotalVotes(a, contest)
+        ? b
+        : a
+    );
+  }, [contest]);
+
+  // Total votes across the contest
+  const totalVotes = useMemo(
+    () =>
+      contest?.positions?.reduce(
+        (sum, p) => sum + getPositionTotalVotes(p, contest),
+        0
+      ) || 0,
+    [contest]
+  );
+
+  const totalContestants =
+    contest?.positions?.reduce(
+      (sum, p) => sum + (p.contestants?.length || 0),
+      0
+    ) || 0;
+
+  const avgParticipation = contest
+    ? ((totalVotes / ((contest.positions?.length || 1) * 50)) * 100).toFixed(1)
+    : 0;
+
+  const calculateContestRevenue = (contest) => {
+    const pricePerVote = contest.payment?.amount || 0;
+    let votes = 0;
+
+    if (!contest.payment?.isPaid) return 0; // Free contest
+
+    if (contest.isClosedContest) {
+      // Closed contest: sum all multipliers
+      votes = contest.closedContestVoters?.reduce(
+        (sum, voter) => sum + (voter.multiplier || 0),
+        0
+      );
+    } else {
+      // Open contest: pick highest multiplier per unique voter email
+      const emailMap = {};
+      contest.positions?.forEach((pos) => {
+        pos.voters?.forEach((voter) => {
+          if (
+            !emailMap[voter.email] ||
+            voter.multiplier > emailMap[voter.email]
+          ) {
+            emailMap[voter.email] = voter.multiplier || 0;
+          }
+        });
+      });
+      votes = Object.values(emailMap).reduce((sum, m) => sum + m, 0);
+    }
+
+    return votes * pricePerVote;
+  };
+
+  return (
+    <div className="flex min-h-screen overflow-x-hidden lg:gap-[10rem]">
+      <Sidebar />
+      <div className="flex-1 p-6 md:ml-20 ">
         {/* Header */}
         <h2 className="text-2xl sm:text-[30px] text-left font-bold text-gray-900 mb-6 sm:mb-8">
           Contest
@@ -456,7 +559,7 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                 <div className="flex flex-wrap items-center gap-4 sm:gap-6 lg:gap-8 mt-4">
                   <div>
                     <span className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900">
-                      {contest?.voters?.length || 0}
+                      {totalVotes || 0}
                     </span>
                     <span className="text-gray-600 ml-2 text-xs sm:text-sm">
                       Total Votes
@@ -472,26 +575,16 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                   </div>
                   <div>
                     {contest?.payment?.isPaid ? (
-                      <>
-                        <span className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900">
-                          {new Intl.NumberFormat("en-NG", {
-                            style: "currency",
-                            currency: "NGN",
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0,
-                          }).format(
-                            (contest.payment.amount || 0) *
-                              (contest.voters?.length || 0)
-                          )}
-                        </span>
-                        <span className="text-gray-600 ml-2 text-xs sm:text-sm">
-                          Total Revenue
-                        </span>
-                      </>
+                      <Stat
+                        label="Total Revenue"
+                        value={new Intl.NumberFormat("en-NG", {
+                          style: "currency",
+                          currency: "NGN",
+                          maximumFractionDigits: 0,
+                        }).format(calculateContestRevenue(contest))}
+                      />
                     ) : (
-                      <span className="text-gray-600 ml-2 text-xs sm:text-sm font-semibold">
-                        Free Contest
-                      </span>
+                      <Stat label="Type" value="Free Contest" />
                     )}
                   </div>
                 </div>
@@ -507,11 +600,34 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                 <Edit size={16} />
                 Edit Contest
               </button>
-              <button className="flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium">
+              <button
+                className="flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium"
+                onClick={() => setIsVotersLinkOpen(true)}
+              >
                 <Share2 size={16} />
                 Share Voters Link
               </button>
+
+              {contest?.isClosedContest && (
+                <button
+                  className="flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium"
+                  onClick={() => {
+                    setVotingLink(
+                      `${window.location.origin}/voterregistration/${contestId}`
+                    );
+                    setIsVotersLinkOpen(true);
+                  }}
+                >
+                  <Share2 size={16} />
+                  Share Voters Registration Link
+                </button>
+              )}
             </div>
+            <VotersLink
+              open={isVotersLinkOpen}
+              onClose={() => setIsVotersLinkOpen(false)}
+              link={votingLink}
+            />
           </div>
 
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8 mt-8 lg:mt-10">
@@ -540,7 +656,7 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                       <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
                     <p className="text-lg sm:text-2xl font-bold text-blue-700">
-                      {contest?.voters?.length || 0}
+                      {totalVotes || 0}
                     </p>
                     <p className="text-xs text-blue-600">Total Votes</p>
                   </div>
@@ -576,18 +692,78 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                   </div>
                 </div>
 
-                {/* Top Performers Snapshot */}
+                {/* 🔥 Top Performers Snapshot */}
                 <div className="mb-6">
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
                     <Crown className="w-5 h-5 text-yellow-500" />
                     Current Leaders by Position
                   </h3>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {contest?.positions.slice(0, 3).map((data, index) => {
+                  <div
+                    className={`grid grid-cols-1 md:grid-cols-2 ${
+                      (contest?.positions?.length || 0) > 2
+                        ? "lg:grid-cols-3"
+                        : "lg:grid-cols-2"
+                    } gap-3`}
+                  >
+                    {contest?.positions?.slice(0, 3).map((position, index) => {
+                      // === 🔹 1️⃣ Calculate each candidate's votes for THIS position ===
+                      const leader = position.contestants
+                        .map((candidate) => {
+                          let votes = 0;
+
+                          if (!contest.isClosedContest) {
+                            // ✅ OPEN contest → count votes from position.voters array
+                            votes =
+                              position.voters?.reduce((total, voter) => {
+                                return voter.votedFor?.toString() ===
+                                  candidate._id?.toString()
+                                  ? total + (voter.multiplier || 0)
+                                  : total;
+                              }, 0) || 0;
+                          } else {
+                            // ✅ CLOSED contest → count votes from contest.closedContestVoters
+                            votes =
+                              contest.closedContestVoters?.reduce(
+                                (total, voter) => {
+                                  // Each closedContest voter can vote for multiple positions
+                                  const count =
+                                    voter.votedFor?.filter(
+                                      (v) =>
+                                        v.positionTitle === position.name &&
+                                        v.votedFor?.toString() ===
+                                          candidate._id?.toString()
+                                    ).length || 0;
+                                  return (
+                                    total + count * (voter.multiplier || 0)
+                                  );
+                                },
+                                0
+                              ) || 0;
+                          }
+
+                          return { ...candidate, totalVotes: votes };
+                        })
+                        // === 🔹 2️⃣ Pick the candidate with the highest votes ===
+                        .sort((a, b) => b.totalVotes - a.totalVotes)?.[0];
+
+                      // === 🔹 3️⃣ Total votes for the position (including multiplier) ===
+                      const totalPositionVotes = !contest.isClosedContest
+                        ? position.voters?.reduce(
+                            (sum, v) => sum + (v.multiplier || 0),
+                            0
+                          ) || 0
+                        : contest.closedContestVoters?.reduce((sum, v) => {
+                            const count =
+                              v.votedFor?.filter(
+                                (vote) => vote.positionTitle === position.name
+                              ).length || 0;
+                            return sum + count * (v.multiplier || 0);
+                          }, 0) || 0;
+
                       return (
                         <div
-                          key={data?._id}
+                          key={position._id}
                           className={`p-3 sm:p-4 rounded-xl cursor-pointer transition-all hover:shadow-md ${
                             index === 0
                               ? "bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200"
@@ -595,9 +771,10 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                               ? "bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200"
                               : "bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200"
                           }`}
-                          onClick={() => setSelectedPositionData(data)}
+                          onClick={() => setSelectedPositionData(position)}
                         >
                           <div className="flex items-center gap-3">
+                            {/* 🏆 Medal / Trophy Icon */}
                             <div
                               className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${
                                 index === 0
@@ -615,14 +792,28 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                                 <Award className="w-3 h-3 sm:w-4 sm:h-4" />
                               )}
                             </div>
+
+                            {/* 🏅 Position + Leader */}
                             <div className="flex-1 min-w-0">
                               <p className="font-semibold text-gray-900 text-sm truncate">
-                                {data.name}
+                                {position.name}
                               </p>
+                              {leader ? (
+                                <p className="text-xs text-gray-600 truncate">
+                                  Leader: {leader.name} ({leader.totalVotes}{" "}
+                                  votes)
+                                </p>
+                              ) : (
+                                <p className="text-xs text-gray-500">
+                                  No votes yet
+                                </p>
+                              )}
                             </div>
+
+                            {/* 🗳 Total Votes for Position */}
                             <div className="text-right">
                               <p className="font-bold text-gray-900">
-                                {data?.voters.length || 0}
+                                {totalPositionVotes}
                               </p>
                               <p className="text-xs text-gray-500">votes</p>
                             </div>
@@ -667,7 +858,8 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                           {mostCompetitive?.name || "N/A"}
                         </p>
                         <p className="text-xs text-teal-600">
-                          {getPositionTotalVotes(mostCompetitive)} total votes
+                          {getPositionTotalVotes(mostCompetitive, contest)}{" "}
+                          total votes
                         </p>
                       </div>
                     </div>
@@ -676,7 +868,7 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
               </div>
 
               {/* Voters Details */}
-              <div className="bg-white/80 backdrop-blur-sm border border-[#000000] rounded-3xl p-6 lg:p-8 shadow-xl ">
+              <div className="bg-white/80 backdrop-blur-sm border border-[#000000] rounded-3xl p-6 lg:p-8 shadow-xl">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
                   <h2 className="text-xl font-bold text-gray-900">
                     Voters Details
@@ -694,35 +886,55 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                     <thead>
                       <tr className="border-b border-gray-200">
                         <th className="text-left py-3 text-gray-900 font-semibold">
-                          Voters Full Name
+                          Voter Full Name
                         </th>
                         <th className="text-left py-3 text-gray-900 font-semibold">
-                          Voters Email
+                          Voter Email
                         </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {contest?.voters && contest.voters.length > 0 ? (
-                        contest.voters.map((voter, index) => (
-                          <tr key={index}>
-                            <td className="py-3 text-left text-gray-700">
-                              {voter?.name}
-                            </td>
-                            <td className="py-3 text-left text-gray-700">
-                              {voter?.email}
+                      {(() => {
+                        let voterList = [];
+
+                        if (contest?.isClosedContest) {
+                          // Closed contest: already unique at top level
+                          voterList = contest.closedContestVoters || [];
+                        } else if (contest?.positions?.length) {
+                          // Open contest: flatten voters and dedupe by email
+                          const seen = new Map();
+                          contest.positions.forEach((pos) => {
+                            (pos.voters || []).forEach((v) => {
+                              if (!seen.has(v.email)) {
+                                seen.set(v.email, v); // keep first occurrence
+                              }
+                            });
+                          });
+                          voterList = Array.from(seen.values());
+                        }
+
+                        return voterList.length > 0 ? (
+                          voterList.slice(0, 10).map((voter, idx) => (
+                            <tr key={idx} className="border-b border-gray-100">
+                              <td className="py-3 text-left text-gray-700">
+                                {voter?.name}
+                              </td>
+                              <td className="py-3 text-left text-gray-700">
+                                {voter?.email}
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td
+                              colSpan={2}
+                              className="py-6 text-center text-gray-500"
+                            >
+                              No Voters Yet
                             </td>
                           </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td
-                            colSpan={2}
-                            className="py-6 text-center text-gray-500"
-                          >
-                            No Voters Yet
-                          </td>
-                        </tr>
-                      )}
+                        );
+                      })()}
                     </tbody>
                   </table>
                 </div>
@@ -923,6 +1135,12 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                   {currentData.icon}
                   {currentData.buttonText}
                 </button>
+                <ContestActionConfirm
+                  open={isActionConfirmOpen}
+                  onClose={() => setIsActionConfirmOpen(false)}
+                  action={pendingAction}
+                  onConfirm={handleConfirmedAction}
+                />
 
                 {/* Navigation Dots */}
                 <div className="flex justify-center mt-4 gap-2">
@@ -946,5 +1164,20 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
     </div>
   );
 };
+
+/* ----- Small Reusable UI Helpers ----- */
+const Stat = ({ label, value, icon, color }) => (
+  <div className="text-center">
+    {icon && (
+      <div
+        className={`mx-auto mb-1 w-8 h-8 rounded-full bg-${color}-500 flex items-center justify-center text-white`}
+      >
+        {icon}
+      </div>
+    )}
+    <p className="text-xl font-bold">{value}</p>
+    <p className={`text-${color || "gray"}-600 text-sm`}>{label}</p>
+  </div>
+);
 
 export default Contestdetails;

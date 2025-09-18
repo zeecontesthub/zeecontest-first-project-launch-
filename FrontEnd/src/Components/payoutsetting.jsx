@@ -1,15 +1,21 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
+import { useUser } from "../context/UserContext";
 
 const PayoutSetting = ({ isOpen, onClose, onSave }) => {
-  const [bankName, setBankName] = useState("");
-  const [accountNumber, setAccountNumber] = useState("");
-  const [accountHolderName, setAccountHolderName] = useState("");
+  const { user } = useUser();
+  const [bankName, setBankName] = useState(user?.bankName);
+  const [accountNumber, setAccountNumber] = useState(user?.accountNumber);
+  const [accountHolderName, setAccountHolderName] = useState(
+    user?.accountHolderName
+  );
+  const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
 
   const handleSave = () => {
+    if (loading) return;
     if (bankName.trim() === "") {
       toast.error("Bank Name is required");
       return;
@@ -22,16 +28,13 @@ const PayoutSetting = ({ isOpen, onClose, onSave }) => {
       toast.error("Account Holder Name is required");
       return;
     }
+    setLoading(true);
     onSave({ bankName, accountNumber, accountHolderName });
-    setBankName("");
-    setAccountNumber("");
-    setAccountHolderName("");
+    setLoading(false);
+    onClose();
   };
 
   const handleClose = () => {
-    setBankName("");
-    setAccountNumber("");
-    setAccountHolderName("");
     onClose();
   };
 
@@ -71,7 +74,7 @@ const PayoutSetting = ({ isOpen, onClose, onSave }) => {
               Bank Account Number
             </label>
             <input
-              type="text"
+              type="number"
               value={accountNumber}
               onChange={(e) => setAccountNumber(e.target.value)}
               placeholder="Enter account number"
@@ -96,9 +99,9 @@ const PayoutSetting = ({ isOpen, onClose, onSave }) => {
         <div className="mt-6 flex justify-end">
           <button
             onClick={handleSave}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-md font-medium transition-colors"
+            className={`bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-md font-medium transition-colors ${loading ? " opacity-50 cursor-not-allowed" : ""}`}
           >
-            Save
+            {loading ? "Saving..." : "Save"}
           </button>
         </div>
       </div>

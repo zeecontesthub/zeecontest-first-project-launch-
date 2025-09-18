@@ -65,3 +65,27 @@ export const updateUserProfile = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const saveUserAccountDetails = async (req, res) => {
+  const { data, uid } = req.body;
+
+  try {
+    let user = await User.findOne({ firebaseUid: uid });
+
+    if (!user) {
+      return res.status(500).json({ message: "User not found" });
+    } else {
+      user.accountHolderName = data.accountHolderName; // update name if needed
+      user.accountNumber = data.accountNumber;
+      user.bankName = data.bankName;
+      await user.save();
+    }
+
+    res
+      .status(200)
+      .json({ message: "User Account saved", user, success: true });
+  } catch (err) {
+    console.error("Failed to save user:", err.message);
+    res.status(500).json({ message: "Server error" });
+  }
+};

@@ -19,10 +19,11 @@ import {
 import axios from "axios";
 import { toast } from "react-toastify";
 import { uploadToCloudinary } from "../actions/cloudinaryAction";
+import CandidateLink from "../Components/candidatelink";
 
 const ContestantDetails = () => {
-  const navigate = useNavigate();
   const { position, contestantId, contestId } = useParams();
+  const navigate = useNavigate();
   const [contest, setContest] = useState(null);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -33,7 +34,7 @@ const ContestantDetails = () => {
     position: "",
     email: "",
   });
-
+  const [isCandidateLinkOpen, setIsCandidateLinkOpen] = useState(false);
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -47,56 +48,74 @@ const ContestantDetails = () => {
     if (contestId) fetchContest();
   }, [contestId]);
 
-  // Get position info and contestants
+  /** ----------  Helpers  ---------- */
+
   const positionInfo = useMemo(() => {
     return contest?.positions?.find((pos) => pos.name === position);
   }, [contest, position]);
 
+  /**
+   * All votes for THIS position.
+   * - If open contest → positionInfo.voters
+   * - If closed contest → contest.closedContestVoters filtered by positionTitle
+   */
+  const positionVotes = useMemo(() => {
+    if (!contest || !positionInfo) return [];
+    if (contest.isClosedContest) {
+      return (
+        contest.closedContestVoters?.filter((v) =>
+          v.votedFor?.some?.((vv) => vv.positionTitle === position)
+        ) || []
+      ).flatMap((v) =>
+        v.votedFor
+          .filter((vv) => vv.positionTitle === position)
+          .map((vv) => ({
+            votedFor: vv.votedFor,
+            multiplier: v.multiplier || 1,
+          }))
+      );
+    } else {
+      return (
+        positionInfo.voters?.map((v) => ({
+          votedFor: v.votedFor,
+          multiplier: v.multiplier || 1,
+        })) || []
+      );
+    }
+  }, [contest, positionInfo, position]);
+
+  /** ----------  Contestants with vote totals ---------- */
   const allContestants = useMemo(() => {
     if (!positionInfo?.contestants) return [];
-
-    const totalVoters = positionInfo.voters?.length || 0;
-
-    // Step 1: Count votes for each contestant
+    // Sum multipliers per candidate
     const voteCounts = {};
-    positionInfo.voters.forEach((voter) => {
-      const id = voter.votedFor?.toString();
+    positionVotes.forEach((v) => {
+      const id = v.votedFor?.toString();
       if (id) {
-        voteCounts[id] = (voteCounts[id] || 0) + 1;
+        voteCounts[id] = (voteCounts[id] || 0) + (v.multiplier || 1);
       }
     });
 
-    // Step 2: Build contestants array with votes & percentage
-    const contestantsWithVotes = positionInfo.contestants.map((c, idx) => {
+    const totalVotes = Object.values(voteCounts).reduce((a, b) => a + b, 0);
+
+    const withVotes = positionInfo.contestants.map((c, idx) => {
       const id = c._id?.toString() || idx.toString();
       const votes = voteCounts[id] || 0;
       const percentage =
-        totalVoters > 0 ? ((votes / totalVoters) * 100).toFixed(1) : "0.0";
-
-      return {
-        ...c,
-        id,
-        votes,
-        percentage,
-      };
+        totalVotes > 0 ? ((votes / totalVotes) * 100).toFixed(1) : "0.0";
+      return { ...c, id, votes, percentage };
     });
 
-    // Step 3: Sort by votes descending and assign rank
-    contestantsWithVotes.sort((a, b) => b.votes - a.votes);
+    withVotes.sort((a, b) => b.votes - a.votes);
+    withVotes.forEach((c, i) => (c.rank = i + 1));
+    return withVotes;
+  }, [positionInfo, positionVotes]);
 
-    contestantsWithVotes.forEach((c, idx) => {
-      c.rank = idx + 1;
-    });
-
-    return contestantsWithVotes;
-  }, [positionInfo]);
-
-  // Find current contestant
   const currentContestant = useMemo(() => {
     if (!allContestants.length) return null;
     return (
       allContestants.find(
-        (c) => c._id === contestantId || c.id === contestantId
+        (c) => c._id?.toString() === contestantId || c.id === contestantId
       ) || allContestants[0]
     );
   }, [allContestants, contestantId]);
@@ -137,6 +156,9 @@ const ContestantDetails = () => {
       toast.error("Failed to update contestant.");
     }
   };
+
+  // Get the candidate link for this contestant
+  const candidateLink = `${window.location.origin}/vcontestantdetails/${position}/${contestantId}/${contestId}`;
 
   if (!currentContestant) {
     return (
@@ -182,8 +204,8 @@ const ContestantDetails = () => {
           </div>
           {/* Profile Section */}
           <div className="bg-white rounded-lg p-6 mb-6 shadow-sm">
-            <div className="flex items-start gap-6">
-              <div className="w-32 h-32 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-r from-orange-400 to-red-400 flex items-center justify-center text-white text-4xl font-bold">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+              <div className="w-32 h-32 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-r from-orange-400 to-red-400 flex items-center justify-center text-white text-4xl font-bold mb-4 md:mb-0">
                 {currentContestant.image ? (
                   <img
                     src={currentContestant.image}
@@ -194,25 +216,27 @@ const ContestantDetails = () => {
                   currentContestant.name.charAt(0)
                 )}
               </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-3">
-                  <h1 className="text-3xl text-left font-bold text-gray-900">
+              <div className="flex-1 w-full">
+                <div className="flex flex-col items-center md:items-start gap-3 mb-3">
+                  <h1 className="text-3xl text-center md:text-left font-bold text-gray-900">
                     {currentContestant.name}
                   </h1>
-                  {currentContestant.rank === 1 && (
-                    <Crown className="w-8 h-8 text-yellow-500" />
-                  )}
-                  {currentContestant.rank === 2 && (
-                    <Medal className="w-8 h-8 text-gray-400" />
-                  )}
-                  {currentContestant.rank === 3 && (
-                    <Award className="w-8 h-8 text-orange-600" />
-                  )}
+                  <div className="flex gap-2">
+                    {currentContestant.rank === 1 && (
+                      <Crown className="w-8 h-8 text-yellow-500" />
+                    )}
+                    {currentContestant.rank === 2 && (
+                      <Medal className="w-8 h-8 text-gray-400" />
+                    )}
+                    {currentContestant.rank === 3 && (
+                      <Award className="w-8 h-8 text-orange-600" />
+                    )}
+                  </div>
                 </div>
-                <p className="text-gray-500 text-left mb-6 leading-relaxed">
+                <p className="text-gray-500 text-center md:text-left mb-6 leading-relaxed">
                   {currentContestant.email || "Email not provided."}
                 </p>
-                <p className="text-gray-500 text-left mb-6 leading-relaxed">
+                <p className="text-gray-500 text-center md:text-left mb-6 leading-relaxed">
                   {currentContestant.bio ||
                     "Dedicated candidate committed to excellence and positive change in leadership."}
                 </p>
@@ -246,7 +270,7 @@ const ContestantDetails = () => {
                     <div className="text-sm text-gray-600">Vote Share</div>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-6 mb-6 text-sm">
+                <div className="flex flex-wrap gap-6 mb-6 text-sm justify-center md:justify-start">
                   <div>
                     <span className="text-gray-600">Contest: </span>
                     <span className="font-semibold text-gray-900">
@@ -260,7 +284,7 @@ const ContestantDetails = () => {
                     </span>
                   </div>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex flex-col md:flex-row gap-3 w-full justify-center md:justify-start">
                   <button
                     onClick={() => {
                       setEditForm({
@@ -272,15 +296,23 @@ const ContestantDetails = () => {
                       });
                       setShowEditModal(true);
                     }}
-                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors justify-center md:justify-start"
                   >
                     <Edit size={16} />
                     Edit Details
                   </button>
-                  <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                  <button
+                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors justify-center md:justify-start"
+                    onClick={() => setIsCandidateLinkOpen(true)}
+                  >
                     <Share2 size={16} />
-                    Share Candidate Link
+                    Share Contestant Link
                   </button>
+                  <CandidateLink
+                    open={isCandidateLinkOpen}
+                    onClose={() => setIsCandidateLinkOpen(false)}
+                    link={candidateLink}
+                  />
                 </div>
               </div>
             </div>

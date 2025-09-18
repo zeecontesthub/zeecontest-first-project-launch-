@@ -1,4 +1,5 @@
-import { FileText, Loader2, User, Mail, MapPin, FileImage } from "lucide-react";
+import React from 'react';
+import { FileText, Mail, MapPin } from 'lucide-react';
 
 const ContestantDetailsStep = ({
   contestantForm = {

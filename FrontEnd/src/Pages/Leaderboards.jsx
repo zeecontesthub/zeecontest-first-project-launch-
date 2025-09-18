@@ -29,6 +29,7 @@ import {
 } from "chart.js";
 import positionData from "../data/positionData";
 import axios from "axios";
+import VotersLink from "../Components/voterslink";
 
 ChartJS.register(
   ArcElement,
@@ -39,36 +40,41 @@ ChartJS.register(
   BarElement
 );
 
-const distributeVotes = (totalVotes, contestants) => {
-  const votes = [];
-  let remainingVotes = totalVotes;
+// const distributeVotes = (totalVotes, contestants) => {
+//   const votes = [];
+//   let remainingVotes = totalVotes;
 
-  for (let i = 0; i < contestants.length; i++) {
-    const isLast = i === contestants.length - 1;
-    let vote;
+//   for (let i = 0; i < contestants?.length; i++) {
+//     const isLast = i === contestants?.length - 1;
+//     let vote;
 
-    if (isLast) {
-      vote = remainingVotes;
-    } else {
-      const max = Math.floor((remainingVotes / (contestants.length - i)) * 1.5);
-      vote = Math.floor(Math.random() * (max + 1));
-    }
+//     if (isLast) {
+//       vote = remainingVotes;
+//     } else {
+//       const max = Math.floor((remainingVotes / (contestants?.length - i)) * 1.5);
+//       vote = Math.floor(Math.random() * (max + 1));
+//     }
 
-    votes.push(vote);
-    remainingVotes -= vote;
-  }
+//     votes.push(vote);
+//     remainingVotes -= vote;
+//   }
 
-  return contestants.map((c, i) => ({
-    ...c,
-    votes: votes[i],
-    percentage: ((votes[i] / totalVotes) * 100).toFixed(1),
-  }));
-};
+//   return contestants.map((c, i) => ({
+//     ...c,
+//     votes: votes[i],
+//     percentage: ((votes[i] / totalVotes) * 100).toFixed(1),
+//   }));
+// };
 
 const Leaderboards = () => {
   const { contestId } = useParams();
   const [contest, setContest] = useState(null);
   const [activeTab, setActiveTab] = useState("");
+  const [positionStats, setPositionStats] = useState({
+    totalVotes: 0,
+    voterCount: 0,
+  });
+  const [isVotersLinkOpen, setIsVotersLinkOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,6 +96,44 @@ const Leaderboards = () => {
     if (contestId) fetchContest();
   }, [contestId]);
 
+  useEffect(() => {
+    if (!contest || !activeTab) return;
+
+    // Find the selected position object
+    const position = contest.positions?.find((p) => p.name === activeTab);
+    if (!position) {
+      setPositionStats({ totalVotes: 0, voterCount: 0 });
+      return;
+    }
+
+    let totalVotes = 0;
+    let voterCount = 0;
+
+    if (!contest.isClosedContest) {
+      // ✅ OPEN contest
+      totalVotes =
+        position.voters?.reduce((sum, v) => sum + (v.multiplier || 0), 0) || 0;
+      voterCount = position.voters?.length || 0;
+    } else {
+      // ✅ CLOSED contest
+      totalVotes =
+        contest.closedContestVoters?.reduce((sum, v) => {
+          const count =
+            v.votedFor?.filter((vote) => vote.positionTitle === position.name)
+              .length || 0;
+          return sum + count * (v.multiplier || 0);
+        }, 0) || 0;
+
+      // number of unique voters who voted for this position
+      voterCount =
+        contest.closedContestVoters?.filter((v) =>
+          v.votedFor?.some((vote) => vote.positionTitle === position.name)
+        ).length || 0;
+    }
+
+    setPositionStats({ totalVotes, voterCount });
+  }, [activeTab, contest]);
+
   // Get position data from contest
   const positions = contest?.positions || [];
   const activePosition = positions.find((pos) => pos.name === activeTab);
@@ -100,58 +144,145 @@ const Leaderboards = () => {
   const totalVotes = voters.length;
 
   // Calculate votes per contestant
+  // contestants: position.contestants
+  // contest: full contest object (has isClosedContest, voters arrays, etc.)
+  // positionName: current position name
+
   const contestantVotes = contestants.map((c) => {
-    const votes = voters.filter((v) => v.votedFor === c._id).length;
+    let votes = 0;
+
+    if (!contest.isClosedContest) {
+      // 🟢 OPEN CONTEST
+      // Count all voters in *this position* whose votedFor matches the candidate
+      votes =
+        activePosition?.voters?.reduce((total, v) => {
+          return v.votedFor?.toString() === c._id.toString()
+            ? total + (v.multiplier || 0)
+            : total;
+        }, 0) || 0;
+    } else {
+      // 🔒 CLOSED CONTEST
+      // Count from contest.closedContestVoters.
+      // Each voter may have voted for multiple positions.
+      votes =
+        contest?.closedContestVoters?.reduce((total, v) => {
+          const count =
+            v?.votedFor?.filter(
+              (vote) =>
+                vote.positionTitle === activePosition?.name &&
+                vote.votedFor?.toString() === c._id.toString()
+            ).length || 0;
+          return total + count * (v.multiplier || 0);
+        }, 0) || 0;
+    }
+
     return {
       ...c,
       votes,
-      percentage: totalVotes ? ((votes / totalVotes) * 100).toFixed(1) : "0.0",
+      percentage: positionStats?.totalVotes
+        ? ((votes / positionStats?.totalVotes) * 100).toFixed(1)
+        : "0.0",
     };
   });
 
+  const getPositionTotalVotes = (pos, contest) => {
+    if (!pos || !contest) return 0;
+
+    if (contest.isClosedContest) {
+      // closed: look at contest.closedContestVoters
+      return (
+        contest.closedContestVoters?.reduce((sum, voter) => {
+          const count =
+            voter.votedFor?.filter((v) => v.positionTitle === pos.name)
+              .length || 0;
+          return sum + count * (voter.multiplier || 1);
+        }, 0) || 0
+      );
+    }
+
+    // open: normal position.voters array
+    return pos.voters?.reduce((sum, v) => sum + (v.multiplier || 1), 0) || 0;
+  };
+
   // Global stats
-  const totalGlobalVotes = positions.reduce(
-    (acc, pos) => acc + (pos.voters ? pos.voters.length : 0),
-    0
+  const totalGlobalVotes = useMemo(
+    () =>
+      contest?.positions?.reduce(
+        (sum, p) => sum + getPositionTotalVotes(p, contest),
+        0
+      ) || 0,
+    [contest]
   );
+
   const turnoutRate = positions.length
     ? ((totalGlobalVotes / (positions.length * 50)) * 100).toFixed(1)
     : "0.0";
 
   // Most competitive position (most votes)
-  const mostCompetitive =
-    positions.length > 0
-      ? positions.reduce((prev, curr) =>
-        (curr.voters?.length || 0) > (prev.voters?.length || 0) ? curr : prev
-      ).name
-      : "";
+  const mostCompetitive = useMemo(() => {
+    if (!contest?.positions?.length) return "";
 
+    const topPosition = contest.positions.reduce((prev, curr) =>
+      getPositionTotalVotes(curr, contest) >
+      getPositionTotalVotes(prev, contest)
+        ? curr
+        : prev
+    );
+
+    // Return just the name (string) like your example
+    return topPosition?.name || "";
+  }, [contest]);
   // Pie chart data
-  const pieData = {
-    labels: positions.map((pos) => pos.name),
-    datasets: [
-      {
-        label: "Votes per Position",
-        data: positions.map((pos) => pos.voters?.length || 20),
-        backgroundColor: [
-          "rgba(255, 99, 132, 0.8)",
-          "rgba(54, 162, 235, 0.8)",
-          "rgba(255, 206, 86, 0.8)",
-          "rgba(75, 192, 192, 0.8)",
-          "rgba(153, 102, 255, 0.8)",
-        ],
-        borderColor: [
-          "rgba(255, 99, 132, 1)",
-          "rgba(54, 162, 235, 1)",
-          "rgba(255, 206, 86, 1)",
-          "rgba(75, 192, 192, 1)",
-          "rgba(153, 102, 255, 1)",
-        ],
-        borderWidth: 3,
-        hoverOffset: 8,
-      },
-    ],
-  };
+  // ✅ Build the chart data
+  /* small palette (will repeat if there are more positions) */
+  const PALETTE = [
+    "rgba(255, 99, 132, 0.8)",
+    "rgba(54, 162, 235, 0.8)",
+    "rgba(255, 206, 86, 0.8)",
+    "rgba(75, 192, 192, 0.8)",
+    "rgba(153, 102, 255, 0.8)",
+    "rgba(255, 159, 64, 0.8)",
+  ];
+
+  const PALETTE_BORDER = [
+    "rgba(255, 99, 132, 1)",
+    "rgba(54, 162, 235, 1)",
+    "rgba(255, 206, 86, 1)",
+    "rgba(75, 192, 192, 1)",
+    "rgba(153, 102, 255, 1)",
+    "rgba(255, 159, 64, 1)",
+  ];
+
+  /* pieData: always returns a valid object (never null) */
+  const pieData = useMemo(() => {
+    const positions = contest?.positions || [];
+
+    // Build arrays
+    const labels = positions.map((p) => p.name);
+    const data = positions.map((p) => getPositionTotalVotes(p, contest));
+
+    // Color arrays sized to positions length
+    const backgroundColor = positions.map(
+      (_, i) => PALETTE[i % PALETTE.length]
+    );
+    const borderColor = positions.map(
+      (_, i) => PALETTE_BORDER[i % PALETTE_BORDER.length]
+    );
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: "Votes per Position",
+          data,
+          backgroundColor,
+          borderColor,
+          borderWidth: 2,
+          hoverOffset: 8,
+        },
+      ],
+    };
+  }, [contest]); // recompute when contest changes
 
   // Bar chart data
   const contestantData = {
@@ -226,10 +357,13 @@ const Leaderboards = () => {
       ? `${sortedContestants[0].votes - sortedContestants[1].votes} votes`
       : "0 votes";
 
+  // Get the voting link for this contest
+  const votingLink = `${window.location.origin}/vote/${contestId}`;
+
   return (
-    <div className="flex min-h-screen overflow-x-hidden lg:gap-[10rem]">
+    <div className="flex min-h-screen bg-white overflow-x-hidden lg:gap-[10rem]">
       <Sidebar />
-      <div className="flex-1 p-4 sm:p-6 md:ml-20 overflow-x-hidden max-w-full ">
+      <div className="flex-1 p-6 md:ml-20 ">
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => navigate(-1)}
@@ -277,7 +411,7 @@ const Leaderboards = () => {
                 <div className="flex flex-wrap items-center gap-4 sm:gap-6 lg:gap-8 mt-4">
                   <div>
                     <span className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900">
-                      {totalVotes}
+                      {positionStats?.totalVotes}
                     </span>
                     <span className="text-gray-600 ml-2 text-xs sm:text-sm">
                       Votes for ({activeTab} Position)
@@ -285,7 +419,7 @@ const Leaderboards = () => {
                   </div>
                   <div>
                     <span className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900">
-                      {contestants.length}
+                      {contestants?.length}
                     </span>
                     <span className="text-gray-600 ml-2 text-xs sm:text-sm">
                       Contestants
@@ -293,7 +427,7 @@ const Leaderboards = () => {
                   </div>
                   <div>
                     <span className="text-xl sm:text-2xl lg:text-3xl xl:text-4xl font-bold text-gray-900">
-                      {contest?.voters.length}
+                      {positionStats?.voterCount}
                     </span>
                     <span className="text-gray-600 ml-2 text-xs sm:text-sm">
                       Voters
@@ -312,11 +446,19 @@ const Leaderboards = () => {
                 <Edit size={16} />
                 Edit Contest
               </button>
-              <button className="flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium">
+              <button
+                className="flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium"
+                onClick={() => setIsVotersLinkOpen(true)}
+              >
                 <Share2 size={16} />
                 Share Voters Link
               </button>
             </div>
+            <VotersLink
+              open={isVotersLinkOpen}
+              onClose={() => setIsVotersLinkOpen(false)}
+              link={votingLink}
+            />
           </div>
 
           {/* Key Metrics Dashboard */}
@@ -332,7 +474,7 @@ const Leaderboards = () => {
                 icon: <Users className="w-5 h-5 text-green-600" />,
                 bg: "bg-green-100",
                 label: "Positions",
-                value: positions.length,
+                value: positions?.length,
               },
               {
                 icon: <TrendingUp className="w-5 h-5 text-purple-600" />,
@@ -369,25 +511,43 @@ const Leaderboards = () => {
           {/* Position Tabs */}
           <div className="w-full overflow-x-auto mt-12 mb-8">
             <div className="flex gap-2 sm:gap-4 min-w-max sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 sm:min-w-0">
-              {positions.map((pos) => (
-                <button
-                  key={pos.name}
-                  onClick={() => setActiveTab(pos.name)}
-                  className={`px-4 py-4 sm:px-6 sm:py-6 rounded-lg font-medium transition-all duration-200 flex-shrink-0 sm:flex-shrink min-w-[120px] sm:min-w-0 ${activeTab === pos.name
-                      ? "bg-orange-500 text-white shadow-lg transform scale-105"
-                      : "bg-teal-800 text-white hover:bg-teal-700 hover:shadow-md"
+              {positions.map((pos) => {
+                // === 🔹 1️⃣ Calculate each candidate's votes for THIS position ===
+
+                // === 🔹 3️⃣ Total votes for the position (including multiplier) ===
+                const totalPositionVotes = !contest.isClosedContest
+                  ? pos.voters?.reduce(
+                      (sum, v) => sum + (v.multiplier || 0),
+                      0
+                    ) || 0
+                  : contest.closedContestVoters?.reduce((sum, v) => {
+                      const count =
+                        v.votedFor?.filter(
+                          (vote) => vote.positionTitle === pos.name
+                        ).length || 0;
+                      return sum + count * (v.multiplier || 0);
+                    }, 0) || 0;
+                return (
+                  <button
+                    key={pos.name}
+                    onClick={() => setActiveTab(pos.name)}
+                    className={`px-4 py-4 sm:px-6 sm:py-6 rounded-lg font-medium transition-all duration-200 flex-shrink-0 sm:flex-shrink min-w-[120px] sm:min-w-0 ${
+                      activeTab === pos.name
+                        ? "bg-orange-500 text-white shadow-lg transform scale-105"
+                        : "bg-teal-800 text-white hover:bg-teal-700 hover:shadow-md"
                     }`}
-                >
-                  <div className="flex flex-col items-center">
-                    <span className="font-semibold text-sm sm:text-base truncate max-w-full">
-                      {pos.name}
-                    </span>
-                    <span className="text-xs opacity-75 whitespace-nowrap">
-                      ({pos.voters?.length || 0} votes)
-                    </span>
-                  </div>
-                </button>
-              ))}
+                  >
+                    <div className="flex flex-col items-center">
+                      <span className="font-semibold text-sm sm:text-base truncate max-w-full">
+                        {pos.name}
+                      </span>
+                      <span className="text-xs opacity-75 whitespace-nowrap">
+                        ({totalPositionVotes || 0} votes)
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -404,7 +564,7 @@ const Leaderboards = () => {
                   <div className="text-right">
                     <p className="text-sm text-gray-600">Total Votes</p>
                     <p className="text-2xl font-bold text-teal-600">
-                      {totalVotes}
+                      {positionStats?.totalVotes}
                     </p>
                   </div>
                 </div>
@@ -420,24 +580,26 @@ const Leaderboards = () => {
                       return (
                         <div
                           key={index}
-                          className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-4 rounded-2xl transition-all duration-200 ${isWinner
-                            ? "bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200"
-                            : isRunner
+                          className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-4 rounded-2xl transition-all duration-200 ${
+                            isWinner
+                              ? "bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200"
+                              : isRunner
                               ? "bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200"
                               : isThird
-                                ? "bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-200"
-                                : "bg-gray-50/50 border border-gray-100"
-                            }`}
+                              ? "bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-200"
+                              : "bg-gray-50/50 border border-gray-100"
+                          }`}
                         >
                           <div
-                            className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full font-bold text-sm sm:text-lg flex-shrink-0 ${isWinner
-                              ? "bg-yellow-500 text-white"
-                              : isRunner
+                            className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full font-bold text-sm sm:text-lg flex-shrink-0 ${
+                              isWinner
+                                ? "bg-yellow-500 text-white"
+                                : isRunner
                                 ? "bg-gray-400 text-white"
                                 : isThird
-                                  ? "bg-orange-600 text-white"
-                                  : "bg-gray-300 text-gray-600"
-                              }`}
+                                ? "bg-orange-600 text-white"
+                                : "bg-gray-300 text-gray-600"
+                            }`}
                           >
                             {isWinner ? (
                               <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -479,21 +641,26 @@ const Leaderboards = () => {
                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                               <div className="flex-1 bg-gray-200 rounded-full h-2 sm:h-3 overflow-hidden">
                                 <div
-                                  className={`h-full rounded-full transition-all duration-1000 ${isWinner
-                                    ? "bg-gradient-to-r from-yellow-400 to-orange-500"
-                                    : "bg-gradient-to-r from-teal-500 to-teal-600"
-                                    }`}
+                                  className={`h-full rounded-full transition-all duration-1000 ${
+                                    isWinner
+                                      ? "bg-gradient-to-r from-yellow-400 to-orange-500"
+                                      : "bg-gradient-to-r from-teal-500 to-teal-600"
+                                  }`}
                                   style={{
-                                    width: `${totalVotes
-                                      ? (contestant.votes / totalVotes) * 100
-                                      : 0
-                                      }%`,
+                                    width: `${
+                                      positionStats?.totalVotes
+                                        ? (contestant.votes /
+                                            positionStats?.totalVotes) *
+                                          100
+                                        : 0
+                                    }%`,
                                   }}
                                 ></div>
                               </div>
                               <div className="text-left sm:text-right flex-shrink-0">
                                 <span className="text-xs sm:text-sm text-gray-600 block">
-                                  {contestant.votes} of {totalVotes}
+                                  {contestant.votes} of{" "}
+                                  {positionStats?.totalVotes} votes
                                 </span>
                                 <p className="text-xs text-gray-500">
                                   {contestant.percentage}%
@@ -551,12 +718,12 @@ const Leaderboards = () => {
                     },
                     {
                       label: "👥 Participation",
-                      value: `${totalVotes} voters`,
+                      value: `${positionStats?.voterCount} voters`,
                       bg: "from-green-50 to-emerald-50",
                     },
                     {
                       label: "🎯 Candidates",
-                      value: contestants.length,
+                      value: contestants?.length,
                       bg: "from-purple-50 to-pink-50",
                     },
                   ].map((stat, index) => (

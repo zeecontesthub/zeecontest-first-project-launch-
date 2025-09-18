@@ -1,5 +1,6 @@
 import Contest from "../models/contestModel.js";
 import User from "../models/userModel.js";
+import nodemailer from "nodemailer";
 
 export const createContest = async (req, res) => {
   try {
@@ -18,6 +19,7 @@ export const createContest = async (req, res) => {
       type,
       payment,
       allowMultipleVotes,
+      isClosedContest,
       _id, // _id is optional for editing
       uid,
     } = req.body;
@@ -44,6 +46,7 @@ export const createContest = async (req, res) => {
       allowMultipleVotes,
       status,
       type,
+      isClosedContest,
     };
 
     let contest;
@@ -299,13 +302,15 @@ export const deleteContestant = async (req, res) => {
   }
 };
 
+// open contest
 export const addVote = async (req, res) => {
   try {
     const { contestId } = req.params;
-    const { voterName, voterEmail, participantId, positionId } = req.body;
+    const { voterName, voterEmail, multiplier = 1, votedFor } = req.body;
+    // votedFor is an array of { positionTitle, votedFor }
 
-    if (!contestId || !participantId || !positionId) {
-      return res.status(400).json({ message: "Missing required fields" });
+    if (!contestId || !voterName || !voterEmail || !Array.isArray(votedFor)) {
+      return res.status(400).json({ message: "Missing or invalid fields" });
     }
 
     // Find contest
@@ -314,54 +319,241 @@ export const addVote = async (req, res) => {
       return res.status(404).json({ message: "Contest not found" });
     }
 
-    // Ensure position exists
-    const position = contest.positions.id(positionId);
-    if (!position) {
-      return res.status(404).json({ message: "Position not found" });
-    }
-
-    // Ensure participant exists in that position
-    const contestant = position.contestants.id(participantId);
-    if (!contestant) {
-      return res
-        .status(404)
-        .json({ message: "Participant not found in this position" });
-    }
-
-    // Prevent duplicate votes (per contest) unless multiple votes are allowed
-    const alreadyVoted = contest.voters.some(
-      (v) => v.email === voterEmail && !contest.allowMultipleVotes
-    );
-    if (alreadyVoted) {
+    // 🚫 Prevent duplicate votes across the whole contest if not allowed
+    if (
+      !contest.allowMultipleVotes &&
+      contest.positions.some((pos) =>
+        pos.voters.some((v) => v.email === voterEmail)
+      )
+    ) {
       return res.status(400).json({ message: "You have already voted" });
     }
 
-    // Add vote globally in contest.voters
-    contest.voters.push({
-      name: voterName,
-      email: voterEmail,
-      votedFor: participantId,
-    });
+    const voteResults = [];
 
-    // Add vote inside this specific position
-    position.voters.push({
-      name: voterName,
-      email: voterEmail,
-      votedFor: participantId,
-    });
+    // Loop through each vote: { positionTitle, votedFor }
+    for (const vote of votedFor) {
+      const { positionTitle, votedFor: contestantId } = vote;
+
+      // Find the position by its name (title)
+      const position = contest.positions.find(
+        (p) => p.name.toLowerCase() === positionTitle.toLowerCase()
+      );
+      if (!position) {
+        return res
+          .status(404)
+          .json({ message: `Position not found: ${positionTitle}` });
+      }
+
+      // Find the contestant by _id inside this position
+      const contestant = position.contestants.id(contestantId);
+      if (!contestant) {
+        return res.status(404).json({
+          message: `Contestant not found in position ${position.name}`,
+        });
+      }
+
+      // Check if this voter already voted for THIS contestant in THIS position
+      const existingVoter = position.voters.find((v) => v.email === voterEmail);
+
+      if (existingVoter) {
+        // ➕ Increment multiplier instead of adding a duplicate record
+        existingVoter.multiplier += multiplier;
+        existingVoter.votedFor = contestantId;
+      } else {
+        // ➕ Push a new vote entry
+        position.voters.push({
+          name: voterName,
+          email: voterEmail,
+          votedFor: contestantId,
+          multiplier,
+        });
+      }
+
+      voteResults.push({
+        position: position.name,
+        votedFor: contestant.name,
+      });
+    }
 
     await contest.save();
 
     return res.status(200).json({
-      message: "Vote recorded successfully",
-      votedFor: contestant.name,
-      position: position.name,
+      message: "Votes recorded successfully",
+      votes: voteResults,
+      success: true,
     });
   } catch (error) {
     console.error("Error adding vote:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+// closed contest
+export const addVoters = async (req, res) => {
+  try {
+    const { contestId } = req.params;
+    const { voterName, voterEmail } = req.body;
+
+    if (!contestId || !voterName || !voterEmail) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const contest = await Contest.findById(contestId);
+    if (!contest) return res.status(404).json({ message: "Contest not found" });
+
+    const alreadyAdded = contest.closedContestVoters.some(
+      (v) => v.email === voterEmail
+    );
+    if (alreadyAdded) {
+      return res
+        .status(400)
+        .json({ message: "You have already added your details" });
+    }
+
+    // Generate 6-digit numeric code
+    const code = Math.floor(100000 + Math.random() * 900000);
+
+    // Add unverified voter with code
+    contest.closedContestVoters.push({
+      name: voterName,
+      email: voterEmail,
+      code,
+      verified: false,
+    });
+    await contest.save();
+
+    // Setup transporter (use env vars for real secrets)
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    // Send email
+    await transporter.sendMail({
+      from: `"Contest Vote" <${process.env.EMAIL_USER}>`,
+      to: voterEmail,
+      subject: "Your Voting Verification Code - ZEECONTEST",
+      html: `<p>Hello ${voterName},</p>
+             <p>Your verification code is <b>${code}</b>. 
+             You will Enter this code to confirm your vote.</p>`,
+    });
+
+    return res.status(200).json({
+      message: "Verification code sent to email",
+      success: true,
+      contest,
+    });
+  } catch (err) {
+    console.error("Error adding voter:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+// DELETE /api/contests/:contestId/voters/:voterId
+
+export const deleteVoter = async (req, res) => {
+  try {
+    const { contestId, voterId } = req.params;
+    if (!contestId || !voterId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing contestId or voterId" });
+    }
+
+    // Remove the subdocument from closedContestVoters
+    const updatedContest = await Contest.findByIdAndUpdate(
+      contestId,
+      { $pull: { closedContestVoters: { _id: voterId } } },
+      { new: true }
+    );
+
+    if (!updatedContest) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Contest not found" });
+    }
+
+    // Check if a voter with that id actually existed
+    const stillExists = updatedContest.closedContestVoters.some(
+      (v) => v._id.toString() === voterId
+    );
+    if (stillExists) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Voter not found in contest" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Voter deleted successfully",
+      contest: updatedContest,
+    });
+  } catch (err) {
+    console.error("Error deleting voter:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const addVerifyVote = async (req, res) => {
+  try {
+    const { contestId } = req.params;
+    let { email, code, votedFor, multiplier = 1 } = req.body;
+
+    // normalize types
+    multiplier = Number(multiplier) || 1;
+    const codeNum = Number(code);
+
+    const contest = await Contest.findById(contestId);
+    if (!contest) return res.status(404).json({ message: "Contest not found" });
+
+    // find the unverified/registered voter by email+code
+    const voter = contest.closedContestVoters.find(
+      (v) => v.email === email && v.code === codeNum
+    );
+    if (!voter) {
+      return res.status(400).json({ message: "Invalid code or email" });
+    }
+
+    // If multiple votes are not allowed and the voter already has multiplier > 0
+    if (!contest.allowMultipleVotes && Number(voter.multiplier) > 0) {
+      return res.status(400).json({ message: "You have already voted" });
+    }
+
+    if (contest.allowMultipleVotes && Number(voter.multiplier) > 0) {
+      // initialize multiplier if missing, then add
+      voter.multiplier = (Number(voter.multiplier) || 0) + multiplier;
+
+      // set/overwrite votedFor (if you expect multiple votedFor entries, adjust accordingly)
+      voter.votedFor = votedFor;
+
+      // optionally clear the code so it can't be reused:
+      // existingVoter.code = null;
+    } else {
+      // push a new voter entry (should rarely happen if you pre-registered voters)
+      voter.multiplier = 1 * multiplier; // ensure numeric
+
+      // set/overwrite votedFor (if you expect multiple votedFor entries, adjust accordingly)
+      voter.votedFor = votedFor;
+    }
+
+    await contest.save();
+
+    return res
+      .status(200)
+      .json({ message: "Vote Added successfully", success: true });
+  } catch (err) {
+    console.error("Error Adding Vote:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// end of closed contest
 
 // Get contests with pagination, search, and filters
 export const getAllContests = async (req, res) => {
@@ -397,5 +589,244 @@ export const getAllContests = async (req, res) => {
   } catch (err) {
     console.error("Failed to fetch contests:", err.message);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const verifyPayment = async (req, res) => {
+  const { reference } = req.body;
+
+  if (!reference) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Reference is required" });
+  }
+
+  try {
+    const paystackRes = await fetch(
+      `https://api.paystack.co/transaction/verify/${reference}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    // Parse JSON body
+    const responseData = await paystackRes.json();
+
+    const { status, data } = responseData;
+
+    if (status && data.status === "success") {
+      return res.json({
+        success: true,
+        message: "Payment verified",
+        data,
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: "Payment not successful",
+    });
+  } catch (error) {
+    console.error("⚠️ Paystack verify error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Verification failed",
+      error: error.message,
+    });
+  }
+};
+
+export const getUserWallet = async (req, res) => {
+  try {
+    const { uid } = req.query;
+
+    if (!uid) {
+      return res.status(400).json({ success: false, message: "uid required" });
+    }
+
+    const contests = await Contest.find({ firebaseUid: uid }).sort({
+      createdAt: -1,
+    });
+
+    let totalEarnings = 0; // sum of all contests
+    let availableBalance = 0; // sum of contests not withdrawn and completed
+    let thisMonthTotal = 0; // sum of contests this month
+    let totalWithdrawals = 0; // sum of withdrawn contests
+    let lastWithdrawalDate = null;
+
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const detailed = contests.map((c) => {
+      let votes = 0;
+      const pricePerVote = c.payment?.amount || 0;
+
+      // Calculate votes
+      if (c.isClosedContest) {
+        votes = (c.closedContestVoters || []).reduce(
+          (sum, v) => sum + (v.multiplier || 0),
+          0
+        );
+      } else if (Array.isArray(c.positions)) {
+        const emailMap = {};
+        c.positions.forEach((pos) => {
+          (pos.voters || []).forEach((voter) => {
+            const multiplier = voter.multiplier || 0;
+            if (!emailMap[voter.email] || multiplier > emailMap[voter.email]) {
+              emailMap[voter.email] = multiplier;
+            }
+          });
+        });
+        votes = Object.values(emailMap).reduce((sum, m) => sum + m, 0);
+      }
+
+      const revenue = votes * pricePerVote;
+
+      // Totals
+      totalEarnings += revenue;
+
+      // Withdrawn contests
+      if (c.payment?.isWithdrawn) {
+        totalWithdrawals += revenue;
+        if (!lastWithdrawalDate || c.payment.paymentDate > lastWithdrawalDate) {
+          lastWithdrawalDate = c.payment.paymentDate;
+        }
+      }
+
+      // Available balance: only completed contests not withdrawn
+      if (!c.payment?.isWithdrawn) {
+        availableBalance += revenue;
+      }
+
+      // Earnings for this month
+      if (c.createdAt >= startOfMonth) {
+        thisMonthTotal += revenue;
+      }
+
+      return {
+        id: c._id,
+        title: c.title,
+        votes,
+        totalVotes: votes,
+        pricePerVote,
+        revenue,
+        createdAt: c.createdAt,
+        status: c.status || "unknown",
+        type: c.type,
+        payment: c.payment,
+      };
+    });
+
+    res.json({
+      success: true,
+      totalEarnings,
+      availableBalance,
+      totalWithdrawals,
+      thisMonthEarnings: thisMonthTotal,
+      lastWithdrawal: lastWithdrawalDate,
+      contests: detailed,
+    });
+  } catch (err) {
+    console.error("Wallet fetch failed:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const withdrawal = async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const { amount, userName, userEmail, bankName, bankAccount, accountName } =
+      req.body;
+
+    if (!uid)
+      return res.status(400).json({ success: false, message: "UID required" });
+
+    const contests = await Contest.find({
+      firebaseUid: uid,
+      "payment.isWithdrawn": { $in: [false, null] },
+      status: "completed",
+    });
+
+    if (!contests.length) {
+      return res.status(400).json({
+        success: false,
+        message: "No eligible contests for withdrawal",
+      });
+    }
+
+    let totalAmount = 0;
+    const now = new Date();
+
+    for (const contest of contests) {
+      let votes = 0;
+      const pricePerVote = contest.payment?.amount || 0;
+
+      if (contest.isClosedContest) {
+        votes = (contest.closedContestVoters || []).reduce(
+          (sum, v) => sum + (v.multiplier || 0),
+          0
+        );
+      } else {
+        const emailMap = {};
+        (contest.positions || []).forEach((pos) => {
+          (pos.voters || []).forEach((v) => {
+            if (!emailMap[v.email] || v.multiplier > emailMap[v.email]) {
+              emailMap[v.email] = v.multiplier || 0;
+            }
+          });
+        });
+        votes = Object.values(emailMap).reduce((sum, m) => sum + m, 0);
+      }
+
+      const revenue = votes * pricePerVote;
+      totalAmount += revenue;
+
+      // Mark contest as withdrawn
+      contest.payment.isWithdrawn = true;
+      contest.payment.paymentDate = now;
+      await contest.save();
+    }
+
+    // ----- SEND EMAIL TO Zeecontesthub -----
+    const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: `"Zeecontest" <${process.env.SMTP_USER}>`,
+      to: "Zeecontesthub@gmail.com",
+      subject: `Withdrawal Request from ${userName}`,
+      html: `
+        <h2>Withdrawal Details</h2>
+        <p><strong>User:</strong> ${userName} (${userEmail})</p>
+        <p><strong>Amount:</strong> ₦${amount}</p>
+        <p><strong>Bank Name:</strong> ${bankName}</p>
+        <p><strong>Account Number:</strong> ${bankAccount}</p>
+        <p><strong>Account Holder:</strong> ${accountName}</p>
+        <p>Please make the transfer accordingly.</p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.json({
+      success: true,
+      message: "Withdrawal successful, email sent to Zeecontesthub",
+      totalAmount,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

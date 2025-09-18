@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import sendArrow from '../../assets/send-arrow.png';
 import howItWorks1 from '../../assets/how-it-works-1.png';
 import howItWorks2 from '../../assets/how-it-works-2.png';
@@ -28,10 +29,10 @@ const HowItWorks = () => {
   return (
     <div className='my-8 px-4 md:px-20 md:mt-24'>
       <div className='flex flex-col items-center justify-center'>
-        <h1 className='text-[#1D1D1D] font-semibold text-4xl md:text-5xl leading-tight mb-2'>
+        <p className='text-[#1D1D1D] font-semibold text-3xl md:text-5xl leading-tight mb-2'>
           How it Works
-        </h1>
-        <h2 className='text-[#515151] text-2xl md:text-3xl text-center mb-10'>
+        </p>
+        <h2 className='text-[#515151] text-xl md:text-3xl text-center mb-10'>
           Running a vote-based contest has never been easier.
         </h2>
 
@@ -52,20 +53,18 @@ const HowItWorks = () => {
               <div className='bg-white rounded-3xl border border-[#E0E7F5] shadow-md w-full max-w-md z-10'>
                 <div className='bg-gradient-to-bl from-white via-white to-[#ABF0F6] p-6 rounded-t-3xl'>
                   <div className='bg-gradient-to-b from-[#FFDACC] to-[#E67347] rounded-full shadow-[inset_4px_4px_12px_0px_#FDFDFF66] px-4 py-2 w-fit mb-4'>
-                    <p className='text-4xl'>{step.id}</p>
+                    <p className='text-2xl'>{step.id}</p>
                   </div>
 
-                  <h2 className='text-[#1D1D1D] text-2xl font-semibold mb-2'>
+                  <p className='text-[#1D1D1D] text-2xl font-semibold mb-2'>
                     {step.title}
-                  </h2>
+                  </p>
                   <p className='text-[#667085] text-sm leading-relaxed'>
                     {step.text}
                   </p>
                 </div>
-                <a
-                  href='https://t.me/zeecontest'
-                  target='_blank'
-                  rel='noopener noreferrer'
+                <Link
+                  to='/login'
                   className='w-full flex justify-end px-6 pt-8 pb-4 cursor-pointer'
                 >
                   <button className='border border-[#E0E7F5] bg-white rounded-xl px-4 py-2 flex items-center gap-2 hover:shadow-sm transition'>
@@ -73,10 +72,10 @@ const HowItWorks = () => {
                       <img src={sendArrow} alt='arrow' className='w-4 h-4' />
                     </div>
                     <span className='text-[#1D1D1D] text-sm font-medium'>
-                      Join Waitlist
+                      Get Started
                     </span>
                   </button>
-                </a>
+                </Link>
               </div>
 
               <div className='p-2 bg-[#0340454A] rounded-3xl flex items-center justify-center z-10'>

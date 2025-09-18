@@ -27,9 +27,12 @@ import Mywallet from "./Pages/Mywallet";
 
 import LandingHomePage from "./Pages/LandingPages/Home.jsx";
 import ContestHomePage from "./Pages/LandingPages/Contest.jsx";
-import ContestDetailHomePage from "./Pages/LandingPages/ContestDetails.jsx";
+import ContestDetailHomePage from "./Pages/LandingPages/vContestDetails.jsx";
 import VotingFlow from "./Pages/LandingPages/VotingFlow";
 import Footer from "./common/Footer.jsx";
+import VoterRegistration from "./Pages/LandingPages/VoterRegistration";
+import VContestantDetails from "./Pages/LandingPages/vcontestantdetails";
+import ContactForm from "./Pages/LandingPages/Contact.jsx";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -113,6 +116,17 @@ function App() {
               element={<ContestDetailHomePage />}
             />
             <Route path="/vote/:contestId" element={<VotingFlow />} />
+            <Route path="/contact" element={<ContactForm />} />
+
+            {/* Public Voter Registration Route */}
+            <Route
+              path="/voterregistration/:contestId"
+              element={<VoterRegistration />}
+            />
+            <Route
+              path="/vcontestantdetails/:position/:contestantId/:contestId"
+              element={<VContestantDetails />}
+            />
 
             {/* Auth Public Routes */}
             <Route path="/login" element={<Login />} />

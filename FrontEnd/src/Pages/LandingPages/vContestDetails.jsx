@@ -149,63 +149,6 @@ const ContestDetailPage = () => {
 
   const [selectedCandidate, setSelectedCandidate] = useState(null);
 
-  // Contest data
-  // const contestData = {
-  //   id: 1,
-  //   title: "Student Union Elections 2024",
-  //   description: "Contest Description goes here",
-  //   status: "Active",
-  //   endTime: "1d 14h 8m",
-  //   totalVotes: 2457,
-  //   totalContestants: 30,
-  //   positions: 5,
-  //   amountPerVote: 0,
-  //   image: null,
-  // };
-
-  // const candidatesData = {
-  //   President: [
-  //     {
-  //       id: 1,
-  //       name: "James Williamson",
-  //       votes: 298,
-  //       avatar: null,
-  //       position: 1,
-  //     },
-  //     { id: 2, name: "Sarah Johnson", votes: 285, avatar: null, position: 2 },
-  //     { id: 3, name: "Michael Brown", votes: 267, avatar: null, position: 3 },
-  //     { id: 4, name: "Emily Davis", votes: 234, avatar: null, position: 4 },
-  //     { id: 5, name: "David Wilson", votes: 166, avatar: null, position: 5 },
-  //   ],
-  //   "Vice-President": [
-  //     { id: 1, name: "Alice Cooper", votes: 178, avatar: null, position: 1 },
-  //     { id: 2, name: "Bob Miller", votes: 165, avatar: null, position: 2 },
-  //     { id: 3, name: "Carol White", votes: 142, avatar: null, position: 3 },
-  //     { id: 4, name: "Daniel Green", votes: 138, avatar: null, position: 4 },
-  //     { id: 5, name: "Eva Martinez", votes: 125, avatar: null, position: 5 },
-  //   ],
-  //   Secretary: [
-  //     { id: 1, name: "Frank Anderson", votes: 156, avatar: null, position: 1 },
-  //     { id: 2, name: "Grace Taylor", votes: 142, avatar: null, position: 2 },
-  //     { id: 3, name: "Henry Lee", votes: 128, avatar: null, position: 3 },
-  //     { id: 4, name: "Ivy Chen", votes: 119, avatar: null, position: 4 },
-  //     { id: 5, name: "Jack Turner", votes: 98, avatar: null, position: 5 },
-  //   ],
-  //   PRO: [
-  //     { id: 1, name: "Kate Phillips", votes: 145, avatar: null, position: 1 },
-  //     { id: 2, name: "Liam Murphy", votes: 132, avatar: null, position: 2 },
-  //     { id: 3, name: "Maya Patel", votes: 118, avatar: null, position: 3 },
-  //     { id: 4, name: "Noah Garcia", votes: 105, avatar: null, position: 4 },
-  //   ],
-  //   Treasurer: [
-  //     { id: 1, name: "Olivia Scott", votes: 167, avatar: null, position: 1 },
-  //     { id: 2, name: "Paul Robinson", votes: 154, avatar: null, position: 2 },
-  //     { id: 3, name: "Quinn Adams", votes: 143, avatar: null, position: 3 },
-  //     { id: 4, name: "Rachel Clark", votes: 129, avatar: null, position: 4 },
-  //     { id: 5, name: "Sam Lewis", votes: 116, avatar: null, position: 5 },
-  //   ],
-  // };
-
   const allContestants =
     contest?.positions?.flatMap((pos) =>
       pos.contestants?.map((contestant) => ({
@@ -214,12 +157,39 @@ const ContestDetailPage = () => {
       }))
     ) || [];
 
-  const allVotes =
-    contest?.positions?.flatMap((pos) =>
-      pos.voters?.map((voter) => ({
-        ...voter,
-      }))
-    ) || [];
+  // const allVotes =
+  //   contest?.positions?.flatMap((pos) =>
+  //     pos.voters?.map((voter) => ({
+  //       ...voter,
+  //     }))
+  //   ) || [];
+
+  const calculateTotalVotes = (contest) => {
+    if (!contest) return 0;
+
+    if (!contest.isClosedContest) {
+      // ---- OPEN contest: sum multipliers from every position's voters
+      return (
+        contest.positions?.reduce((total, pos) => {
+          const posVotes = pos.voters?.reduce(
+            (sum, voter) => sum + (voter.multiplier || 0),
+            0
+          );
+          return total + (posVotes || 0);
+        }, 0) || 0
+      );
+    } else {
+      // ---- CLOSED contest: count votedFor entries * multiplier
+      return (
+        contest.closedContestVoters?.reduce((total, voter) => {
+          const count = voter.votedFor?.length || 0;
+          return total + count * (voter.multiplier || 0);
+        }, 0) || 0
+      );
+    }
+  };
+
+  const totalVotes = calculateTotalVotes(contest);
 
   const totalContestants = allContestants.length;
 
@@ -227,7 +197,7 @@ const ContestDetailPage = () => {
     {
       icon: Users,
       label: "Total Votes",
-      value: allVotes?.length,
+      value: totalVotes,
       bgColor: "bg-gray-100",
     },
     {

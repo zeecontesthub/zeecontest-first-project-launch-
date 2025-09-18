@@ -16,11 +16,17 @@ const voterSchema = new mongoose.Schema(
   {
     name: { type: String },
     email: { type: String },
-    votingDate: { type: Date, default: Date.now },
-    votedFor: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Participant",
-    }, // references participant _id
+    addedDate: { type: Date, default: Date.now },
+    votedFor: [
+      {
+        positionTitle: { type: String },
+        votedFor: { type: mongoose.Schema.Types.ObjectId }, // references participant _id
+        name: { type: String },
+        image: { type: String },
+      },
+    ], // references participant _id
+    multiplier: { type: Number, default: 0 },
+    code: { type: Number },
   },
   { _id: true }
 );
@@ -31,10 +37,11 @@ const positionSchema = new mongoose.Schema({
     {
       name: { type: String },
       email: { type: String },
-      votingDate: { type: Date, default: Date.now },
+      addedDate: { type: Date, default: Date.now },
       votedFor: {
         type: mongoose.Schema.Types.ObjectId,
       }, // references participant _id
+      multiplier: { type: Number, default: 0 },
     },
     { _id: true },
   ],
@@ -78,10 +85,12 @@ const contestSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   participants: [participantSchema], // Array of participants
   positions: [positionSchema], // Array of positions
-  voters: [voterSchema], // <-- Add this line
+  closedContestVoters: [voterSchema], // <-- Add this line
   payment: {
     isPaid: { type: Boolean, default: false },
     amount: { type: Number, default: 0 }, // Amount in cents
+    isWithdrawn: { type: Boolean, default: false },
+    paymentDate: { type: Date, default: null },
   },
   allowMultipleVotes: {
     type: Boolean,
@@ -91,10 +100,8 @@ const contestSchema = new mongoose.Schema({
     type: String,
     default: "draft",
   },
-  contestPaid: {
-    type: Boolean,
-    default: false, // Allow multiple votes per voter
-  },
+  isClosedContest: { type: Boolean, default: false },
+  // Add more fields as needed
 });
 
 const Contest = mongoose.model("Contest", contestSchema);

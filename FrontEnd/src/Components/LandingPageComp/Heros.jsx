@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import logo from '../../assets/Logo.png';
@@ -6,6 +7,7 @@ import heroIcon2 from '../../assets/hero-icon-2.png';
 import heroIcon3 from '../../assets/hero-icon-3.png';
 import heroImage from '../../assets/Hero-image.jpg';
 import heroBg from '../../assets/Hero-background.jpg';
+// import MobileDrawer from './MobileDrawer';
 
 const Hero = () => {
   return (
@@ -36,7 +38,7 @@ const Hero = () => {
             rel='noopener noreferrer'
             className='text-white bg-[#E67347] hover:bg-[#d15a2e] transition-colors rounded-[100px] py-3 px-6 shadow-[inset_4px_4px_12px_0px_#FDFDFF66] font-medium'
           >
-            Sign Up
+            Sign Up for an Organizer Account
           </a>
         </div>
 
@@ -47,7 +49,7 @@ const Hero = () => {
             rel='noopener noreferrer'
             className='text-white bg-[#E67347] hover:bg-[#d15a2e] transition-colors rounded-[100px] py-2 px-4 text-sm shadow-[inset_4px_4px_12px_0px_#FDFDFF66] font-medium'
           >
-            Sign Up
+            Sign Up for an Organizer Account
           </a>
         </div>
       </div>

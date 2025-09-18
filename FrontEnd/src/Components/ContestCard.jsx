@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import PlaceHolderImage from "../assets/Imagecre.png";
+import { useMemo } from "react";
 
 const ContestCard = ({ contest }) => {
   const navigate = useNavigate();
@@ -28,6 +29,33 @@ const ContestCard = ({ contest }) => {
 
   const totalContestants = allContestants.length;
 
+  const getPositionTotalVotes = (pos, contest) => {
+    if (!pos || !contest) return 0;
+
+    if (contest.isClosedContest) {
+      // closed: look at contest.closedContestVoters
+      return (
+        contest.closedContestVoters?.reduce((sum, voter) => {
+          const count =
+            voter.votedFor?.filter((v) => v.positionTitle === pos.name)
+              .length || 0;
+          return sum + count * (voter.multiplier || 1);
+        }, 0) || 0
+      );
+    }
+
+    // open: normal position.voters array
+    return pos.voters?.reduce((sum, v) => sum + (v.multiplier || 1), 0) || 0;
+  };
+
+  const totalVotes = useMemo(
+    () =>
+      contest?.positions?.reduce(
+        (sum, p) => sum + getPositionTotalVotes(p, contest),
+        0
+      ) || 0,
+    [contest]
+  );
   return (
     <div className="bg-teal-900 rounded-lg overflow-hidden">
       {/* Contest Image */}
@@ -49,9 +77,7 @@ const ContestCard = ({ contest }) => {
         <div className="flex justify-between items-center">
           <div>
             <p className="text-gray-400 text-xs">Votes</p>
-            <p className="text-white font-bold">
-              {contest?.voters?.length || 0}
-            </p>
+            <p className="text-white font-bold">{totalVotes || 0}</p>
           </div>
 
           <div>

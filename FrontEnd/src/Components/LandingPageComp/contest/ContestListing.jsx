@@ -187,7 +187,7 @@ const ContestListing = ({ contests, loading, error, lastItemRef }) => {
 
       {loading && (
         <p className="text-center text-gray-500 mt-6">
-          Loading more contests...
+          Loading...
         </p>
       )}
       {error && <p className="text-center text-red-500 mt-6">{error}</p>}

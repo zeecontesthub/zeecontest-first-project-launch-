@@ -11,7 +11,8 @@ export const loginWithGoogle = async () => {
 
 export const sendOTPLink = async (email) => {
   const actionCodeSettings = {
-    url: "http://localhost:5000/login", // your frontend page
+    // Frontend route that handles the email-link sign-in
+    url: `${import.meta.env.VITE_FRONTEND_URL}/login`,
     handleCodeInApp: true,
   };
 

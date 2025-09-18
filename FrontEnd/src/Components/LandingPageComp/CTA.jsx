@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
-import CTABg from "../../assets/footer-background.jpg";
+import CTABg from '../../assets/footer-background.jpg';
 
 const CTA = () => {
   const [email, setEmail] = useState('');
@@ -45,30 +45,32 @@ const CTA = () => {
       style={{ backgroundImage: `url(${CTABg})` }}
     >
       <h2 className='text-2xl md:text-3xl font-bold text-center md:text-left w-full md:max-w-xl'>
-        Be the First to Launch Your Contest with ZeeContest
+        Stay Updated with ZeeContest
       </h2>
       <p className='text-center md:text-left text-sm md:text-lg text-white/80 w-full md:max-w-xl'>
-        ZeeContest is almost ready, and you can be among the first to experience
-        it. Join the waitlist today and get early access, exclusive updates, and
-        priority support when we go live.
+        ZeeContest is launching soon. Subscribe to our newsletter to get the
+        latest updates, tips for running successful contests, and exclusive
+        announcements straight to your inbox.
       </p>
 
       <div className='relative w-full md:max-w-xl'>
-        <input
-          type='email'
-          value={email}
-          required
-          onChange={(e) => setEmail(e.target.value)}
-          className='w-full bg-white/20 placeholder-white/80 text-white py-4 pr-36 pl-6 rounded-full outline-none text-xs md:text-base'
-          placeholder='Your email address'
-        />
-        <button
-          disabled={loading}
-          onClick={handleSubmit}
-          className='absolute top-2 right-2 bottom-2 bg-[#E67347] text-white rounded-full px-5 shadow-[inset_4px_4px_12px_0px_#FDFDFF66] text-sm font-semibold whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed'
-        >
-          {loading ? 'Sending...' : 'Join the waitlist'}
-        </button>
+        <div className='relative w-full max-w-md md:max-w-xl mx-auto'>
+          <input
+            type='email'
+            value={email}
+            required
+            onChange={(e) => setEmail(e.target.value)}
+            className='w-full bg-white/20 placeholder-white/80 text-white py-3 md:py-4 pr-28 md:pr-36 pl-5 md:pl-6 rounded-full outline-none text-sm md:text-base'
+            placeholder='Your email address'
+          />
+          <button
+            disabled={loading}
+            onClick={handleSubmit}
+            className='absolute top-1.5 md:top-2 right-1.5 md:right-2 bottom-1.5 md:bottom-2 bg-[#E67347] text-white rounded-full py-2 px-4 md:px-5 shadow-[inset_4px_4px_12px_0px_#FDFDFF66] text-xs md:text-sm font-semibold whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center'
+          >
+            {loading ? 'Sending...' : 'Subscribe'}
+          </button>
+        </div>
       </div>
     </motion.div>
   );

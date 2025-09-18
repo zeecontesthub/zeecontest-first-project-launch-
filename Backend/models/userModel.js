@@ -10,6 +10,9 @@ const userSchema = new mongoose.Schema({
   orgName: { type: String, default: null },
   orgAbout: { type: String, default: null },
   createdAt: { type: Date, default: Date.now },
+  bankName: { type: String, default: null },
+  accountNumber: { type: String, default: null },
+  accountHolderName: { type: String, default: null },
 });
 
 const User = mongoose.model("User", userSchema);

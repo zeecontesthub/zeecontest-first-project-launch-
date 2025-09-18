@@ -1,8 +1,9 @@
 import { Search } from "lucide-react";
-import logo from "../../assets/Logo.png";
+// import logo from "../../assets/Logo.png";
 import ContestListing from "../../Components/LandingPageComp/contest/ContestListing";
 import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
+import Header from "../../common/Header";
 
 const Contest = () => {
   const [contests, setContests] = useState([]);
@@ -80,22 +81,13 @@ const Contest = () => {
 
   return (
     <>
-      <nav className="bg-white px-4 md:px-12 lg:px-30 py-4">
-        <div>
-          <img
-            src={logo}
-            alt="ZeeContest"
-            className="w-[120px] h-[52px] sm:w-[150px] sm:h-[66px] lg:w-[190px] lg:h-[83px]"
-          />
-        </div>
-      </nav>
-
+      <Header />
       <section className="w-full">
         <div className="bg-gradient-to-br from-[#034045] to-[#0a5a60] min-h-[400px] flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden">
           <div className="max-w-4xl w-full text-center relative z-10">
-            <h1 className="text-white text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+            <p className="text-white text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
               Vote in Live Contests
-            </h1>
+            </p>
 
             <p className="text-white/90 text-lg md:text-xl lg:text-2xl mb-12 leading-relaxed max-w-3xl mx-auto px-4">
               Participate in contests across different institutions,

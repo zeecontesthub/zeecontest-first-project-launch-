@@ -32,9 +32,9 @@ const faqs = [
 ];
 
 const FAQ = () => {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [openIndex, setOpenIndex] = useState(null);
 
-  const toggle = (index: number) => {
+  const toggle = (index) => {
     setOpenIndex((prev) => (prev === index ? null : index));
   };
 
@@ -50,9 +50,9 @@ const FAQ = () => {
             <span className='text-[#034045] text-sm font-semibold'>FAQ</span>
           </div>
 
-          <h1 className='text-[#1D1D1D] font-bold text-3xl md:text-4xl leading-snug'>
+          <p className='text-[#1D1D1D] font-bold text-3xl md:text-4xl leading-snug'>
             Frequently Asked Questions
-          </h1>
+          </p>
           <p className='text-[#667085] text-base md:text-lg'>
             Whether you're organizing your first contest or just curious about
             how voting works, our FAQ section covers it all.
@@ -68,7 +68,7 @@ const FAQ = () => {
                 and we&apos;ll get back to you as soon as possible!
               </p>
               <button className='rounded-full cursor-pointer flex items-center gap-2 px-5 py-2 bg-[#1D1D1D] w-fit'>
-                <img src={contactArrow} alt='arrow icon' />
+                <img src={contactArrow} alt='arrow icon' className='w-8 h-8' />
                 <span className='text-white font-medium'>Contact Us</span>
               </button>
             </div>

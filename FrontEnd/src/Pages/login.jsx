@@ -90,6 +90,9 @@ const Login = () => {
 
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({
+      prompt: "select_account", // ✅ always show the email picker
+    });
     try {
       const result = await signInWithPopup(auth, provider).catch((err) =>
         console.log(err)

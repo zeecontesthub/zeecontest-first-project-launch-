@@ -69,6 +69,7 @@ const CreateSpotlightContest = () => {
       amount: 0,
     },
     allowMultipleVotes: createContest?.allowMultipleVotes || false,
+    contestType: createContest?.contestType || 'open', // new field
   });
 
   // State for security settings
@@ -77,6 +78,7 @@ const CreateSpotlightContest = () => {
   );
 
   // Form validation
+  // eslint-disable-next-line no-unused-vars
   const isFormValid = () => {
     return (
       formData.contestName &&
@@ -195,12 +197,12 @@ const CreateSpotlightContest = () => {
       prev.map((pos) =>
         pos.name === contestantForm.position
           ? {
-              ...pos,
-              contestants: [
-                ...(Array.isArray(pos.contestants) ? pos.contestants : []),
-                { ...contestantForm, dateId: Date.now() },
-              ],
-            }
+            ...pos,
+            contestants: [
+              ...(Array.isArray(pos.contestants) ? pos.contestants : []),
+              { ...contestantForm, dateId: Date.now() },
+            ],
+          }
           : pos
       )
     );
@@ -320,6 +322,7 @@ const CreateSpotlightContest = () => {
         status: "draft",
         type: "spot-light",
         uid: user?.firebaseUid,
+        isClosedContest: formData.contestType === 'closed' ? true : false,
       };
 
       const res = await axios.post("/api/contest/create-contest", payload);
@@ -355,6 +358,7 @@ const CreateSpotlightContest = () => {
         type: "spot-light",
         uid: user?.firebaseUid,
         _id: createContest?._id || null, // Include contest ID if editing
+        isClosedContest: formData.contestType === 'closed' ? true : false,
       };
 
       const res = await axios.post("/api/contest/create-contest", payload);
@@ -402,6 +406,8 @@ const CreateSpotlightContest = () => {
       isUploading={isUploading}
     />,
     <Security
+      contestType={formData.contestType}
+      onContestTypeChange={(type) => setFormData((prev) => ({ ...prev, contestType: type }))}
       isVoterRegistrationEnabled={isVoterRegistrationEnabled}
       onToggleVoterRegistration={() =>
         setIsVoterRegistrationEnabled(!isVoterRegistrationEnabled)
@@ -462,38 +468,67 @@ const CreateSpotlightContest = () => {
 
           {/* Desktop: Horizontal Progress on larger screens */}
           <div className="hidden sm:block">
-            <div className="flex items-center justify-between mb-4 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 pb-2">
-              {stepTitles.map((title, index) => (
-                <div key={index} className="flex items-center min-w-fit">
-                  <div
-                    className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center text-sm lg:text-base font-medium transition-all duration-200 ${
-                      index <= currentStep
-                        ? "bg-orange-500 text-white shadow-md"
-                        : "bg-gray-200 text-gray-600"
-                    }`}
-                  >
-                    {index + 1}
-                  </div>
-                  <span
-                    className={`ml-2 lg:ml-3 text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
-                      index <= currentStep
-                        ? "text-orange-600 font-medium"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    {title}
-                  </span>
-                  {index < stepTitles.length - 1 && (
-                    <div
-                      className={`ml-3 lg:ml-6 w-12 lg:w-20 h-0.5 transition-all duration-300 ${
-                        index < currentStep ? "bg-orange-500" : "bg-gray-200"
-                      }`}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
+  <div className="flex items-center mb-4">
+    {/* Left Arrow */}
+    <button
+      type="button"
+      className="bg-white border border-gray-300 rounded-full p-2 shadow hover:bg-gray-100 mr-2"
+      onClick={() => {
+        document.getElementById('step-progress-bar')?.scrollBy({ left: -200, behavior: 'smooth' });
+      }}
+      aria-label="Scroll left"
+    >
+      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 17l-5-5 5-5" /></svg>
+    </button>
+    {/* Progress Bar */}
+    <div
+      id="step-progress-bar"
+      className="flex items-center justify-between overflow-x-auto scroll-smooth pb-2"
+      style={{ scrollbarWidth: 'none', maxWidth: 'calc(100vw - 120px)' }} // adjust 120px if needed for arrow width
+    >
+      {stepTitles.map((title, index) => (
+        <div key={index} className="flex items-center min-w-fit">
+          <div
+            className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center text-sm lg:text-base font-medium transition-all duration-200 ${
+              index <= currentStep
+                ? "bg-orange-500 text-white shadow-md"
+                : "bg-gray-200 text-gray-600"
+            }`}
+          >
+            {index + 1}
           </div>
+          <span
+            className={`ml-2 lg:ml-3 text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
+              index <= currentStep
+                ? "text-orange-600 font-medium"
+                : "text-gray-500"
+            }`}
+          >
+            {title}
+          </span>
+          {index < stepTitles.length - 1 && (
+            <div
+              className={`ml-3 lg:ml-6 w-12 lg:w-20 h-0.5 transition-all duration-300 ${
+                index < currentStep ? "bg-orange-500" : "bg-gray-200"
+              }`}
+            />
+          )}
+        </div>
+      ))}
+    </div>
+    {/* Right Arrow */}
+    <button
+      type="button"
+      className="bg-white border border-gray-300 rounded-full p-2 shadow hover:bg-gray-100 ml-2"
+      onClick={() => {
+        document.getElementById('step-progress-bar')?.scrollBy({ left: 200, behavior: 'smooth' });
+      }}
+      aria-label="Scroll right"
+    >
+      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 17l5-5-5-5" /></svg>
+    </button>
+  </div>
+</div>
         </div>
 
         {/* Step Content */}
@@ -507,7 +542,7 @@ const CreateSpotlightContest = () => {
         />
 
         {/* Navigation Buttons - Mobile Optimized */}
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 -mx-3 sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:static">
+        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 pb-16 -mx-3 sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:static z-30">
           {/* Mobile: Stacked Layout */}
           <div className="flex flex-col space-y-3 sm:hidden">
             <div className="flex space-x-3">
@@ -519,44 +554,40 @@ const CreateSpotlightContest = () => {
                 Back
               </button>
               <button
-                onClick={
-                  currentStep === steps.length - 1 ? onPublish : nextStep
-                }
-                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors text-sm ${
-                  isUploading ? "opacity-50 cursor-not-allowed" : ""
-                } ${
-                  currentStep === steps.length - 1
-                    ? isFormValid()
-                      ? "bg-orange-500 hover:bg-orange-600 text-white"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-orange-500 hover:bg-orange-600 text-white"
-                }`}
-                disabled={
-                  isUploading ||
-                  (currentStep === steps.length - 1 && !isFormValid())
-                }
+                onClick={nextStep}
+                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors text-sm ${isUploading ? "opacity-50 cursor-not-allowed" : ""
+                  } bg-orange-500 hover:bg-orange-600 text-white`}
+                disabled={isUploading}
               >
-                {currentStep === steps.length - 1 ? "Publish" : "Next"}
+                Next
               </button>
             </div>
             <button
               onClick={saveDraft}
-              className={`w-full px-4 py-3 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors text-sm ${
-                isUploading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`w-full px-4 py-3 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors text-sm ${isUploading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               disabled={isUploading}
             >
               Save as Draft
             </button>
+            {/* Add extra margin for publish button if on last step */}
+            {currentStep === steps.length - 1 && (
+              <button
+                onClick={onPublish}
+                className={`w-full px-4 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors text-sm mb-8 ${isUploading ? "opacity-50 cursor-not-allowed" : ""}`}
+                disabled={isUploading}
+              >
+                Publish Contest
+              </button>
+            )}
           </div>
 
           {/* Desktop: Horizontal Layout */}
           <div className="hidden sm:flex sm:flex-row sm:justify-between sm:items-center">
             <button
               onClick={saveDraft}
-              className={`px-6 py-2 lg:px-8 lg:py-3 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors ${
-                isUploading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={`px-6 py-2 lg:px-8 lg:py-3 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors ${isUploading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
               disabled={isUploading}
             >
               Save as Draft
@@ -569,26 +600,15 @@ const CreateSpotlightContest = () => {
               >
                 Back
               </button>
-              <button
-                onClick={
-                  currentStep === steps.length - 1 ? onPublish : nextStep
-                }
-                className={`px-6 py-2 lg:px-8 lg:py-3 rounded-lg font-medium transition-colors ${
-                  isUploading ? "opacity-50 cursor-not-allowed" : ""
-                } ${
-                  currentStep === steps.length - 1
-                    ? isFormValid()
-                      ? "bg-orange-500 hover:bg-orange-600 text-white"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-orange-500 hover:bg-orange-600 text-white"
-                }`}
-                disabled={
-                  isUploading ||
-                  (currentStep === steps.length - 1 && !isFormValid())
-                }
-              >
-                {currentStep === steps.length - 1 ? "Publish" : "Next"}
-              </button>
+              {currentStep !== steps.length - 1 && (
+                <button
+                  onClick={nextStep}
+                  className={`px-6 py-2 lg:px-8 lg:py-3 rounded-lg font-medium transition-colors ${isUploading ? "opacity-50 cursor-not-allowed" : ""} bg-orange-500 hover:bg-orange-600 text-white`}
+                  disabled={isUploading}
+                >
+                  Next
+                </button>
+              )}
             </div>
           </div>
         </div>

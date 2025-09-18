@@ -7,25 +7,45 @@ const CandidateSection = ({ activePosition, onCandidateSelect, contest }) => {
     navigate(`/vote/${contest._id}`);
   };
 
-  // Dynamically fetch candidates from contest prop
-  const currentCandidates =
-    contest?.positions?.find((pos) => pos.name === activePosition)
-      ?.contestants || [];
+  // ✅ Find the active position object and its contestants
+  const currentPosition = contest?.positions?.find(
+    (pos) => pos.name === activePosition
+  );
 
-  const candidates = currentCandidates?.map((candidate) => {
-    // Count votes for each candidate
-    const votes =
-      currentCandidates.voters?.filter(
-        (voter) => voter.votedFor?.toString() === candidate._id?.toString()
-      ).length || 0;
+  const currentCandidates = currentPosition?.contestants || [];
+
+  // ✅ Build array with proper vote totals
+  const candidates = currentCandidates.map((candidate) => {
+    let votes = 0;
+
+    if (!contest?.isClosedContest) {
+      // ---- OPEN contest ----
+      votes =
+        currentPosition?.voters
+          ?.filter(
+            (voter) => voter.votedFor?.toString() === candidate._id?.toString()
+          )
+          .reduce((total, voter) => total + (voter.multiplier || 0), 0) || 0;
+    } else {
+      // ---- CLOSED contest ----
+      votes =
+        contest.closedContestVoters?.reduce((total, voter) => {
+          const count =
+            voter.votedFor?.filter(
+              (v) => v.votedFor?.toString() === candidate._id?.toString()
+            ).length || 0;
+          return total + count * (voter.multiplier || 0);
+        }, 0) || 0;
+    }
+
     return {
-      id: candidate._id, // make sure _id exists in your schema
+      id: candidate._id,
       name: candidate.name,
       description: `This is ${
         candidate.name
       } running for the post of ${activePosition?.toLowerCase()} in the election that is going to define things`,
-      image: candidate.image || null, // if you have candidate images
-      votes: votes || 0,
+      image: candidate.image || null,
+      votes,
       bio:
         candidate.bio ||
         `This is ${
@@ -93,7 +113,12 @@ const CandidateSection = ({ activePosition, onCandidateSelect, contest }) => {
 
               <button
                 className="w-full bg-[#034045] hover:bg-[#045a60] text-white py-3 rounded-lg font-medium transition-colors duration-200 cursor-pointer"
-                onClick={() => {}}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(
+                    `/vcontestantdetails/${activePosition}/${candidate.id}/${contest._id}`
+                  ); // replace 1 with contestId if needed
+                }}
               >
                 View Profile
               </button>

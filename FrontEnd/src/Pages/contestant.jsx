@@ -13,10 +13,67 @@ const Contestant = () => {
   const [selectedPosition, setSelectedPosition] = useState("All");
   const navigate = useNavigate();
 
+  // Get positions from contest data
+  const positions = contest?.positions?.map((pos) => pos.name) || [];
+  const filterOptions = ["All", ...positions];
+
+  const allPositions = contest?.positions || [];
+
+  // ✅ Flatten every contestant, but still attach its parent position name
+  const allContestants = allPositions.flatMap((pos) =>
+    (pos.contestants || []).map((candidate) => {
+      // ---- Count votes for this candidate within THIS position ----
+      let votes = 0;
+      if (!contest?.isClosedContest) {
+        votes =
+          pos.voters
+            ?.filter(
+              (voter) =>
+                voter.votedFor?.toString() === candidate._id?.toString()
+            )
+            .reduce((t, voter) => t + (voter.multiplier || 0), 0) || 0;
+      } else {
+        votes =
+          contest.closedContestVoters?.reduce((t, voter) => {
+            const count =
+              voter.votedFor?.filter(
+                (v) => v.votedFor?.toString() === candidate._id?.toString()
+              ).length || 0;
+            return t + count * (voter.multiplier || 0);
+          }, 0) || 0;
+      }
+
+      return {
+        id: candidate._id,
+        name: candidate.name,
+        description: `This is ${
+          candidate.name
+        } running for the post of ${pos.name.toLowerCase()}`,
+        image: candidate.image || null,
+        votes,
+        bio:
+          candidate.bio ||
+          `This is ${
+            candidate.name
+          } running for the post of ${pos.name.toLowerCase()}`,
+        position: candidate.position || pos.name,
+      };
+    })
+  );
+
+  const filteredContestants =
+    selectedPosition === "All"
+      ? allContestants
+      : allContestants.filter(
+          (contestant) => contestant.position === selectedPosition
+        );
+  // Flatten all contestants from all positions
+
   useEffect(() => {
     const fetchContest = async () => {
       try {
         const res = await axios.get(`/api/contest/${contestId}`);
+        console.log(res);
         setContest(res.data.contest);
       } catch (err) {
         console.error("Failed to fetch contest:", err);
@@ -25,42 +82,79 @@ const Contestant = () => {
     if (contestId) fetchContest();
   }, [contestId]);
 
-  // Get positions from contest data
-  const positions = contest?.positions?.map((pos) => pos.name) || [];
-  const filterOptions = ["All", ...positions];
+  useEffect(() => {
+    if (!contest || contest.status === "completed") return;
 
-  // Flatten all contestants from all positions
-  const allContestants =
-    contest?.positions?.flatMap((pos) =>
-      pos.contestants?.map((contestant) => ({
-        ...contestant,
-        position: pos.name,
-      }))
-    ) || [];
+    // Build end datetime
+    let endDate = new Date(contest.endDate); // already ISO midnight
+    if (contest.endTime) {
+      let hour = parseInt(contest.endTime.endTimeHour, 10);
+      let minute = parseInt(contest.endTime.endTimeMinute, 10);
 
-    // console.log(allContestants, contest?.positions);
+      if (contest.endTime.endTimeAmPm === "PM" && hour < 12) hour += 12;
+      if (contest.endTime.endTimeAmPm === "AM" && hour === 12) hour = 0;
 
-  // Filter contestants based on selected position
-  const filteredContestants =
-    selectedPosition === "All"
-      ? allContestants
-      : allContestants.filter(
-        (contestant) => contestant.position === selectedPosition
+      endDate.setHours(hour, minute, 0, 0);
+    }
+
+    const checkIfEnded = async () => {
+      const now = new Date();
+
+      if (now >= endDate) {
+        try {
+          await axios.put(`/api/contest/${contest._id}/status`, {
+            status: "completed",
+          });
+          setContest((prev) => ({ ...prev, status: "completed" }));
+          console.log("Contest marked as completed automatically.");
+        } catch (err) {
+          console.error("Failed to update contest:", err);
+        }
+      }
+    };
+
+    // Check immediately and then every 2 minute
+    checkIfEnded();
+    const interval = setInterval(checkIfEnded, 120 * 1000);
+
+    return () => clearInterval(interval);
+  }, [contest]);
+
+  const calculateTotalVotes = (contest) => {
+    if (!contest) return 0;
+
+    if (!contest.isClosedContest) {
+      // ---- OPEN contest: sum multipliers from every position's voters
+      return (
+        contest.positions?.reduce((total, pos) => {
+          const posVotes = pos.voters?.reduce(
+            (sum, voter) => sum + (voter.multiplier || 0),
+            0
+          );
+          return total + (posVotes || 0);
+        }, 0) || 0
       );
+    } else {
+      // ---- CLOSED contest: count votedFor entries * multiplier
+      return (
+        contest.closedContestVoters?.reduce((total, voter) => {
+          const count = voter.votedFor?.length || 0;
+          return total + count * (voter.multiplier || 0);
+        }, 0) || 0
+      );
+    }
+  };
 
-  // Total votes and contestants
-  const totalGlobalVotes =
-    contest?.positions?.reduce(
-      (acc, pos) => acc + (pos.voters?.length || 0),
-      0
-    ) || 0;
+  const totalVotes = calculateTotalVotes(contest);
+
   const totalContestants = allContestants.length;
+
+  // ✅ Get every position object
 
   return (
     <div className="flex min-h-screen overflow-x-hidden lg:gap-[10rem]">
       <Sidebar />
-
-      <div className="flex-1 p-4 sm:p-6 md:ml-20 overflow-x-hidden max-w-full">
+      <div className="flex-1 p-6 md:ml-20 ">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <button
@@ -111,7 +205,7 @@ const Contestant = () => {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 mt-4 overflow-x-auto">
                   <div className="flex-shrink-0">
                     <span className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
-                      {totalGlobalVotes}
+                      {totalVotes}
                     </span>
                     <span className="text-gray-600 ml-2 text-xs sm:text-sm block sm:inline">
                       Total Votes
@@ -128,22 +222,6 @@ const Contestant = () => {
                 </div>
               </div>
             </div>
-
-
-            {/* Right Section - Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              <button
-                onClick={() => navigate(`/edit-contest/${contestId}`)}
-                className="flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium"
-              >
-                <Edit size={16} />
-                <span className="whitespace-nowrap">Edit Contest</span>
-              </button>
-              <button className="flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium">
-                <Share2 size={16} />
-                <span className="whitespace-nowrap">Share Link</span>
-              </button>
-            </div>
           </div>
         </div>
 
@@ -153,10 +231,11 @@ const Contestant = () => {
             <button
               key={pos}
               onClick={() => setSelectedPosition(pos)}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors ${selectedPosition === pos
-                ? "bg-orange-500 text-white"
-                : "bg-teal-800 text-white hover:bg-teal-700"
-                }`}
+              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                selectedPosition === pos
+                  ? "bg-orange-500 text-white"
+                  : "bg-teal-800 text-white hover:bg-teal-700"
+              }`}
             >
               {pos}
             </button>
@@ -172,7 +251,7 @@ const Contestant = () => {
               image={contestant.image || contestant.avatar || ""}
               votes={contestant.votes || 0}
               position={contestant.position}
-              contestantId={contestant._id}
+              contestantId={contestant.id}
               contestId={contestId}
             />
           ))}

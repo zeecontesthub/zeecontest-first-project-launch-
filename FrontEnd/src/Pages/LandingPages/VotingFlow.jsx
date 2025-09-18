@@ -1,16 +1,98 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Check } from "lucide-react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { ChevronLeft, Check, AlertTriangle } from "lucide-react";
 import axios from "axios";
+import VotersCode from "../../Components/LandingPageComp/contest/VotersCode";
+import OpenContestRegistration from "../../Components/LandingPageComp/contest/OpenContestRegistration";
+import { toast } from "react-toastify";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { auth } from "../../firebase";
 
 const VotingFlow = () => {
+  // Simulate contest type for demo: 'open' or 'closed'
+  // const [contestType, setContestType] = useState("open"); // now stateful
+
+  // Voting flow state
+  const location = useLocation();
   const [currentStep, setCurrentStep] = useState("cast");
   const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
-  const [votes, setVotes] = useState({});
+  const [votes, setVotes] = useState([]);
+  const [showVotersCode, setShowVotersCode] = useState(false);
+  const [showOpenContestPopup, setShowOpenContestPopup] = useState(false);
+  const [finalVotes, setFinalVotes] = useState({});
+  const [multiplier, setMultiplier] = useState(1);
 
   const { contestId } = useParams();
   const [contest, setContest] = useState(null);
+  const [countdown, setCountdown] = useState("");
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!contest) return;
+
+    // Build start date/time
+    const startDate = new Date(contest.startDate);
+    if (contest.startTime) {
+      let hour = parseInt(contest.startTime.startTimeHour, 10);
+      if (contest.startTime.startTimeAmPm === "PM" && hour < 12) hour += 12;
+      startDate.setHours(
+        hour,
+        parseInt(contest.startTime.startTimeMinute, 10),
+        0,
+        0
+      );
+    }
+
+    // Build end date/time
+    const endDate = new Date(contest.endDate);
+    if (contest.endTime) {
+      let hour = parseInt(contest.endTime.endTimeHour, 10);
+      if (contest.endTime.endTimeAmPm === "PM" && hour < 12) hour += 12;
+      endDate.setHours(hour, parseInt(contest.endTime.endTimeMinute, 10), 0, 0);
+    }
+
+    const contestStartDateTime = startDate.getTime();
+    const contestEndDateTime = endDate.getTime();
+
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+
+      if (now < contestStartDateTime) {
+        // console.log(contestStartDateTime);
+        // Countdown to contest start
+        const distance = contestStartDateTime - now;
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor(
+          (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        );
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        setCountdown(` ${days}d ${hours}h ${minutes}m ${seconds}s`);
+      } else if (now >= contestStartDateTime && now < contestEndDateTime) {
+        // console.log(contestStartDateTime, contestEndDateTime);
+        // Countdown to contest end
+        const distance = contestEndDateTime - now;
+
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor(
+          (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        );
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        setCountdown(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+      } else {
+        // Contest ended
+        setCountdown("Contest Ended");
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [contest]);
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -26,13 +108,130 @@ const VotingFlow = () => {
 
   // Dynamically pull positions from contest
   const positions = contest?.positions || [];
+  // Position and candidate data
+  // const positions = [
+  //   {
+  //     name: 'President',
+  //     candidates: [
+  //       { id: 1, name: 'James Williamson', avatar: null },
+  //       { id: 2, name: 'Sarah Johnson', avatar: null },
+  //       { id: 3, name: 'Michael Brown', avatar: null },
+  //       { id: 4, name: 'Emily Davis', avatar: null },
+  //       { id: 5, name: 'David Wilson', avatar: null },
+  //     ],
+  //   },
+  //   {
+  //     name: 'Vice-President',
+  //     candidates: [
+  //       { id: 6, name: 'Alice Cooper', avatar: null },
+  //       { id: 7, name: 'Bob Miller', avatar: null },
+  //       { id: 8, name: 'Carol White', avatar: null },
+  //       { id: 9, name: 'Daniel Green', avatar: null },
+  //       { id: 10, name: 'Eva Martinez', avatar: null },
+  //     ],
+  //   },
+  //   {
+  //     name: 'Secretary',
+  //     candidates: [
+  //       { id: 11, name: 'Frank Anderson', avatar: null },
+  //       { id: 12, name: 'Grace Taylor', avatar: null },
+  //       { id: 13, name: 'Henry Lee', avatar: null },
+  //     ],
+  //   },
+  //   {
+  //     name: 'PRO',
+  //     candidates: [
+  //       { id: 14, name: 'Kate Phillips', avatar: null },
+  //       { id: 15, name: 'Liam Murphy', avatar: null },
+  //       { id: 16, name: 'Maya Patel', avatar: null },
+  //     ],
+  //   },
+  //   {
+  //     name: 'Treasurer',
+  //     candidates: [
+  //       { id: 17, name: 'Olivia Scott', avatar: null },
+  //       { id: 18, name: 'Paul Robinson', avatar: null },
+  //       { id: 19, name: 'Quinn Adams', avatar: null },
+  //     ],
+  //   },
+  // ];
+
+  // Preselect logic from query params
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const position = params.get("position");
+    const candidateId = params.get("candidateId");
+
+    if (position && candidateId) {
+      const posIndex = positions.findIndex((p) => p.name === position);
+
+      if (posIndex !== -1) {
+        setCurrentPositionIndex(posIndex);
+        // Wait for position index to update, then set the vote
+        setTimeout(() => {
+          const candidateObj = positions[posIndex]?.contestants.find(
+            (c) => String(c._id) === String(candidateId)
+          );
+          if (candidateObj) {
+            setVotes((prev) => {
+              const exists = prev.some(
+                (v) =>
+                  v.votedFor === candidateObj._id &&
+                  v.positionTitle === positions[posIndex].name
+              );
+              if (exists) return prev; // do nothing if already added
+
+              return [
+                ...prev,
+                {
+                  votedFor: candidateObj._id,
+                  positionTitle: positions[posIndex].name,
+                  name: candidateObj.name,
+                  image: candidateObj.image,
+                },
+              ];
+            });
+          }
+        }, 0);
+      }
+    }
+    // eslint-disable-next-line
+  }, [location.search, contest]);
+
   const currentPosition = positions[currentPositionIndex];
 
   const handleCandidateSelect = (candidate) => {
-    setVotes((prev) => ({
-      ...prev,
-      [currentPosition.name]: candidate,
-    }));
+    setVotes((prev) => {
+      const posTitle = currentPosition.name;
+
+      // Does this position already have a selected candidate?
+      const exists = prev.some((v) => v.positionTitle === posTitle);
+
+      if (exists) {
+        // Update the existing entry
+        return prev.map((v) =>
+          v.positionTitle === posTitle
+            ? {
+                ...v,
+                votedFor: candidate._id,
+                name: candidate.name,
+                image: candidate.image,
+              }
+            : v
+        );
+      }
+
+      // Otherwise, add a new entry
+      return [
+        ...prev,
+        {
+          positionTitle: posTitle,
+          votedFor: candidate._id,
+          name: candidate.name,
+          image: candidate.image,
+        },
+      ];
+    });
   };
 
   const handleNextPosition = () => {
@@ -51,127 +250,422 @@ const VotingFlow = () => {
     setCurrentStep("cast");
   };
 
-  const handleSubmitVotes = async () => {
+  // const handleSubmitVotes = async () => {
+  //   try {
+  //     // await axios.post(`/api/contest/${contestId}/vote`, { votes });
+  //     console.log(votes);
+  //     alert("Votes submitted successfully!");
+  //     navigate("/thank-you"); // redirect after voting
+  //   } catch (err) {
+  //     console.error("Failed to submit votes:", err);
+  //     alert("Failed to submit votes, please try again.");
+  //   }
+  // };
+
+  const handleSubmitVotes = () => {
+    if (contest?.isClosedContest) {
+      setShowVotersCode(true);
+    } else {
+      setShowOpenContestPopup(true);
+    }
+    setFinalVotes(votes);
+  };
+
+  const handleVotersCodeClose = () => {
+    setShowVotersCode(false);
+  };
+
+  const handleOpenContestClose = () => {
+    setShowOpenContestPopup(false);
+  };
+
+  const handleVotersCodeSubmit = async (data) => {
     try {
-      // await axios.post(`/api/contest/${contestId}/vote`, { votes });
-      console.log(votes);
-      alert("Votes submitted successfully!");
-      navigate("/thank-you"); // redirect after voting
+      // if payment is required, collect payment first
+      if (contest?.payment?.isPaid) {
+        await payWithPaystack(
+          data.email,
+          contest.payment?.amount,
+          multiplier,
+          data
+        );
+        return { success: true };
+      }
+
+      // if no payment, just submit vote directly
+      return await submitVote(data);
     } catch (err) {
-      console.error("Failed to submit votes:", err);
-      alert("Failed to submit votes, please try again.");
+      toast.error(err.message || "Unable to submit vote. Please try again.");
     }
   };
+
+  // ⬇️ submit vote to backend (used both after payment and for free votes)
+  const submitVote = async (data) => {
+    const res = await axios.post(
+      `/api/contest/contests/${contestId}/addVerifyVote`,
+      {
+        email: data.email,
+        code: data.code,
+        votedFor: finalVotes,
+        multiplier,
+      }
+    );
+
+    if (res?.data.success) {
+      console.log("Vote submission response:", res.data);
+      toast.success("Vote submitted successfully!");
+      return { success: true };
+    } else {
+      throw new Error(res.data?.message || "Something went wrong");
+    }
+  };
+
+  const payWithPaystack = (email, amount, multiplier, voteData) => {
+    return new Promise((resolve, reject) => {
+      const handler = window.PaystackPop.setup({
+        key: "pk_test_c7ab01e45f104b0a7f7511a74aa6e146729d5fed",
+        email,
+        amount: amount * 100 * multiplier, // must be a number
+        currency: "NGN",
+        // ⛔️ no async here
+        callback: (response) => {
+          verifyAndSubmit(response.reference, voteData, resolve, reject);
+        },
+        onClose: () => {
+          toast.error("Payment popup closed.");
+          reject(new Error("Payment popup closed"));
+        },
+      });
+      handler.openIframe();
+    });
+  };
+
+  async function verifyAndSubmit(reference, voteData, resolve, reject) {
+    try {
+      const verify = await axios.post("/api/contest/verify-payment", {
+        reference,
+      });
+      if (!verify.data.success) {
+        toast.error("❌ Payment could not be verified.");
+        return reject(new Error("Payment verification failed"));
+      }
+      await submitVote(voteData);
+      toast.success("✅ Payment verified & vote recorded!");
+      resolve(true);
+    } catch (err) {
+      toast.error("Server verification failed");
+      reject(err);
+    }
+  }
+
+  // -------------------- Open Contest functions --------------------
+
+  // Call this when the user clicks “Vote with Google”
+  const handleOpenContestGoogleVerify = async () => {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+
+    try {
+      // 1️⃣ Google popup
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const voterName = user.displayName || "Anonymous";
+      const voterEmail = user.email;
+
+      // 2️⃣ Prepare vote payload (adapt to how you store finalVotes/multiplier)
+      const voteData = {
+        voterName,
+        voterEmail,
+        multiplier,
+        votedFor: finalVotes, // e.g. [{ positionTitle, votedFor }]
+      };
+
+      // 3️⃣ Paid or free contest?
+      if (contest?.payment?.isPaid) {
+        await payWithPaystackOpen(
+          voterEmail,
+          contest.payment.amount,
+          multiplier,
+          voteData
+        );
+
+        return { success: true };
+      } else {
+        return await submitVoteOpen(voteData);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Error verifying you");
+    }
+  };
+
+  // Paystack payment
+  const payWithPaystackOpen = (email, amount, multiplier, voteData) =>
+    new Promise((resolve, reject) => {
+      const handler = window.PaystackPop.setup({
+        key: "pk_test_c7ab01e45f104b0a7f7511a74aa6e146729d5fed",
+        email,
+        amount: amount * 100 * multiplier, // Paystack expects kobo
+        currency: "NGN",
+        callback: (response) =>
+          verifyAndSubmitOpen(response.reference, voteData, resolve, reject),
+        onClose: () => {
+          toast.error("Payment popup closed.");
+          reject(new Error("Payment popup closed"));
+        },
+      });
+      handler.openIframe();
+    });
+
+  // Verify payment server-side, then record vote
+  async function verifyAndSubmitOpen(reference, voteData, resolve, reject) {
+    try {
+      const verify = await axios.post("/api/contest/verify-payment", {
+        reference,
+      });
+      if (!verify.data.success) {
+        toast.error("❌ Payment could not be verified.");
+        return reject(new Error("Payment verification failed"));
+      }
+      await submitVoteOpen(voteData);
+      toast.success("✅ Payment verified & vote recorded!");
+      resolve(true);
+    } catch (err) {
+      toast.error("Server verification failed");
+      reject(err);
+    }
+  }
+
+  // Actual vote submission to your Express route
+  async function submitVoteOpen(voteData) {
+    const res = await axios.post(
+      `/api/contest/contests/${contestId}/add-vote`,
+      voteData
+    );
+    if (res?.data.success) {
+      console.log("Vote submission response:", res.data);
+      toast.success("Vote submitted successfully!");
+      return { success: true };
+    } else {
+      throw new Error(res.data?.message || "Something went wrong");
+    }
+  }
+
+  const startDate = new Date(contest?.startDate);
+  if (contest?.startTime) {
+    let hour = parseInt(contest.startTime.startTimeHour, 10);
+    if (contest.startTime.startTimeAmPm === "PM" && hour < 12) hour += 12;
+    if (contest.startTime.startTimeAmPm === "AM" && hour === 12) hour = 0;
+    startDate.setHours(
+      hour,
+      parseInt(contest.startTime.startTimeMinute, 10),
+      0,
+      0
+    );
+  }
+
+  const endDate = new Date(contest?.endDate);
+  if (contest?.endTime) {
+    let hour = parseInt(contest.endTime.endTimeHour, 10);
+    if (contest.endTime.endTimeAmPm === "PM" && hour < 12) hour += 12;
+    if (contest.endTime.endTimeAmPm === "AM" && hour === 12) hour = 0;
+    endDate.setHours(hour, parseInt(contest.endTime.endTimeMinute, 10), 0, 0);
+  }
+
+  const now = new Date();
+
+  if (now < startDate) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <div className="flex-1 w-full p-6 flex items-center justify-center">
+          <div className="text-center">
+            <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Contestant Not Started
+            </h2>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              Contest <span className="text-orange-600 font-bold">Starts</span>{" "}
+              In
+            </h3>
+            <div className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
+              <p className="text-xl font-semibold text-white">
+                {countdown}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (contest?.status === "ended" || contest?.status === "completed") {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <div className="flex-1 w-full p-6 flex items-center justify-center">
+          <div className="text-center">
+            <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Contest Ended
+            </h2>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // =========================
   // Casting Screen
   // =========================
   if (currentStep === "cast") {
     return (
-      <div className="px-4 md:px-30 py-8 bg-[#F8F8F8]">
-        <div className="mx-auto">
-          <div className="flex items-center gap-4 mb-8">
-            <button
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              onClick={() => navigate(-1)}
-            >
-              <ChevronLeft className="w-8 h-8 text-gray-900" />
-            </button>
-            <h1 className="text-2xl font-bold text-gray-900">Cast your vote</h1>
-          </div>
-
-          {/* Positions Tabs */}
-          <div className="mb-8">
-            <p className="text-gray-700 mb-4">Select your position</p>
-            <div className="flex flex-wrap gap-3">
-              {positions.map((position, index) => (
-                <button
-                  key={position._id || position.name}
-                  onClick={() => setCurrentPositionIndex(index)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    index === currentPositionIndex
-                      ? "bg-[#034045] text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }`}
-                >
-                  {position.name}
-                  <span className="ml-2 text-xs">
-                    {position?.contestants?.length || 0}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Candidates List */}
-          <div className="mb-8">
-            <p className="text-gray-700 mb-4">
-              Select the contestant you want to vote for
-            </p>
-            <div className="space-y-3">
-              {currentPosition?.contestants?.map((candidate) => (
-                <div
-                  key={candidate._id}
-                  onClick={() => handleCandidateSelect(candidate)}
-                  className="flex items-center justify-between p-4 bg-[#D9D9D94D] rounded-lg border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-black rounded-full overflow-hidden">
-                      {candidate.image ? (
-                        <img
-                          src={candidate.image}
-                          alt={candidate.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : null}
-                    </div>
-                    <span className="text-lg font-medium text-gray-900">
-                      {candidate.name}
-                    </span>
-                  </div>
-                  <div
-                    className={`w-6 h-6 border-2 rounded ${
-                      votes[currentPosition.name]?._id === candidate._id
-                        ? "bg-[#034045] border-[#034045]"
-                        : "border-gray-300"
-                    } flex items-center justify-center`}
-                  >
-                    {votes[currentPosition.name]?._id === candidate._id && (
-                      <Check className="w-4 h-4 text-white" />
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Navigation */}
-          <div className="space-y-4">
-            <button
-              onClick={handleNextPosition}
-              disabled={!votes[currentPosition?.name]}
-              className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${
-                votes[currentPosition?.name]
-                  ? "bg-[#034045] hover:bg-[#045a60] text-white"
-                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
-              }`}
-            >
-              {currentPositionIndex < positions.length - 1
-                ? "Next Position"
-                : "Review Votes"}
-            </button>
-
-            <div className="text-center">
+      <>
+        <div className="px-4 md:px-30 py-8 bg-[#F8F8F8]">
+          <div className="mx-auto">
+            <div className="flex items-center gap-4 mb-8">
               <button
-                onClick={handleSkipToReview}
-                className="text-[#034045] underline hover:text-[#045a60] transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                onClick={() => navigate(-1)}
               >
-                Skip other Positions and Submit my Vote
+                <ChevronLeft className="w-8 h-8 text-gray-900" />
               </button>
+              <h1 className="text-[20px] font-semibold text-gray-900">
+                Cast your vote
+              </h1>
+            </div>
+
+            {/* Contest type toggle for demo */}
+            {/* <div className="flex justify-end mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-700">Demo as:</span>
+                <button
+                  className={`px-3 py-1 rounded-l border border-gray-300 text-sm font-medium ${
+                    contestType === "open"
+                      ? "bg-[#034045] text-white"
+                      : "bg-white text-gray-700"
+                  }`}
+                  onClick={() => setContestType("open")}
+                  type="button"
+                >
+                  Open Contest
+                </button>
+                <button
+                  className={`px-3 py-1 rounded-r border border-gray-300 text-sm font-medium ${
+                    contestType === "closed"
+                      ? "bg-[#034045] text-white"
+                      : "bg-white text-gray-700"
+                  }`}
+                  onClick={() => setContestType("closed")}
+                  type="button"
+                >
+                  Closed Contest
+                </button>
+              </div>
+            </div> */}
+
+            <div className="mb-8">
+              <p className="text-gray-700 mb-4">Select your position</p>
+              <div className="flex flex-wrap gap-3">
+                {positions.map((position, index) => (
+                  <button
+                    key={position.name}
+                    onClick={() => setCurrentPositionIndex(index)}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                      index === currentPositionIndex
+                        ? "bg-[#034045] text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    {position.name}
+                    <span className="ml-2 text-xs">
+                      {position?.contestants?.length || 0}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Candidates List */}
+            <div className="mb-8">
+              <p className="text-gray-700 mb-4">
+                Select the contestant you want to vote for
+              </p>
+              <div className="space-y-3">
+                {currentPosition?.contestants?.map((candidate) => (
+                  <div
+                    key={candidate._id}
+                    onClick={() => handleCandidateSelect(candidate)}
+                    className="flex items-center justify-between p-4 bg-[#D9D9D94D] rounded-lg border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-black rounded-full overflow-hidden">
+                        {candidate.image ? (
+                          <img
+                            src={candidate.image}
+                            alt={candidate.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : null}
+                      </div>
+                      <span className="text-lg font-medium text-gray-900">
+                        {candidate.name}
+                      </span>
+                    </div>
+                    <div
+                      className={`w-6 h-6 border-2 rounded ${
+                        votes.find(
+                          (vote) => vote.positionTitle === currentPosition.name
+                        )?.votedFor === candidate._id
+                          ? "bg-[#034045] border-[#034045]"
+                          : "border-gray-300"
+                      } flex items-center justify-center`}
+                    >
+                      {votes.find(
+                        (vote) => vote.positionTitle === currentPosition.name
+                      )?.votedFor === candidate._id && (
+                        <Check className="w-4 h-4 text-white" />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Next Button */}
+
+            {/* Navigation */}
+            <div className="space-y-4">
+              <button
+                onClick={handleNextPosition}
+                disabled={
+                  !votes.find(
+                    (vote) => vote.positionTitle === currentPosition?.name
+                  )
+                }
+                className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${
+                  votes.find(
+                    (vote) => vote.positionTitle === currentPosition.name
+                  )
+                    ? "bg-[#034045] hover:bg-[#045a60] text-white"
+                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                {currentPositionIndex < positions.length - 1
+                  ? "Next Position"
+                  : "Review Votes"}
+              </button>
+
+              <div className="text-center">
+                <button
+                  onClick={handleSkipToReview}
+                  className="text-[#034045] underline hover:text-[#045a60] transition-colors"
+                >
+                  Skip other Positions and Submit my Vote
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -188,7 +682,7 @@ const VotingFlow = () => {
           >
             <ChevronLeft className="w-8 h-8 text-gray-900" />
           </button>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-[20px] font-semibold text-gray-900">
             Review your votes
           </h1>
         </div>
@@ -203,12 +697,13 @@ const VotingFlow = () => {
                 <div>
                   <p className="text-sm text-gray-500 mb-1">{position.name}</p>
                   <p className="text-xl font-bold text-gray-900">
-                    {votes[position.name]?.name || "No selection"}
+                    {votes.find((vote) => vote.positionTitle === position.name)
+                      ?.name || "No selection"}
                   </p>
                 </div>
               </div>
 
-              {!votes[position.name] && (
+              {!votes.find((vote) => vote.positionTitle === position.name) && (
                 <button
                   onClick={() => {
                     const positionIndex = positions.findIndex(
@@ -226,6 +721,35 @@ const VotingFlow = () => {
           ))}
         </div>
 
+        {/* Vote Multiplier Section */}
+        {contest?.allowMultipleVotes && (
+          <div className="mb-6 p-4 bg-[#F3F7F6] rounded-lg border border-[#034045]/20">
+            <label
+              htmlFor="vote-multiplier"
+              className="block text-gray-800 font-medium mb-2"
+            >
+              Vote Multiplier
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                id="vote-multiplier"
+                type="number"
+                min={1}
+                value={multiplier}
+                onChange={(e) =>
+                  setMultiplier(Math.max(1, Number(e.target.value)))
+                }
+                className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#034045] text-lg font-semibold text-gray-900 bg-white"
+              />
+              <span className="text-gray-700">
+                Each selected candidate will receive{" "}
+                <span className="font-bold">{multiplier}</span> vote
+                {multiplier > 1 ? "s" : ""}.
+              </span>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-4">
           <button
             onClick={handleSubmitVotes}
@@ -238,13 +762,17 @@ const VotingFlow = () => {
           >
             Cast my votes
           </button>
-
-          <button
-            onClick={handleBackToCasting}
-            className="w-full py-4 rounded-lg font-semibold text-lg border-2 border-[#034045] text-[#034045] hover:bg-[#034045] hover:text-white transition-colors"
-          >
-            Continue Voting
-          </button>
+          {/* Popups for open/closed contest simulation */}
+          <VotersCode
+            open={showVotersCode}
+            onClose={handleVotersCodeClose}
+            onSubmit={handleVotersCodeSubmit}
+          />
+          <OpenContestRegistration
+            open={showOpenContestPopup}
+            onClose={handleOpenContestClose}
+            onGoogleVerify={handleOpenContestGoogleVerify}
+          />
         </div>
       </div>
     </div>
