@@ -474,6 +474,25 @@ const VotingFlow = () => {
 
   const now = new Date();
 
+  if (contest?.status === "pause") {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <div className="flex-1 w-full p-6 flex items-center justify-center">
+          <div className="text-center">
+            <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Contestant Paused
+            </h2>
+
+            <div className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
+              <p className="text-xl font-semibold text-white">{countdown}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (now < startDate) {
     return (
       <div className="min-h-screen flex flex-col">
@@ -488,9 +507,7 @@ const VotingFlow = () => {
               In
             </h3>
             <div className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
-              <p className="text-xl font-semibold text-white">
-                {countdown}
-              </p>
+              <p className="text-xl font-semibold text-white">{countdown}</p>
             </div>
           </div>
         </div>

@@ -159,15 +159,6 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
 
   const currentData = sections[currentSection];
 
-  // eslint-disable-next-line no-unused-vars
-  const contestants = [
-    { name: "Jakeayodeji", votes: 40, avatar: "👨‍🎨" },
-    { name: "Johnson", votes: 32, avatar: "👨‍🎨" },
-    { name: "Fuad", votes: 20, avatar: "👨‍🎨" },
-    { name: "David", votes: 15, avatar: "👨‍🎨" },
-    { name: "Emmanuel", votes: 10, avatar: "👨‍🎨" },
-  ];
-
   // Combine all contestants from all positions and take first 5, include position info
   const contestantDetails = Object.entries(positionData)
     .flatMap(([position, data]) =>
@@ -981,6 +972,8 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                     }
 
                     const now = new Date();
+
+                    // console.log(now, startDate, endDate, contest?.endTime);
 
                     // ✅ Contest paused
                     if (contest?.status === "pause") {

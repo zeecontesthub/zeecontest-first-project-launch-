@@ -97,7 +97,7 @@ const ContestDetailPage = () => {
         const res = await axios.get(`/api/contest/${contestId}`);
         console.log(res);
         setContest(res.data.contest);
-        setActivePosition(res.data.contest?.positions[0].name);
+        setActivePosition(res.data.contest?.positions[0]?.name);
       } catch (err) {
         console.error("Failed to fetch contest:", err);
       }
@@ -144,7 +144,7 @@ const ContestDetailPage = () => {
   }, [contest]);
 
   const [activePosition, setActivePosition] = useState(
-    contest?.positions[0].name
+    contest?.positions[0]?.name
   );
 
   const [selectedCandidate, setSelectedCandidate] = useState(null);
@@ -153,7 +153,7 @@ const ContestDetailPage = () => {
     contest?.positions?.flatMap((pos) =>
       pos.contestants?.map((contestant) => ({
         ...contestant,
-        position: pos.name,
+        position: pos?.name,
       }))
     ) || [];
 

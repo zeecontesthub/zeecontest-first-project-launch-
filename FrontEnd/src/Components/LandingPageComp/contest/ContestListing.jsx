@@ -1,10 +1,159 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Users, Clock } from "lucide-react";
 import VoteIcon from "../../../assets/VoteIcon";
 
-const ContestListing = ({ contests, loading, error, lastItemRef }) => {
+const getStatusBadge = (status) => {
+  const baseClasses =
+    "absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium";
+  switch (status) {
+    case "ongoing":
+      return `${baseClasses} bg-green-500 text-white`;
+    case "upcoming":
+      return `${baseClasses} bg-yellow-500 text-white`;
+    case "completed":
+      return `${baseClasses} bg-red-500 text-white`;
+    default:
+      return `${baseClasses} bg-gray-500 text-white`;
+  }
+};
+
+const getButtonConfig = (status) => {
+  const baseClasses =
+    "w-full py-3 rounded-lg font-medium transition-all duration-200 cursor-pointer";
+  switch (status) {
+    case "ongoing":
+      return {
+        classes: `${baseClasses} bg-[#034045] hover:bg-[#045a60] text-white`,
+        text: "Vote Now",
+      };
+    default:
+      return {
+        classes: `${baseClasses} bg-[#034045] hover:bg-[#045a60] text-white`,
+        text: "View Details",
+      };
+  }
+};
+
+const ContestCard = ({
+  contest,
+  key,
+  filteredContests,
+  index,
+  lastItemRef,
+}) => {
   const navigate = useNavigate();
+  const buttonConfig = getButtonConfig(contest.status);
+  const isLastItem = filteredContests.length === index + 1;
+
+  const allContestants =
+    contest?.positions?.flatMap((pos) =>
+      pos.contestants?.map((contestant) => ({
+        ...contestant,
+        position: pos?.name,
+      }))
+    ) || [];
+
+  const totalContestants = allContestants.length;
+
+  const getPositionTotalVotes = (pos, contest) => {
+    if (!pos || !contest) return 0;
+
+    if (contest.isClosedContest) {
+      // closed: look at contest.closedContestVoters
+      return (
+        contest.closedContestVoters?.reduce((sum, voter) => {
+          const count =
+            voter.votedFor?.filter((v) => v.positionTitle === pos.name)
+              .length || 0;
+          return sum + count * (voter.multiplier || 1);
+        }, 0) || 0
+      );
+    }
+
+    // open: normal position.voters array
+    return pos.voters?.reduce((sum, v) => sum + (v.multiplier || 1), 0) || 0;
+  };
+
+  const totalVotes = useMemo(
+    () =>
+      contest?.positions?.reduce(
+        (sum, p) => sum + getPositionTotalVotes(p, contest),
+        0
+      ) || 0,
+    [contest]
+  );
+
+  return (
+    <div
+      key={contest._id || key}
+      ref={isLastItem ? lastItemRef : null}
+      className="bg-[#84818133] rounded-xl overflow-hidden hover:shadow-xl transition-shadow duration-300"
+    >
+      {/* Contest Header */}
+      <div className="relative bg-black h-48 flex items-center justify-center">
+        <img
+          src={contest.coverImageUrl}
+          alt={contest.title}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className={getStatusBadge(contest.status)}>
+          {contest.status.charAt(0).toUpperCase() + contest.status.slice(1)}
+        </div>
+      </div>
+
+      {/* Contest Details */}
+      <div className="p-6">
+        <h3 className="text-xl font-bold text-[#034045] mb-4">
+          {contest.title}
+        </h3>
+
+        {/* Stats */}
+        <div className="flex justify-between items-center mb-6 text-sm text-gray-600">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-[#034045]" />
+            <div>
+              <div className="font-semibold text-[#034045]">
+                {totalVotes || 0}
+              </div>
+              <div>Votes</div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <VoteIcon />
+            <div>
+              <div className="font-semibold text-[#034045]">
+                {contest?.positions?.length || 0}
+              </div>
+              <div>Positions</div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-[#034045]" />
+            <div>
+              <div className="font-semibold text-[#034045]">
+                {totalContestants || 0}
+              </div>
+              <div>Contestants</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Button */}
+        <button
+          className={buttonConfig.classes}
+          onClick={() => navigate(`/contest-detail/${contest._id}`)}
+        >
+          {buttonConfig.text}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const ContestListing = ({ contests, loading, error, lastItemRef }) => {
   const [activeFilter, setActiveFilter] = useState("All Contests");
 
   const filterTabs = [
@@ -32,37 +181,6 @@ const ContestListing = ({ contests, loading, error, lastItemRef }) => {
 
   // Get status badge styling
   // Get status badge styling
-  const getStatusBadge = (status) => {
-    const baseClasses =
-      "absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium";
-    switch (status) {
-      case "ongoing":
-        return `${baseClasses} bg-green-500 text-white`;
-      case "upcoming":
-        return `${baseClasses} bg-yellow-500 text-white`;
-      case "completed":
-        return `${baseClasses} bg-red-500 text-white`;
-      default:
-        return `${baseClasses} bg-gray-500 text-white`;
-    }
-  };
-
-  const getButtonConfig = (status) => {
-    const baseClasses =
-      "w-full py-3 rounded-lg font-medium transition-all duration-200 cursor-pointer";
-    switch (status) {
-      case "ongoing":
-        return {
-          classes: `${baseClasses} bg-[#034045] hover:bg-[#045a60] text-white`,
-          text: "Vote Now",
-        };
-      default:
-        return {
-          classes: `${baseClasses} bg-[#034045] hover:bg-[#045a60] text-white`,
-          text: "View Details",
-        };
-    }
-  };
 
   return (
     <div className="w-full mx-auto px-4 md:px-12 lg:px-30 py-8">
@@ -101,95 +219,19 @@ const ContestListing = ({ contests, loading, error, lastItemRef }) => {
         )}
 
         {filteredContests.map((contest, index) => {
-          const buttonConfig = getButtonConfig(contest.status);
-          const isLastItem = filteredContests.length === index + 1;
-
-          const allContestants =
-            contest?.positions?.flatMap((pos) =>
-              pos.contestants?.map((contestant) => ({
-                ...contestant,
-                position: pos.name,
-              }))
-            ) || [];
-
-          const totalContestants = allContestants.length;
-
           return (
-            <div
-              key={contest._id || index}
-              ref={isLastItem ? lastItemRef : null}
-              className="bg-[#84818133] rounded-xl overflow-hidden hover:shadow-xl transition-shadow duration-300"
-            >
-              {/* Contest Header */}
-              <div className="relative bg-black h-48 flex items-center justify-center">
-                <img
-                  src={contest.coverImageUrl}
-                  alt={contest.title}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div className={getStatusBadge(contest.status)}>
-                  {contest.status.charAt(0).toUpperCase() +
-                    contest.status.slice(1)}
-                </div>
-              </div>
-
-              {/* Contest Details */}
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-[#034045] mb-4">
-                  {contest.title}
-                </h3>
-
-                {/* Stats */}
-                <div className="flex justify-between items-center mb-6 text-sm text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-[#034045]" />
-                    <div>
-                      <div className="font-semibold text-[#034045]">
-                        {contest?.voters?.length || 0}
-                      </div>
-                      <div>Votes</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <VoteIcon />
-                    <div>
-                      <div className="font-semibold text-[#034045]">
-                        {contest?.positions?.length || 0}
-                      </div>
-                      <div>Positions</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-[#034045]" />
-                    <div>
-                      <div className="font-semibold text-[#034045]">
-                        {totalContestants || 0}
-                      </div>
-                      <div>Contestants</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Button */}
-                <button
-                  className={buttonConfig.classes}
-                  onClick={() => navigate(`/contest-detail/${contest._id}`)}
-                >
-                  {buttonConfig.text}
-                </button>
-              </div>
-            </div>
+            <ContestCard
+              key={contest._id}
+              contest={contest}
+              filteredContests={filteredContests}
+              index={index}
+              lastItemRef={lastItemRef}
+            />
           );
         })}
       </div>
 
-      {loading && (
-        <p className="text-center text-gray-500 mt-6">
-          Loading...
-        </p>
-      )}
+      {loading && <p className="text-center text-gray-500 mt-6">Loading...</p>}
       {error && <p className="text-center text-red-500 mt-6">{error}</p>}
     </div>
   );

@@ -7,7 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import VoteIcon from "../../assets/VoteIcon";
 import axios from "axios";
 
@@ -98,6 +98,128 @@ const getButtonConfig = (status) => {
         text: "View Details",
       };
   }
+};
+
+const getStatusBadge = (status) => {
+  const baseClasses =
+    "absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium";
+  switch (status) {
+    case "ongoing":
+      return `${baseClasses} bg-green-500 text-white`;
+    case "upcoming":
+      return `${baseClasses} bg-yellow-500 text-white`;
+    case "completed":
+      return `${baseClasses} bg-red-500 text-white`;
+    default:
+      return `${baseClasses} bg-gray-500 text-white`;
+  }
+};
+
+const ContestCard = ({ contest, slidesPerView }) => {
+  const navigate = useNavigate();
+  const buttonConfig = getButtonConfig(contest.status);
+
+  const allContestants =
+    contest?.positions?.flatMap((pos) =>
+      pos.contestants?.map((contestant) => ({
+        ...contestant,
+        position: pos?.name,
+      }))
+    ) || [];
+
+  const totalContestants = allContestants.length;
+
+  const getPositionTotalVotes = (pos, contest) => {
+    if (!pos || !contest) return 0;
+
+    if (contest.isClosedContest) {
+      // closed: look at contest.closedContestVoters
+      return (
+        contest.closedContestVoters?.reduce((sum, voter) => {
+          const count =
+            voter.votedFor?.filter((v) => v.positionTitle === pos.name)
+              .length || 0;
+          return sum + count * (voter.multiplier || 1);
+        }, 0) || 0
+      );
+    }
+
+    // open: normal position.voters array
+    return pos.voters?.reduce((sum, v) => sum + (v.multiplier || 1), 0) || 0;
+  };
+
+  const totalVotes = useMemo(
+    () =>
+      contest?.positions?.reduce(
+        (sum, p) => sum + getPositionTotalVotes(p, contest),
+        0
+      ) || 0,
+    [contest]
+  );
+
+  return (
+    <div
+      key={contest._id}
+      className="px-2 sm:px-3 flex-shrink-0"
+      style={{ width: `${100 / slidesPerView}%` }}
+    >
+      <div className="bg-[#84818133] rounded-xl overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <div className="relative bg-black h-48 flex items-center justify-center">
+          <img
+            src={contest.coverImageUrl}
+            alt={contest.title}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className={getStatusBadge(contest.status)}>
+            {contest.status.charAt(0).toUpperCase() + contest.status.slice(1)}
+          </div>
+        </div>
+        <div className="p-4 sm:p-6">
+          <p className="text-base sm:text-lg md:text-xl font-bold text-[#034045] mb-3 sm:mb-4 leading-tight">
+            {contest.title}
+          </p>
+
+          {/* Stats Section */}
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 text-xs sm:text-sm text-gray-600 gap-3 sm:gap-2">
+            <div className="flex items-center gap-2">
+              <Users className="w-3 h-3 sm:w-4 sm:h-4 text-[#034045] flex-shrink-0" />
+              <div>
+                <div className="font-semibold text-[#034045]">
+                  {totalVotes || 0}
+                </div>
+                <div>Votes</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <VoteIcon />
+              <div>
+                <div className="font-semibold text-[#034045]">
+                  {contest?.positions?.length || 0}
+                </div>
+                <div>Positions</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-[#034045] flex-shrink-0" />
+              <div>
+                <div className="font-semibold text-[#034045]">
+                  {totalContestants}
+                </div>
+                <div>Contestants</div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            className={buttonConfig.classes}
+            onClick={() => navigate(`/contest-detail/${contest._id}`)}
+          >
+            {buttonConfig.text}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const ContestPreview = () => {
@@ -198,21 +320,6 @@ const ContestPreview = () => {
     }
   };
 
-  const getStatusBadge = (status) => {
-    const baseClasses =
-      "absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium";
-    switch (status) {
-      case "ongoing":
-        return `${baseClasses} bg-green-500 text-white`;
-      case "upcoming":
-        return `${baseClasses} bg-yellow-500 text-white`;
-      case "completed":
-        return `${baseClasses} bg-red-500 text-white`;
-      default:
-        return `${baseClasses} bg-gray-500 text-white`;
-    }
-  };
-
   return (
     <div className="w-full mx-auto px-4 sm:px-6 md:px-12 lg:px-30 py-6 sm:py-8">
       {/* Section Header */}
@@ -264,85 +371,8 @@ const ContestPreview = () => {
           >
             {contests.map((contest, index) => {
               // const buttonConfig = getButtonConfig(contest.status);
-
-              const buttonConfig = getButtonConfig(contest.status);
-              const isLastItem = contests.length === index + 1;
-
-              const allContestants =
-                contest?.positions?.flatMap((pos) =>
-                  pos.contestants?.map((contestant) => ({
-                    ...contestant,
-                    position: pos.name,
-                  }))
-                ) || [];
-
-              const totalContestants = allContestants.length;
-
               return (
-                <div
-                  key={contest._id}
-                  className="px-2 sm:px-3 flex-shrink-0"
-                  style={{ width: `${100 / slidesPerView}%` }}
-                >
-                  <div className="bg-[#84818133] rounded-xl overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                    <div className="relative bg-black h-48 flex items-center justify-center">
-                      <img
-                        src={contest.coverImageUrl}
-                        alt={contest.title}
-                        className="absolute inset-0 w-full h-full object-cover"
-                      />
-                      <div className={getStatusBadge(contest.status)}>
-                        {contest.status.charAt(0).toUpperCase() +
-                          contest.status.slice(1)}
-                      </div>
-                    </div>
-                    <div className="p-4 sm:p-6">
-                      <p className="text-base sm:text-lg md:text-xl font-bold text-[#034045] mb-3 sm:mb-4 leading-tight">
-                        {contest.title}
-                      </p>
-
-                      {/* Stats Section */}
-                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 text-xs sm:text-sm text-gray-600 gap-3 sm:gap-2">
-                        <div className="flex items-center gap-2">
-                          <Users className="w-3 h-3 sm:w-4 sm:h-4 text-[#034045] flex-shrink-0" />
-                          <div>
-                            <div className="font-semibold text-[#034045]">
-                              {contest?.voters?.length || 0}
-                            </div>
-                            <div>Votes</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <VoteIcon />
-                          <div>
-                            <div className="font-semibold text-[#034045]">
-                              {contest?.positions?.length || 0}
-                            </div>
-                            <div>Positions</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-[#034045] flex-shrink-0" />
-                          <div>
-                            <div className="font-semibold text-[#034045]">
-                              {totalContestants}
-                            </div>
-                            <div>Contestants</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        className={buttonConfig.classes}
-                        onClick={() =>
-                          navigate(`/contest-detail/${contest._id}`)
-                        }
-                      >
-                        {buttonConfig.text}
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <ContestCard contest={contest} slidesPerView={slidesPerView} />
               );
             })}
           </div>

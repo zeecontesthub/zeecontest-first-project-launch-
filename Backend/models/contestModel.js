@@ -76,7 +76,7 @@ const contestSchema = new mongoose.Schema({
     startTimeAmPm: { type: String, default: "AM" },
   }, // e.g., "08:00 AM"
   endTime: {
-    endTimeHour: { type: String, default: "00" }, // e.g., "05"
+    endTimeHour: { type: String, default: "12" }, // e.g., "05"
     endTimeMinute: { type: String, default: "00" },
     endTimeAmPm: { type: String, default: "AM" },
   }, // e.g., "05:00 PM"
