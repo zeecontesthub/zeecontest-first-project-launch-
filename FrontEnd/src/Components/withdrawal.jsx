@@ -18,18 +18,21 @@ const Withdrawal = ({ amountToWithdraw, openWithdrawal, onClose }) => {
   const handleWithdraw = async () => {
     if (!amount || parseFloat(amount) <= 0 || !user?.firebaseUid) return;
 
-      // toast.promise shows pending → success/error automatically
+    // toast.promise shows pending → success/error automatically
     await toast.promise(
       (async () => {
         setLoading(true);
-        const res = await axios.post(`/api/contest/withdraw/${user?.firebaseUid}`, {
-          amount: parseFloat(amount),
-          userName: user?.name,
-          userEmail: user?.email,
-          bankName,
-          bankAccount,
-          accountName: nameOnAccount,
-        });
+        const res = await axios.post(
+          `/api/contest/withdraw/${user?.firebaseUid}`,
+          {
+            amount: parseFloat(amount),
+            userName: user?.name,
+            userEmail: user?.email,
+            bankName,
+            bankAccount,
+            accountName: nameOnAccount,
+          }
+        );
         setLoading(false);
         const data = res.data;
         if (!data.success) throw new Error(data.message || "Withdrawal failed");

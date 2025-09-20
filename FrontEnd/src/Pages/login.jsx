@@ -62,13 +62,11 @@ const Login = () => {
             }),
           });
 
-          const data = await apiResult.json(); // parse the JSON response
+          await apiResult.json(); // parse the JSON response
 
           // console.log(data);
 
-          const role = data.user?.role; // optional chaining to avoid crashes
-
-          navigate(role ? "/dashboard" : "/role-selection");
+          navigate("/dashboard");
         })
         .catch((err) => {
           console.error("❌ Error signing in", err);

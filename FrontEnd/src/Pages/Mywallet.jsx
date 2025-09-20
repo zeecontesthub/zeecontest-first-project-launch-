@@ -49,12 +49,12 @@ const Mywallet = () => {
         if (data.success) {
           console.log(data);
           setWalletData({
-            availableBalance: data.availableBalance,
-            totalEarnings: data.totalEarnings,
-            thisMonthEarnings: data.thisMonthEarnings,
-            lastWithdrawal: data.lastWithdrawal,
-            contests: data.contests, // <-- important
-            totalWithdrawals: data.totalWithdrawals,
+            availableBalance: (data.availableBalance ?? 0) * 0.7,
+            totalEarnings: (data.totalEarnings ?? 0) * 0.7,
+            thisMonthEarnings: (data.thisMonthEarnings ?? 0) * 0.7,
+            lastWithdrawal: (data.lastWithdrawal ?? 0) * 0.7,
+            contests: data.contests, // not numeric, leave as is
+            totalWithdrawals: (data.totalWithdrawals ?? 0) * 0.7,
           });
           setContests(data.contests);
         }
@@ -215,9 +215,10 @@ const Mywallet = () => {
     setTransactionHistory(history);
   }, [walletData]);
 
-  const amountToWithdraw = walletData.contests
-    ?.filter((c) => c.status === "completed" && !c.payment?.isWithdrawn)
-    .reduce((sum, c) => sum + (c.revenue || 0), 0);
+  const amountToWithdraw =
+    walletData.contests
+      ?.filter((c) => c.status === "completed" && !c.payment?.isWithdrawn)
+      .reduce((sum, c) => sum + (c.revenue || 0), 0) * 0.7;
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row lg:gap-[10rem]">
@@ -332,7 +333,9 @@ const Mywallet = () => {
                 <div>
                   <p className="text-xs text-gray-600">Total Withdrawals</p>
                   <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                    {formatCurrency(walletData?.totalWithdrawals || totalWithdrawals)}
+                    {formatCurrency(
+                      walletData?.totalWithdrawals || totalWithdrawals
+                    )}
                   </p>
                 </div>
               </div>
@@ -401,7 +404,7 @@ const Mywallet = () => {
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-gray-900">
-                          {formatCurrency(contest.revenue)}
+                          {formatCurrency(contest.revenue * 0.7)}
                         </p>
                         <p className="text-sm text-gray-600">
                           {/* Show percentage of total earnings */}
@@ -538,7 +541,7 @@ const Mywallet = () => {
                         <div>
                           <span className="text-gray-600 block">Revenue</span>
                           <span className="font-bold text-teal-600">
-                            {formatCurrency(contest.revenue)}
+                            {formatCurrency(contest.revenue * 0.7)}
                           </span>
                         </div>
                       </div>
@@ -589,7 +592,7 @@ const Mywallet = () => {
                             {contest.totalVotes.toLocaleString()}
                           </td>
                           <td className="py-3 sm:py-4 font-bold text-teal-600">
-                            {formatCurrency(contest.revenue)}
+                            {formatCurrency(contest.revenue * 0.7)}
                           </td>
                           <td className="py-3 sm:py-4">
                             <span
@@ -663,7 +666,7 @@ const Mywallet = () => {
                       </div>
                       <div className="text-left sm:text-right mt-2 sm:mt-0">
                         <p className="font-bold text-gray-900">
-                          {formatCurrency(transaction.amount)}
+                          {formatCurrency(transaction.amount * 0.7)}
                         </p>
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${
