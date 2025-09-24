@@ -18,7 +18,10 @@ const Contest = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const tabParam = params.get("tab");
-    if (tabParam && ["All", "Upcoming", "Ongoing", "Completed", "Draft"].includes(tabParam)) {
+    if (
+      tabParam &&
+      ["All", "Upcoming", "Ongoing", "Completed", "Draft"].includes(tabParam)
+    ) {
       setActiveTab(tabParam);
     }
   }, [location.search]);
@@ -65,9 +68,7 @@ const Contest = () => {
             </div>
           ))}
         </div>
-        <div>
-          test
-        </div>
+
         {/* Filter Tabs */}
         <div className="flex flex-wrap gap-3 mb-8">
           {tabs.map((tab) => (

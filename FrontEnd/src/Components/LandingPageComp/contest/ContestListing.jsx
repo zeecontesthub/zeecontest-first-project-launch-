@@ -154,7 +154,7 @@ const ContestCard = ({
 };
 
 const ContestListing = ({ contests, loading, error, lastItemRef }) => {
-  const [activeFilter, setActiveFilter] = useState("All Contests");
+  const [activeFilter, setActiveFilter] = useState("all contests");
 
   const filterTabs = [
     { name: "All Contests", count: contests.length },
@@ -175,7 +175,7 @@ const ContestListing = ({ contests, loading, error, lastItemRef }) => {
 
   // Filter contests based on active filter
   const filteredContests =
-    activeFilter === "All Contests"
+    activeFilter === "all contests"
       ? contests
       : contests.filter((contest) => contest.status === activeFilter);
 
@@ -189,9 +189,9 @@ const ContestListing = ({ contests, loading, error, lastItemRef }) => {
         {filterTabs.map((tab) => (
           <button
             key={tab.name}
-            onClick={() => setActiveFilter(tab.name)}
+            onClick={() => setActiveFilter(tab?.name?.toLowerCase())}
             className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all duration-200 cursor-pointer ${
-              activeFilter === tab.name
+              activeFilter === tab?.name?.toLowerCase()
                 ? "bg-[#034045] text-white shadow-lg"
                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
             }`}
@@ -199,7 +199,7 @@ const ContestListing = ({ contests, loading, error, lastItemRef }) => {
             {tab.name}
             <span
               className={`px-2 py-1 rounded-full text-xs ${
-                activeFilter === tab.name
+                activeFilter === tab?.name?.toLowerCase()
                   ? "bg-white/20 text-white"
                   : "bg-gray-400 text-white"
               }`}
