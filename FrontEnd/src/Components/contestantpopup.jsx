@@ -1,24 +1,12 @@
-import React, { useState } from "react";
-import { uploadToCloudinary } from "../actions/cloudinaryAction";
+import React, { useState } from 'react';
+import { uploadToCloudinary } from '../actions/cloudinaryAction';
+import { X } from 'lucide-react';
 
-const defaultPositions = [
-  { id: 1, name: "President" },
-  { id: 2, name: "Vice President" },
-  { id: 3, name: "Sport Director" },
-  { id: 4, name: "Secretary" },
-  { id: 5, name: "Treasurer" },
-];
-
-const ContestantPopup = ({
-  isOpen,
-  onClose,
-  onAddContestant,
-  positions = defaultPositions,
-}) => {
-  const [name, setName] = useState("");
-  const [position, setPosition] = useState("");
-  const [bio, setBio] = useState("");
-  const [email, setEmail] = useState("");
+const ContestantPopup = ({ isOpen, onClose, onAddContestant, positions }) => {
+  const [name, setName] = useState('');
+  const [position, setPosition] = useState('');
+  const [bio, setBio] = useState('');
+  const [email, setEmail] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -26,24 +14,24 @@ const ContestantPopup = ({
     e.preventDefault();
     if (name && position) {
       onAddContestant({ name, position, bio, image: imageFile, email });
-
-      setName("");
-      setPosition("");
-      setBio("");
+      setName('');
+      setPosition('');
+      setBio('');
       setImageFile(null);
-      setEmail("");
+      setEmail('');
       onClose();
     }
   };
 
   const handleFileChange = async (e) => {
-    if (e.target.files && e.target.files[0]) {
+    const file = e.target.files[0];
+    if (file) {
       setIsUploading(true);
       try {
-        const imgURL = await uploadToCloudinary(e.target.files[0]);
+        const imgURL = await uploadToCloudinary(file);
         setImageFile(imgURL);
       } catch (error) {
-        console.error("Upload failed:", error);
+        console.error('Upload failed:', error);
       } finally {
         setIsUploading(false);
       }
@@ -53,31 +41,51 @@ const ContestantPopup = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-[#000000]/50 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96 relative">
-        <h2 className="text-lg font-semibold mb-4">Add Contestant</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className='fixed inset-0 bg-[#000000]/50 bg-opacity-50 flex items-center justify-center z-50'>
+      <div className='bg-white rounded-lg p-6 w-96 relative'>
+        <button
+          type='button'
+          onClick={onClose}
+          className='absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors'
+          aria-label='Close'
+        >
+          <X size={24} />
+        </button>
+        <h2 className='text-xl font-semibold mb-6'>Add Contestant</h2>
+        <form onSubmit={handleSubmit} className='space-y-4'>
           <div>
-            <label className="block text-sm font-medium mb-1">Name</label>
+            <label
+              htmlFor='name'
+              className='block text-sm font-medium mb-1 text-gray-700'
+            >
+              Name
+            </label>
             <input
-              type="text"
+              id='name'
+              type='text'
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2"
+              className='w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none'
               required
               disabled={isUploading}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Position</label>
+            <label
+              htmlFor='position'
+              className='block text-sm font-medium mb-1 text-gray-700'
+            >
+              Position
+            </label>
             <select
+              id='position'
               value={position}
               onChange={(e) => setPosition(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2"
+              className='w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none'
               required
               disabled={isUploading}
             >
-              <option value="">Select position</option>
+              <option value=''>Select position</option>
               {positions.map((pos) => (
                 <option key={pos.id} value={pos.name}>
                   {pos.name}
@@ -86,94 +94,104 @@ const ContestantPopup = ({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Bio</label>
+            <label
+              htmlFor='bio'
+              className='block text-sm font-medium mb-1 text-gray-700'
+            >
+              Bio
+            </label>
             <textarea
+              id='bio'
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2"
+              className='w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none'
               rows={3}
               disabled={isUploading}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
+            <label
+              htmlFor='email'
+              className='block text-sm font-medium mb-1 text-gray-700'
+            >
+              Email
+            </label>
             <input
-              type="email"
+              id='email'
+              type='email'
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-300 rounded px-3 py-2"
+              className='w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none'
               disabled={isUploading}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className='block text-sm font-medium mb-1 text-gray-700'>
               Upload Image
             </label>
-            <div className="relative">
+            <div className='relative'>
               <input
-                type="text"
+                type='text'
                 readOnly
                 value={
                   isUploading
-                    ? "Uploading..."
+                    ? 'Uploading...'
                     : imageFile
-                    ? typeof imageFile === "string"
-                      ? imageFile.split("/").pop()
-                      : imageFile.name
-                    : ""
+                    ? 'Image uploaded' // Simpler display
+                    : ''
                 }
-                placeholder="No file chosen"
-                className={`w-full border border-gray-300 rounded px-3 py-3 pr-28 ${
-                  isUploading ? "text-gray-400 italic" : ""
-                }`}
+                placeholder='No file chosen'
+                className={`w-full border border-gray-300 rounded-md px-3 py-3 pr-28 ${
+                  isUploading ? 'text-gray-400 italic' : ''
+                } outline-none`}
               />
               <button
-                type="button"
+                type='button'
                 onClick={() =>
                   !isUploading &&
-                  document.getElementById("image-upload-input").click()
+                  document.getElementById('image-upload-input').click()
                 }
                 disabled={isUploading}
-                className={`absolute right-1 top-1 bottom-1 px-4 py-2 rounded ${
+                className={`absolute right-1 top-1 bottom-1 px-4 py-2 rounded-md font-medium text-sm ${
                   isUploading
-                    ? "bg-orange-300 cursor-not-allowed"
-                    : "bg-orange-500 hover:bg-orange-600 text-white"
+                    ? 'bg-orange-300 cursor-not-allowed'
+                    : 'bg-orange-500 hover:bg-orange-600 text-white'
                 } transition-colors`}
               >
-                {isUploading ? "Uploading..." : "Upload"}
+                {isUploading ? 'Uploading...' : 'Upload'}
               </button>
               <input
-                id="image-upload-input"
-                type="file"
-                accept="image/*"
+                id='image-upload-input'
+                type='file'
+                accept='image/*'
                 onChange={handleFileChange}
-                className="hidden"
+                className='hidden'
               />
             </div>
           </div>
-          <div className="flex justify-end space-x-2">
+          <div className='flex justify-end space-x-2 pt-2'>
             <button
-              type="button"
+              type='button'
               onClick={onClose}
               disabled={isUploading}
-              className={`px-4 py-2 rounded ${
+              className={`px-6 py-2 rounded-md font-medium text-gray-700 transition-colors ${
                 isUploading
-                  ? "bg-gray-300 cursor-not-allowed"
-                  : "bg-gray-300 hover:bg-gray-400"
+                  ? 'bg-gray-200 cursor-not-allowed'
+                  : 'bg-gray-300 hover:bg-gray-400'
               }`}
             >
               Cancel
             </button>
             <button
-              type="submit"
+              type='submit'
               disabled={isUploading}
-              className={`px-4 py-2 rounded ${
+              className={`px-6 py-2 rounded-md font-medium text-white transition-colors ${
                 isUploading
-                  ? "bg-orange-300 cursor-not-allowed"
-                  : "bg-orange-500 text-white hover:bg-orange-600"
+                  ? 'bg-orange-300 cursor-not-allowed'
+                  : 'bg-orange-500 hover:bg-orange-600'
               }`}
             >
-              {isUploading ? "Please wait..." : "Add"}
+              {isUploading ? 'Please wait...' : 'Add'}
             </button>
           </div>
         </form>
