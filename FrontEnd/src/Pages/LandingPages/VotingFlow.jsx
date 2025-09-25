@@ -323,7 +323,7 @@ const VotingFlow = () => {
   const payWithPaystack = (email, amount, multiplier, voteData) => {
     return new Promise((resolve, reject) => {
       const handler = window.PaystackPop.setup({
-        key: "pk_test_c7ab01e45f104b0a7f7511a74aa6e146729d5fed",
+        key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
         email,
         amount: amount * 100 * multiplier, // must be a number
         currency: "NGN",
@@ -403,7 +403,7 @@ const VotingFlow = () => {
   const payWithPaystackOpen = (email, amount, multiplier, voteData) =>
     new Promise((resolve, reject) => {
       const handler = window.PaystackPop.setup({
-        key: "pk_test_c7ab01e45f104b0a7f7511a74aa6e146729d5fed",
+        key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
         email,
         amount: amount * 100 * multiplier, // Paystack expects kobo
         currency: "NGN",
