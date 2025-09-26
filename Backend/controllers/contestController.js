@@ -425,18 +425,18 @@ export const addVoters = async (req, res) => {
 
     // Setup transporter (use env vars for real secrets)
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false, // for STARTTLS
+      host: "smtp.sendgrid.net",
+      port: 587, // or 2525
+      secure: false, // STARTTLS
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: "apikey", // literally the word "apikey"
+        pass: process.env.SENDGRID_API_KEY, // your SendGrid API key stored in Render env
       },
     });
 
     // Send email
     await transporter.sendMail({
-      from: `"Contest Vote" <${process.env.EMAIL_USER}>`,
+      from: `"Contest Vote" <support@zeecontest.com>`,
       to: voterEmail,
       subject: "Your Voting Verification Code - ZEECONTEST",
       html: `<p>Hello ${voterName},</p>
@@ -794,17 +794,17 @@ export const withdrawal = async (req, res) => {
 
     // ----- SEND EMAIL TO Zeecontesthub -----
     const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false, // for STARTTLS
+      host: "smtp.sendgrid.net",
+      port: 587, // or 2525
+      secure: false, // STARTTLS
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: "apikey", // literally the word "apikey"
+        pass: process.env.SENDGRID_API_KEY, // your SendGrid API key stored in Render env
       },
     });
 
     const mailOptions = {
-      from: `"Zeecontest" <${process.env.SMTP_USER}>`,
+      from: `"Zeecontest" <support@zeecontest.com>`,
       to: "Zeecontesthub@gmail.com",
       subject: `Withdrawal Request from ${userName}`,
       html: `
