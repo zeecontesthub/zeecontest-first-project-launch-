@@ -426,8 +426,8 @@ export const addVoters = async (req, res) => {
     // Setup transporter (use env vars for real secrets)
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
+      port: 587,
+      secure: false, // for STARTTLS
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
@@ -795,8 +795,8 @@ export const withdrawal = async (req, res) => {
     // ----- SEND EMAIL TO Zeecontesthub -----
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
+      port: 587,
+      secure: false, // for STARTTLS
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
