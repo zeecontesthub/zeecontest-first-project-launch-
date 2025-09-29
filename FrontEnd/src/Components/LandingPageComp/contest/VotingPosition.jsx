@@ -1,90 +1,13 @@
 /* eslint-disable no-unused-vars */
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Search } from 'lucide-react';
+import React, { useState } from 'react';
+
 const VotingPositionsSection = ({
   activePosition,
   onPositionChange,
   contest,
 }) => {
-  // const positions = [
-  //   {
-  //     name: "President",
-  //     candidates: 8,
-  //     votes: 1250,
-  //     isActive: true,
-  //   },
-  //   {
-  //     name: "Vice-President",
-  //     candidates: 6,
-  //     votes: 890,
-  //     isActive: false,
-  //   },
-  //   {
-  //     name: "Secretary",
-  //     candidates: 5,
-  //     votes: 675,
-  //     isActive: false,
-  //   },
-  //   {
-  //     name: "PRO",
-  //     candidates: 4,
-  //     votes: 542,
-  //     isActive: false,
-  //   },
-  //   {
-  //     name: "Treasurer",
-  //     candidates: 7,
-  //     votes: 823,
-  //     isActive: false,
-  //   },
-  // ];
-
-  // Canonical positions data for ID lookup
-  // const canonicalPositions = [
-  //   {
-  //     name: "President",
-  //     candidates: [
-  //       { id: 1, name: "James Williamson", avatar: null },
-  //       { id: 2, name: "Sarah Johnson", avatar: null },
-  //       { id: 3, name: "Michael Brown", avatar: null },
-  //       { id: 4, name: "Emily Davis", avatar: null },
-  //       { id: 5, name: "David Wilson", avatar: null },
-  //     ],
-  //   },
-  //   {
-  //     name: "Vice-President",
-  //     candidates: [
-  //       { id: 6, name: "Alice Cooper", avatar: null },
-  //       { id: 7, name: "Bob Miller", avatar: null },
-  //       { id: 8, name: "Carol White", avatar: null },
-  //       { id: 9, name: "Daniel Green", avatar: null },
-  //       { id: 10, name: "Eva Martinez", avatar: null },
-  //     ],
-  //   },
-  //   {
-  //     name: "Secretary",
-  //     candidates: [
-  //       { id: 11, name: "Frank Anderson", avatar: null },
-  //       { id: 12, name: "Grace Taylor", avatar: null },
-  //       { id: 13, name: "Henry Lee", avatar: null },
-  //     ],
-  //   },
-  //   {
-  //     name: "PRO",
-  //     candidates: [
-  //       { id: 14, name: "Kate Phillips", avatar: null },
-  //       { id: 15, name: "Liam Murphy", avatar: null },
-  //       { id: 16, name: "Maya Patel", avatar: null },
-  //     ],
-  //   },
-  //   {
-  //     name: "Treasurer",
-  //     candidates: [
-  //       { id: 17, name: "Olivia Scott", avatar: null },
-  //       { id: 18, name: "Paul Robinson", avatar: null },
-  //       { id: 19, name: "Quinn Adams", avatar: null },
-  //     ],
-  //   },
-  // ];
+  const [searchTerm, setSearchTerm] = useState('');
 
   const getPositionColors = (position, isActive) => {
     if (isActive) {
@@ -117,13 +40,6 @@ const VotingPositionsSection = ({
   const currentCandidatesVoters =
     contest?.positions?.find((pos) => pos.name === activePosition)?.voters ||
     [];
-
-  // const getCanonicalCandidateId = (positionName, candidateName) => {
-  //   const pos = canonicalPositions.find((p) => p.name === positionName);
-  //   if (!pos) return null;
-  //   const cand = pos.candidates.find((c) => c.name === candidateName);
-  //   return cand ? cand.id : null;
-  // };
 
   return (
     <div className='w-full mx-auto mt-6'>
@@ -173,10 +89,22 @@ const VotingPositionsSection = ({
       </div>
 
       <div className='bg-white rounded-xl shadow-sm overflow-hidden p-4 md:p-6'>
-        <div className='pl-0 py-4 md:p-6'>
+        <div className='pl-0 py-4 md:p-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4'>
           <h2 className='text-2xl font-bold text-gray-900'>
             {activePosition} Leaderboard
           </h2>
+
+          {/* Search Input Field */}
+          <div className='relative w-full md:w-80'>
+            <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400' />
+            <input
+              type='text'
+              placeholder='Search candidate name...'
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className='w-full py-2 pl-10 pr-4 border-2 border-gray-300 rounded-lg focus:ring-[#034045] focus:border-[#034045] transition duration-150'
+            />
+          </div>
         </div>
 
         <div className='bg-white rounded-xl overflow-hidden p-0 md:p-6'>
@@ -219,13 +147,29 @@ const VotingPositionsSection = ({
                 ...candidatesWithVotes.map((c) => c.votes)
               );
 
-              // 3️⃣ Sort by votes (descending) for ranking badges
+              // 3️⃣ Sort by votes (descending)
               const sorted = [...candidatesWithVotes].sort(
                 (a, b) => b.votes - a.votes
               );
 
-              // 4️⃣ Render
-              return sorted.map((candidate, index) => (
+              // 4️⃣ Filter the sorted list based on the search term
+              const lowerCaseSearchTerm = searchTerm.toLowerCase();
+
+              const filteredAndSortedCandidates = sorted.filter((candidate) =>
+                candidate.name.toLowerCase().includes(lowerCaseSearchTerm)
+              );
+
+              // 5️⃣ Render
+              if (filteredAndSortedCandidates.length === 0) {
+                return (
+                  <div className='text-center py-10 text-gray-500'>
+                    No candidates found matching "{searchTerm}" for this
+                    position.
+                  </div>
+                );
+              }
+
+              return filteredAndSortedCandidates.map((candidate, index) => (
                 <div
                   key={candidate._id}
                   className='p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between
@@ -263,7 +207,7 @@ const VotingPositionsSection = ({
                     </div>
                   </div>
 
-                  {/* ✅ Show “Leading” only if this candidate has the highest votes */}
+                  {/* Show “Leading” only if this candidate has the highest votes */}
 
                   <div className='flex items-center gap-3 mt-3 sm:mt-0'>
                     {candidate.votes === maxVotes && maxVotes > 0 && (
