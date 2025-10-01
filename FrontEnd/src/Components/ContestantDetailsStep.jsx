@@ -1,4 +1,5 @@
 import { FileText, Loader2, User, Mail, MapPin, FileImage } from 'lucide-react';
+import convertGoogleDriveUrl from '../actions/convertGoogleDriveUrl';
 
 const ContestantDetailsStep = ({
   contestantForm = {
@@ -19,6 +20,11 @@ const ContestantDetailsStep = ({
   positions = [],
   isUploading = false,
 }) => {
+  const isFormValid =
+    contestantForm.name.trim() !== '' && contestantForm.position.trim() !== '';
+
+  const isAddButtonDisabled = isUploading || !isFormValid;
+
   return (
     <div className='relative space-y-6 sm:space-y-8 bg-[#FBF7F7] p-4 sm:p-6 lg:p-10'>
       {/* Manual Contestant Entry */}
@@ -30,7 +36,7 @@ const ContestantDetailsStep = ({
           {/* Contestant Name */}
           <div>
             <label className='block text-left text-sm font-medium text-gray-700 mb-2'>
-              Contestant Name
+              Contestant Name <span className='text-red-500'>*</span>
             </label>
             <input
               type='text'
@@ -67,10 +73,10 @@ const ContestantDetailsStep = ({
 
           {/* Position & Email - Side by side on larger screens */}
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6'>
-            {/* Position */}
+            {/* Position (REQUIRED) */}
             <div>
               <label className='block text-sm text-left font-medium text-gray-700 mb-2'>
-                Position
+                Position <span className='text-red-500'>*</span>
               </label>
               <select
                 value={contestantForm.position || ''}
@@ -85,7 +91,7 @@ const ContestantDetailsStep = ({
                 }`}
               >
                 <option value=''>Select Position</option>
-                {positions.map((position, idx) => (
+                {positions?.map((position, idx) => (
                   <option key={idx} value={position.name}>
                     {position.name}
                   </option>
@@ -188,9 +194,9 @@ const ContestantDetailsStep = ({
             <button
               type='button'
               onClick={onAddContestant}
-              disabled={isUploading}
+              disabled={isAddButtonDisabled}
               className={`px-6 sm:px-8 py-2 sm:py-3 rounded-md font-medium transition-colors text-sm sm:text-base w-full sm:w-auto ${
-                isUploading
+                isAddButtonDisabled
                   ? 'bg-orange-400 text-white opacity-50 cursor-not-allowed'
                   : 'bg-orange-500 hover:bg-orange-600 text-white'
               }`}
@@ -200,7 +206,6 @@ const ContestantDetailsStep = ({
           </div>
         </div>
       </div>
-
       {/* Bulk Upload */}
       <div>
         <h2 className='text-lg sm:text-xl font-semibold text-left text-gray-900 mb-4 sm:mb-6'>
@@ -260,7 +265,6 @@ const ContestantDetailsStep = ({
           </div>
         </div>
       </div>
-
       {/* Contestant List */}
       <div>
         <h2 className='text-lg sm:text-xl font-semibold text-left text-gray-900 mb-4 sm:mb-6'>
@@ -294,7 +298,7 @@ const ContestantDetailsStep = ({
                             <img
                               src={
                                 typeof contestant.image === 'string'
-                                  ? contestant.image
+                                  ? convertGoogleDriveUrl(contestant.image)
                                   : URL.createObjectURL(contestant.image)
                               }
                               alt={contestant.name}
@@ -315,12 +319,14 @@ const ContestantDetailsStep = ({
                             <h3 className='text-base sm:text-lg font-semibold text-gray-900 truncate'>
                               {contestant.name}
                             </h3>
-                            <div className='flex items-center mt-1 text-sm text-gray-500'>
-                              <MapPin className='w-4 h-4 mr-1' />
-                              <span className='truncate'>
-                                {contestant.position}
-                              </span>
-                            </div>
+                            {contestant.position && (
+                              <div className='flex items-center mt-1 text-sm text-gray-500'>
+                                <MapPin className='w-4 h-4 mr-1' />
+                                <span className='truncate'>
+                                  {contestant.position}
+                                </span>
+                              </div>
+                            )}
                             {contestant.email && (
                               <div className='flex items-center mt-1 text-sm text-gray-500'>
                                 <Mail className='w-4 h-4 mr-1' />
@@ -336,7 +342,12 @@ const ContestantDetailsStep = ({
                             <button
                               type='button'
                               disabled={isUploading}
-                              onClick={() => onRemoveContestant(contestant.id)}
+                              onClick={() =>
+                                onRemoveContestant(
+                                  contestant.position,
+                                  contestant.dateId
+                                )
+                              }
                               className={`p-2 text-red-400 hover:text-red-600 transition-colors rounded-full hover:bg-red-50 ${
                                 isUploading
                                   ? 'opacity-50 cursor-not-allowed'
@@ -380,7 +391,7 @@ const ContestantDetailsStep = ({
                           <img
                             src={
                               typeof contestant.image === 'string'
-                                ? contestant.image
+                                ? convertGoogleDriveUrl(contestant.image)
                                 : URL.createObjectURL(contestant.image)
                             }
                             alt={contestant.name}
@@ -404,7 +415,12 @@ const ContestantDetailsStep = ({
                       <button
                         type='button'
                         disabled={isUploading}
-                        onClick={() => onRemoveContestant(contestant.id)}
+                        onClick={() =>
+                          onRemoveContestant(
+                            contestant.position,
+                            contestant.dateId
+                          )
+                        }
                         className={`text-red-400 hover:text-red-600 transition-colors ${
                           isUploading ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
@@ -431,7 +447,6 @@ const ContestantDetailsStep = ({
           )}
         </div>
       </div>
-
       {/* Mobile-specific help section */}
       <div className='sm:hidden bg-blue-50 border border-blue-200 rounded-lg p-3'>
         <h4 className='text-sm font-medium text-blue-900 mb-2'>Quick Tips:</h4>
