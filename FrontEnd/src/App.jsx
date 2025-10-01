@@ -4,40 +4,41 @@ import {
   Route,
   useLocation,
   Navigate,
-} from "react-router-dom";
-import "./App.css";
-import Login from "./Pages/login";
-import CreateAccount from "./Pages/CreateAccount";
-import OrganizerAccount from "./Pages/OrganizerAccount";
-import ForgotPassword from "./Pages/ForgotPassword";
-import InputCode from "./Pages/InputCode";
-import PasswordReset from "./Pages/PasswordReset";
-import Dashboard from "./Pages/Dashboard";
-import Createspotlightcontest from "./Pages/createspotlightcontest";
-import RoleSelectionPage from "./Pages/RoleSelectionPage";
-import SettingsPage from "./Pages/SettingsPage";
-import Contest from "./Pages/contest";
-import Contestdetails from "./Pages/Contestdetails";
-import Editcontest from "./Pages/editcontest";
-import Leaderboards from "./Pages/Leaderboards";
-import ContestantDetails from "./Pages/contestantdetails";
-import Contestant from "./Pages/contestant";
-import VotersDetails from "./Pages/VotersDetails";
-import Mywallet from "./Pages/Mywallet";
+} from 'react-router-dom';
+import './App.css';
+import Login from './Pages/login';
+import CreateAccount from './Pages/CreateAccount';
+import OrganizerAccount from './Pages/OrganizerAccount';
+import ForgotPassword from './Pages/ForgotPassword';
+import InputCode from './Pages/InputCode';
+import PasswordReset from './Pages/PasswordReset';
+import Dashboard from './Pages/Dashboard';
+import Createspotlightcontest from './Pages/createspotlightcontest';
+import RoleSelectionPage from './Pages/RoleSelectionPage';
+import SettingsPage from './Pages/SettingsPage';
+import Contest from './Pages/contest';
+import Contestdetails from './Pages/Contestdetails';
+import Editcontest from './Pages/editcontest';
+import Leaderboards from './Pages/Leaderboards';
+import ContestantDetails from './Pages/contestantdetails';
+import Contestant from './Pages/contestant';
+import VotersDetails from './Pages/VotersDetails';
+import Mywallet from './Pages/Mywallet';
 
-import LandingHomePage from "./Pages/LandingPages/Home.jsx";
-import ContestHomePage from "./Pages/LandingPages/Contest.jsx";
-import ContestDetailHomePage from "./Pages/LandingPages/vContestDetails.jsx";
-import VotingFlow from "./Pages/LandingPages/VotingFlow";
-import Footer from "./common/Footer.jsx";
-import VoterRegistration from "./Pages/LandingPages/VoterRegistration";
-import VContestantDetails from "./Pages/LandingPages/vcontestantdetails";
-import ContactForm from "./Pages/LandingPages/Contact.jsx";
+import LandingHomePage from './Pages/LandingPages/Home.jsx';
+import ContestHomePage from './Pages/LandingPages/Contest.jsx';
+import ContestDetailHomePage from './Pages/LandingPages/vContestDetails.jsx';
+import VotingFlow from './Pages/LandingPages/VotingFlow';
+import Footer from './common/Footer.jsx';
+import VoterRegistration from './Pages/LandingPages/VoterRegistration';
+import VContestantDetails from './Pages/LandingPages/vcontestantdetails';
+import ContactForm from './Pages/LandingPages/Contact.jsx';
 
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import React, { useEffect } from "react";
-import { useUser } from "./context/UserContext.jsx";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import React, { useEffect } from 'react';
+import { useUser } from './context/UserContext.jsx';
+import ThankYouPage from './Pages/LandingPages/ThankYouPage.jsx';
 
 // Simple error boundary
 class ErrorBoundary extends React.Component {
@@ -49,12 +50,12 @@ class ErrorBoundary extends React.Component {
     return { hasError: true, error };
   }
   componentDidCatch(error, errorInfo) {
-    console.error("ErrorBoundary caught an error:", error, errorInfo);
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
   }
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: 32, color: "red" }}>
+        <div style={{ padding: 32, color: 'red' }}>
           <h2>Something went wrong.</h2>
           <pre>{this.state.error?.toString()}</pre>
         </div>
@@ -68,7 +69,7 @@ class ErrorBoundary extends React.Component {
 function ProtectedRoute({ children }) {
   const { user } = useUser();
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to='/login' replace />;
   }
   return children;
 }
@@ -76,7 +77,7 @@ function ProtectedRoute({ children }) {
 // Layout wrapper for Footer
 function Layout({ children }) {
   const location = useLocation();
-  const footerPaths = ["/", "/contests", "/contest-details", "/vote"];
+  const footerPaths = ['/', '/contests', '/contest-details', '/vote'];
   return (
     <>
       {children}
@@ -89,7 +90,7 @@ function App() {
   useEffect(() => {
     window.onerror = function (message, source, lineno, colno, error) {
       console.error(
-        "Global error handler:",
+        'Global error handler:',
         message,
         source,
         lineno,
@@ -98,46 +99,50 @@ function App() {
       );
     };
     window.onunhandledrejection = function (event) {
-      console.error("Unhandled promise rejection:", event.reason);
+      console.error('Unhandled promise rejection:', event.reason);
     };
   }, []);
 
   return (
     <Router>
-      <ToastContainer position="top-right" autoClose={3000} theme="colored" />
+      <ToastContainer position='top-right' autoClose={3000} theme='colored' />
       <ErrorBoundary>
         <Layout>
           <Routes>
             {/* Public Routes with Footer */}
-            <Route path="/" element={<LandingHomePage />} />
-            <Route path="/contests" element={<ContestHomePage />} />
+            <Route path='/' element={<LandingHomePage />} />
+            <Route path='/contests' element={<ContestHomePage />} />
             <Route
-              path="/contest-detail/:contestId"
+              path='/contest-detail/:contestId'
               element={<ContestDetailHomePage />}
             />
-            <Route path="/vote/:contestId" element={<VotingFlow />} />
-            <Route path="/contact" element={<ContactForm />} />
+            <Route path='/vote/:contestId' element={<VotingFlow />} />
+            <Route
+              path='/vote/:contestId/thank-you'
+              element={<ThankYouPage />}
+            />
+            <Route path='/contact' element={<ContactForm />} />
 
             {/* Public Voter Registration Route */}
             <Route
-              path="/voterregistration/:contestId"
+              path='/voterregistration/:contestId'
               element={<VoterRegistration />}
             />
             <Route
-              path="/vcontestantdetails/:position/:contestantId/:contestId"
+              path='/vcontestantdetails/:position/:contestantId/:contestId'
               element={<VContestantDetails />}
             />
 
             {/* Auth Public Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/create-account" element={<CreateAccount />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/input-code" element={<InputCode />} />
-            <Route path="/password-reset" element={<PasswordReset />} />
+            <Route path='/login' element={<Login />} />
+            <Route path='/create-account' element={<CreateAccount />} />
+            <Route path='/forgot-password' element={<ForgotPassword />} />
+            <Route path='/input-code' element={<InputCode />} />
+            <Route path='/password-reset' element={<PasswordReset />} />
 
             {/* Protected Routes */}
             <Route
-              path="/settings"
+              path='/settings'
               element={
                 <ProtectedRoute>
                   <SettingsPage />
@@ -145,7 +150,7 @@ function App() {
               }
             />
             <Route
-              path="/organizer-account"
+              path='/organizer-account'
               element={
                 <ProtectedRoute>
                   <OrganizerAccount />
@@ -153,7 +158,7 @@ function App() {
               }
             />
             <Route
-              path="/create-spotlight-contest"
+              path='/create-spotlight-contest'
               element={
                 <ProtectedRoute>
                   <Createspotlightcontest />
@@ -161,7 +166,7 @@ function App() {
               }
             />
             <Route
-              path="/dashboard"
+              path='/dashboard'
               element={
                 <ProtectedRoute>
                   <Dashboard />
@@ -169,7 +174,7 @@ function App() {
               }
             />
             <Route
-              path="/role-selection"
+              path='/role-selection'
               element={
                 <ProtectedRoute>
                   <RoleSelectionPage />
@@ -177,7 +182,7 @@ function App() {
               }
             />
             <Route
-              path="/contest"
+              path='/contest'
               element={
                 <ProtectedRoute>
                   <Contest />
@@ -185,7 +190,7 @@ function App() {
               }
             />
             <Route
-              path="/contest-details/:contestId"
+              path='/contest-details/:contestId'
               element={
                 <ProtectedRoute>
                   <Contestdetails />
@@ -193,7 +198,7 @@ function App() {
               }
             />
             <Route
-              path="/edit-contest/:contestId"
+              path='/edit-contest/:contestId'
               element={
                 <ProtectedRoute>
                   <Editcontest />
@@ -201,7 +206,7 @@ function App() {
               }
             />
             <Route
-              path="/leaderboards/:contestId"
+              path='/leaderboards/:contestId'
               element={
                 <ProtectedRoute>
                   <Leaderboards />
@@ -209,7 +214,7 @@ function App() {
               }
             />
             <Route
-              path="/contestantdetails/:position/:contestantId/:contestId"
+              path='/contestantdetails/:position/:contestantId/:contestId'
               element={
                 <ProtectedRoute>
                   <ContestantDetails />
@@ -217,7 +222,7 @@ function App() {
               }
             />
             <Route
-              path="/contestant/:contestId"
+              path='/contestant/:contestId'
               element={
                 <ProtectedRoute>
                   <Contestant />
@@ -225,7 +230,7 @@ function App() {
               }
             />
             <Route
-              path="/voters-details/:contestId"
+              path='/voters-details/:contestId'
               element={
                 <ProtectedRoute>
                   <VotersDetails />
@@ -233,7 +238,7 @@ function App() {
               }
             />
             <Route
-              path="/mywallet"
+              path='/mywallet'
               element={
                 <ProtectedRoute>
                   <Mywallet />

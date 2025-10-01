@@ -11,6 +11,8 @@ import { uploadToCloudinary } from '../actions/cloudinaryAction';
 import { useUser } from '../context/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import Papa from 'papaparse';
+import convertGoogleDriveUrl from '../actions/convertGoogleDriveUrl';
 
 const CreateSpotlightContest = () => {
   const navigate = useNavigate();
@@ -190,42 +192,50 @@ const CreateSpotlightContest = () => {
     }
   };
 
-  const onAddContestant = () => {
-    if (contestantForm.name.trim() === '') return;
+  const addSingleContestant = (contestantData) => {
+    const newContestant = { ...contestantData, dateId: Date.now() };
 
     setPositions((prev) =>
-      prev.map((pos) =>
-        pos.name === contestantForm.position
+      (prev || []).map((pos) =>
+        pos.name === newContestant.position
           ? {
               ...pos,
               contestants: [
                 ...(Array.isArray(pos.contestants) ? pos.contestants : []),
-                { ...contestantForm, dateId: Date.now() },
+                newContestant,
               ],
             }
           : pos
       )
     );
 
-    setContestants((prev) => [
-      ...prev,
-      { ...contestantForm, dateId: Date.now() },
-    ]);
-    setCreateContest((prev) => ({
-      ...prev,
-      contestants: [...contestants, { ...contestantForm, dateId: Date.now() }],
-      positions: prev.positions.map((pos) =>
-        pos.name === contestantForm.position
+    setContestants((prev) => [...(prev || []), newContestant]);
+
+    setCreateContest((prev) => {
+      const updatedPositions = (prev.positions || []).map((pos) =>
+        pos.name === newContestant.position
           ? {
               ...pos,
               contestants: [
                 ...(Array.isArray(pos.contestants) ? pos.contestants : []),
-                { ...contestantForm, dateId: Date.now() },
+                newContestant,
               ],
             }
           : pos
-      ),
-    }));
+      );
+
+      return {
+        ...prev,
+        contestants: [...(prev.contestants || []), newContestant],
+        positions: updatedPositions,
+      };
+    });
+  };
+
+  const onAddContestant = () => {
+    if (contestantForm.name.trim() === '') return;
+
+    addSingleContestant(contestantForm);
 
     setContestantForm({
       name: '',
@@ -236,10 +246,10 @@ const CreateSpotlightContest = () => {
     });
   };
 
-  const onRemoveContestant = (position, id) => {
-    setPositions((prev) =>
-      prev.map((pos) =>
-        pos.name === position
+  const onRemoveContestant = (positionName, id) => {
+    setPositions((prevPositions) =>
+      prevPositions.map((pos) =>
+        pos.name === positionName
           ? {
               ...pos,
               contestants: pos.contestants.filter((c) => c.dateId !== id),
@@ -247,24 +257,178 @@ const CreateSpotlightContest = () => {
           : pos
       )
     );
-    setContestants((prev) => prev.filter((c) => c.dateId !== id));
-    setCreateContest((prev) => ({
-      ...prev,
-      contestants: contestants.filter((c) => c.dateId !== id),
-      positions: positions.map((pos) =>
-        pos.name === position
+
+    setContestants((prevContestants) =>
+      prevContestants.filter((c) => c.dateId !== id)
+    );
+
+    setCreateContest((prevCreateContest) => {
+      const newContestants = prevCreateContest.contestants.filter(
+        (c) => c.dateId !== id
+      );
+
+      const newPositions = prevCreateContest.positions.map((pos) =>
+        pos.name === positionName
           ? {
               ...pos,
               contestants: pos.contestants.filter((c) => c.dateId !== id),
             }
           : pos
-      ),
-    }));
+      );
+
+      return {
+        ...prevCreateContest,
+        contestants: newContestants,
+        positions: newPositions,
+      };
+    });
   };
 
-  // Bulk upload and drag-drop handlers
+  const findKey = (keys, regex) => keys.find((key) => regex.test(key));
+
   const onBulkUpload = (file) => {
-    console.log('Bulk upload file:', file);
+    if (!file) return;
+
+    setIsUploading(true);
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const allKeys = results.meta.fields || [];
+        const successfulAdds = [];
+        const failedAdds = [];
+        const newContestants = [];
+        const newPositionsToAdd = [];
+
+        results.data.forEach((row) => {
+          const nameKey = findKey(allKeys, /name|contestantName|c_name/i);
+          const bioKey = findKey(allKeys, /bio|c_bio/i);
+          const positionKey = findKey(allKeys, /position|pos/i);
+          const emailKey = findKey(allKeys, /email|e_mail/i);
+          const imageKey = findKey(allKeys, /image|img|url/i);
+
+          const name = nameKey ? row[nameKey] : '';
+          const position = positionKey ? row[positionKey] : '';
+
+          if (name.trim() === '' || position.trim() === '') {
+            failedAdds.push({ ...row, reason: 'Missing Name or Position' });
+            return;
+          }
+
+          const newContestantData = {
+            name: name,
+            bio: bioKey ? row[bioKey] : '',
+            position: position,
+            image: imageKey ? convertGoogleDriveUrl(row[imageKey]) : null,
+            email: emailKey ? row[emailKey] : '',
+            dateId: Date.now() + newContestants.length,
+          };
+
+          newContestants.push(newContestantData);
+          successfulAdds.push(newContestantData.name);
+
+          // Check if this position needs to be created
+          const positionExists = positions.some(
+            (pos) => pos.name.toLowerCase() === position.toLowerCase()
+          );
+          const alreadyInNewPositions = newPositionsToAdd.some(
+            (pos) => pos.name.toLowerCase() === position.toLowerCase()
+          );
+
+          if (!positionExists && !alreadyInNewPositions) {
+            newPositionsToAdd.push({
+              name: position,
+              description: `Auto-created from CSV upload`,
+              contestants: [],
+            });
+          }
+        });
+        if (newContestants.length > 0) {
+          if (newPositionsToAdd.length > 0) {
+            setPositions((prev) => [...prev, ...newPositionsToAdd]);
+          }
+
+          // Update positions state with contestants
+          setPositions((prev) => {
+            const allPositions =
+              newPositionsToAdd.length > 0
+                ? [...prev, ...newPositionsToAdd]
+                : prev;
+
+            return allPositions.map((pos) => {
+              const posContestants = newContestants.filter(
+                (c) => c.position.toLowerCase() === pos.name.toLowerCase()
+              );
+              return posContestants.length > 0
+                ? {
+                    ...pos,
+                    contestants: [
+                      ...(Array.isArray(pos.contestants)
+                        ? pos.contestants
+                        : []),
+                      ...posContestants,
+                    ],
+                  }
+                : pos;
+            });
+          });
+
+          // Update contestants state
+          setContestants((prev) => [...(prev || []), ...newContestants]);
+
+          // Update createContest state
+          setCreateContest((prev) => {
+            const allPositions =
+              newPositionsToAdd.length > 0
+                ? [...(prev.positions || []), ...newPositionsToAdd]
+                : prev.positions || [];
+
+            const updatedPositions = allPositions.map((pos) => {
+              const posContestants = newContestants.filter(
+                (c) => c.position.toLowerCase() === pos.name.toLowerCase()
+              );
+              return posContestants.length > 0
+                ? {
+                    ...pos,
+                    contestants: [
+                      ...(Array.isArray(pos.contestants)
+                        ? pos.contestants
+                        : []),
+                      ...posContestants,
+                    ],
+                  }
+                : pos;
+            });
+
+            return {
+              ...prev,
+              contestants: [...(prev.contestants || []), ...newContestants],
+              positions: updatedPositions,
+            };
+          });
+        }
+
+        setIsUploading(false);
+
+        if (successfulAdds.length > 0) {
+          toast.success(
+            `Successfully added ${successfulAdds.length} contestant(s).`
+          );
+        }
+        if (failedAdds.length > 0) {
+          toast.error(
+            `${failedAdds.length} contestant(s) were skipped (Missing Name/Position).`
+          );
+          console.warn('Skipped Contestants:', failedAdds);
+        }
+      },
+      error: (error) => {
+        setIsUploading(false);
+        console.error('Error parsing CSV:', error);
+        toast.error('Error reading CSV file.');
+      },
+    });
   };
 
   const handleDragOver = (e) => {
@@ -312,8 +476,8 @@ const CreateSpotlightContest = () => {
         endDate: formData.endDate,
         startTime: formData.startTime,
         endTime: formData.endTime,
-        positions: positions,
-        participants: contestants,
+        positions: createContest.positions,
+        participants: createContest.contestants,
         coverImageUrl: coverImage,
         contestLogoImageUrl: logoImage,
         payment: formData.payment,
@@ -348,8 +512,8 @@ const CreateSpotlightContest = () => {
         endDate: formData.endDate,
         startTime: formData.startTime,
         endTime: formData.endTime,
-        positions: positions,
-        participants: contestants,
+        positions: createContest.positions,
+        participants: createContest.contestants,
         coverImageUrl: coverImage,
         contestLogoImageUrl: logoImage,
         payment: formData.payment,
