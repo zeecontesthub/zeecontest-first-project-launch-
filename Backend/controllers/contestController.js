@@ -414,6 +414,23 @@ export const addVoters = async (req, res) => {
     // Generate 6-digit numeric code
     const code = Math.floor(100000 + Math.random() * 900000);
 
+    // Format contest date/time
+    const startDate = new Date(contest.startDate).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    const endDate = new Date(contest.endDate).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    const startTime = `${contest.startTime.startTimeHour}:${contest.startTime.startTimeMinute} ${contest.startTime.startTimeAmPm}`;
+    const endTime = `${contest.endTime.endTimeHour}:${contest.endTime.endTimeMinute} ${contest.endTime.endTimeAmPm}`;
+
     // Add unverified voter with code
     contest.closedContestVoters.push({
       name: voterName,
@@ -436,12 +453,36 @@ export const addVoters = async (req, res) => {
 
     // Send email
     await transporter.sendMail({
-      from: `"Contest Vote" <support@zeecontest.com>`,
+      from: `"ZEECONTEST Support" <support@zeecontest.com>`,
       to: voterEmail,
-      subject: "Your Voting Verification Code - ZEECONTEST",
-      html: `<p>Hello ${voterName},</p>
-             <p>Your verification code is <b>${code}</b>. 
-             You will Enter this code to confirm your vote.</p>`,
+      subject: `Your Voting Verification Code – ${contest.title}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2 style="color: #0A84FF;">Hello ${voterName},</h2>
+          <p>Thank you for registering to vote in <b>${contest.title}</b>.</p>
+          
+          <p>Your one-time verification code is:</p>
+          <div style="margin: 20px 0; padding: 12px; background: #f4f4f4;
+                      border: 1px solid #ddd; border-radius: 6px;
+                      display: inline-block; font-size: 20px; font-weight: bold;
+                      letter-spacing: 2px; color: #0A84FF;">
+            ${code}
+          </div>
+
+          <p>Please enter this code to confirm your vote.</p>
+
+          <h3 style="margin-top: 24px; color: #444;">📅 Contest Schedule</h3>
+          <p>
+            <b>Start:</b> ${startDate}, ${startTime} <br/>
+            <b>End:</b> ${endDate}, ${endTime}
+          </p>
+
+          <p style="font-size: 14px; color: #777;">If you didn’t request this code, please ignore this email.</p>
+          
+          <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;">
+          <p style="font-size: 12px; color: #999;">© ${new Date().getFullYear()} ZEECONTEST. All rights reserved.</p>
+        </div>
+      `,
     });
 
     return res.status(200).json({
