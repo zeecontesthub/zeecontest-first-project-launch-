@@ -38,6 +38,8 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import React, { useEffect } from "react";
 import { useUser } from "./context/UserContext.jsx";
+import Signup from './Pages/SignUp.jsx';
+import ThankYouPage from './Pages/LandingPages/ThankYouPage.jsx';
 
 // Simple error boundary
 class ErrorBoundary extends React.Component {
@@ -116,10 +118,10 @@ function App() {
               element={<ContestDetailHomePage />}
             />
             <Route path='/vote/:contestId' element={<VotingFlow />} />
-            {/* <Route
+            <Route
               path='/vote/:contestId/thank-you'
               element={<ThankYouPage />}
-            /> */}
+            />
             <Route path='/contact' element={<ContactForm />} />
 
             {/* Public Voter Registration Route */}
@@ -134,7 +136,7 @@ function App() {
 
             {/* Auth Public Routes */}
             <Route path="/login" element={<Login />} />
-            <Route path="/create-account" element={<CreateAccount />} />
+            <Route path="/register" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/input-code" element={<InputCode />} />
             <Route path="/password-reset" element={<PasswordReset />} />
