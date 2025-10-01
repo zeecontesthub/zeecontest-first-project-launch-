@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ChevronLeft, Check, AlertTriangle } from "lucide-react";
-import axios from "axios";
-import VotersCode from "../../Components/LandingPageComp/contest/VotersCode";
-import OpenContestRegistration from "../../Components/LandingPageComp/contest/OpenContestRegistration";
-import { toast } from "react-toastify";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "../../firebase";
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { ChevronLeft, Check, AlertTriangle } from 'lucide-react';
+import axios from 'axios';
+import VotersCode from '../../Components/LandingPageComp/contest/VotersCode';
+import OpenContestRegistration from '../../Components/LandingPageComp/contest/OpenContestRegistration';
+import { toast } from 'react-toastify';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { auth } from '../../firebase';
 
 const VotingFlow = () => {
   // Simulate contest type for demo: 'open' or 'closed'
@@ -14,7 +14,7 @@ const VotingFlow = () => {
 
   // Voting flow state
   const location = useLocation();
-  const [currentStep, setCurrentStep] = useState("cast");
+  const [currentStep, setCurrentStep] = useState('cast');
   const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
   const [votes, setVotes] = useState([]);
   const [showVotersCode, setShowVotersCode] = useState(false);
@@ -24,7 +24,7 @@ const VotingFlow = () => {
 
   const { contestId } = useParams();
   const [contest, setContest] = useState(null);
-  const [countdown, setCountdown] = useState("");
+  const [countdown, setCountdown] = useState('');
 
   const navigate = useNavigate();
 
@@ -35,7 +35,7 @@ const VotingFlow = () => {
     const startDate = new Date(contest.startDate);
     if (contest.startTime) {
       let hour = parseInt(contest.startTime.startTimeHour, 10);
-      if (contest.startTime.startTimeAmPm === "PM" && hour < 12) hour += 12;
+      if (contest.startTime.startTimeAmPm === 'PM' && hour < 12) hour += 12;
       startDate.setHours(
         hour,
         parseInt(contest.startTime.startTimeMinute, 10),
@@ -48,7 +48,7 @@ const VotingFlow = () => {
     const endDate = new Date(contest.endDate);
     if (contest.endTime) {
       let hour = parseInt(contest.endTime.endTimeHour, 10);
-      if (contest.endTime.endTimeAmPm === "PM" && hour < 12) hour += 12;
+      if (contest.endTime.endTimeAmPm === 'PM' && hour < 12) hour += 12;
       endDate.setHours(hour, parseInt(contest.endTime.endTimeMinute, 10), 0, 0);
     }
 
@@ -86,7 +86,7 @@ const VotingFlow = () => {
         setCountdown(`${days}d ${hours}h ${minutes}m ${seconds}s`);
       } else {
         // Contest ended
-        setCountdown("Contest Ended");
+        setCountdown('Contest Ended');
         clearInterval(interval);
       }
     }, 1000);
@@ -100,7 +100,7 @@ const VotingFlow = () => {
         const res = await axios.get(`/api/contest/${contestId}`);
         setContest(res.data.contest);
       } catch (err) {
-        console.error("Failed to fetch contest:", err);
+        console.error('Failed to fetch contest:', err);
       }
     };
     if (contestId) fetchContest();
@@ -159,8 +159,8 @@ const VotingFlow = () => {
   // Preselect logic from query params
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const position = params.get("position");
-    const candidateId = params.get("candidateId");
+    const position = params.get('position');
+    const candidateId = params.get('candidateId');
 
     if (position && candidateId) {
       const posIndex = positions.findIndex((p) => p.name === position);
@@ -238,16 +238,16 @@ const VotingFlow = () => {
     if (currentPositionIndex < positions.length - 1) {
       setCurrentPositionIndex((prev) => prev + 1);
     } else {
-      setCurrentStep("review");
+      setCurrentStep('review');
     }
   };
 
   const handleSkipToReview = () => {
-    setCurrentStep("review");
+    setCurrentStep('review');
   };
 
   const handleBackToCasting = () => {
-    setCurrentStep("cast");
+    setCurrentStep('cast');
   };
 
   // const handleSubmitVotes = async () => {
@@ -279,6 +279,12 @@ const VotingFlow = () => {
     setShowOpenContestPopup(false);
   };
 
+  // After successful vote submission (both open and closed), redirect to contest details
+  const redirectToContestDetails = () => {
+    navigate(`/contest/${contestId}`); // adjust route if needed
+  };
+
+  // Update handleVotersCodeSubmit to redirect after success
   const handleVotersCodeSubmit = async (data) => {
     try {
       // if payment is required, collect payment first
@@ -289,13 +295,54 @@ const VotingFlow = () => {
           multiplier,
           data
         );
+        redirectToContestDetails();
         return { success: true };
       }
 
       // if no payment, just submit vote directly
-      return await submitVote(data);
+      await submitVote(data);
+      redirectToContestDetails();
+      return { success: true };
     } catch (err) {
-      toast.error(err.message || "Unable to submit vote. Please try again.");
+      toast.error(err.message || 'Unable to submit vote. Please try again.');
+    }
+  };
+
+  // Update handleOpenContestGoogleVerify to redirect after success
+  const handleOpenContestGoogleVerify = async () => {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    try {
+      // 1️⃣ Google popup
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const voterName = user.displayName || 'Anonymous';
+      const voterEmail = user.email;
+      // 2️⃣ Prepare vote payload (adapt to how you store finalVotes/multiplier)
+      const voteData = {
+        voterName,
+        voterEmail,
+        multiplier,
+        votedFor: finalVotes, // e.g. [{ positionTitle, votedFor }]
+      };
+      // 3️⃣ Paid or free contest?
+      if (contest?.payment?.isPaid) {
+        await payWithPaystackOpen(
+          voterEmail,
+          contest.payment.amount,
+          multiplier,
+          voteData
+        );
+        redirectToContestDetails();
+        return { success: true };
+      } else {
+        await submitVoteOpen(voteData);
+        redirectToContestDetails();
+        return { success: true };
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Error verifying you');
     }
   };
 
@@ -312,11 +359,12 @@ const VotingFlow = () => {
     );
 
     if (res?.data.success) {
-      console.log("Vote submission response:", res.data);
-      toast.success("Vote submitted successfully!");
+      console.log('Vote submission response:', res.data);
+      toast.success('Vote submitted successfully!');
+      navigate(`/vote/${contestId}/thank-you`);
       return { success: true };
     } else {
-      throw new Error(res.data?.message || "Something went wrong");
+      throw new Error(res.data?.message || 'Something went wrong');
     }
   };
 
@@ -326,14 +374,14 @@ const VotingFlow = () => {
         key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
         email,
         amount: amount * 100 * multiplier, // must be a number
-        currency: "NGN",
+        currency: 'NGN',
         // ⛔️ no async here
         callback: (response) => {
           verifyAndSubmit(response.reference, voteData, resolve, reject);
         },
         onClose: () => {
-          toast.error("Payment popup closed.");
-          reject(new Error("Payment popup closed"));
+          toast.error('Payment popup closed.');
+          reject(new Error('Payment popup closed'));
         },
       });
       handler.openIframe();
@@ -342,62 +390,23 @@ const VotingFlow = () => {
 
   async function verifyAndSubmit(reference, voteData, resolve, reject) {
     try {
-      const verify = await axios.post("/api/contest/verify-payment", {
+      const verify = await axios.post('/api/contest/verify-payment', {
         reference,
       });
       if (!verify.data.success) {
-        toast.error("❌ Payment could not be verified.");
-        return reject(new Error("Payment verification failed"));
+        toast.error('❌ Payment could not be verified.');
+        return reject(new Error('Payment verification failed'));
       }
       await submitVote(voteData);
-      toast.success("✅ Payment verified & vote recorded!");
+      toast.success('✅ Payment verified & vote recorded!');
       resolve(true);
     } catch (err) {
-      toast.error("Server verification failed");
+      toast.error('Server verification failed');
       reject(err);
     }
   }
 
   // -------------------- Open Contest functions --------------------
-
-  // Call this when the user clicks “Vote with Google”
-  const handleOpenContestGoogleVerify = async () => {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: "select_account" });
-
-    try {
-      // 1️⃣ Google popup
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      const voterName = user.displayName || "Anonymous";
-      const voterEmail = user.email;
-
-      // 2️⃣ Prepare vote payload (adapt to how you store finalVotes/multiplier)
-      const voteData = {
-        voterName,
-        voterEmail,
-        multiplier,
-        votedFor: finalVotes, // e.g. [{ positionTitle, votedFor }]
-      };
-
-      // 3️⃣ Paid or free contest?
-      if (contest?.payment?.isPaid) {
-        await payWithPaystackOpen(
-          voterEmail,
-          contest.payment.amount,
-          multiplier,
-          voteData
-        );
-
-        return { success: true };
-      } else {
-        return await submitVoteOpen(voteData);
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error(err.message || "Error verifying you");
-    }
-  };
 
   // Paystack payment
   const payWithPaystackOpen = (email, amount, multiplier, voteData) =>
@@ -406,12 +415,12 @@ const VotingFlow = () => {
         key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
         email,
         amount: amount * 100 * multiplier, // Paystack expects kobo
-        currency: "NGN",
+        currency: 'NGN',
         callback: (response) =>
           verifyAndSubmitOpen(response.reference, voteData, resolve, reject),
         onClose: () => {
-          toast.error("Payment popup closed.");
-          reject(new Error("Payment popup closed"));
+          toast.error('Payment popup closed.');
+          reject(new Error('Payment popup closed'));
         },
       });
       handler.openIframe();
@@ -420,18 +429,18 @@ const VotingFlow = () => {
   // Verify payment server-side, then record vote
   async function verifyAndSubmitOpen(reference, voteData, resolve, reject) {
     try {
-      const verify = await axios.post("/api/contest/verify-payment", {
+      const verify = await axios.post('/api/contest/verify-payment', {
         reference,
       });
       if (!verify.data.success) {
-        toast.error("❌ Payment could not be verified.");
-        return reject(new Error("Payment verification failed"));
+        toast.error('❌ Payment could not be verified.');
+        return reject(new Error('Payment verification failed'));
       }
       await submitVoteOpen(voteData);
-      toast.success("✅ Payment verified & vote recorded!");
+      toast.success('✅ Payment verified & vote recorded!');
       resolve(true);
     } catch (err) {
-      toast.error("Server verification failed");
+      toast.error('Server verification failed');
       reject(err);
     }
   }
@@ -443,19 +452,21 @@ const VotingFlow = () => {
       voteData
     );
     if (res?.data.success) {
-      console.log("Vote submission response:", res.data);
-      toast.success("Vote submitted successfully!");
+      console.log('Vote submission response:', res.data);
+      toast.success('Vote submitted successfully!');
+      navigate(`/vote/${contestId}/thank-you`);
+
       return { success: true };
     } else {
-      throw new Error(res.data?.message || "Something went wrong");
+      throw new Error(res.data?.message || 'Something went wrong');
     }
   }
 
   const startDate = new Date(contest?.startDate);
   if (contest?.startTime) {
     let hour = parseInt(contest.startTime.startTimeHour, 10);
-    if (contest.startTime.startTimeAmPm === "PM" && hour < 12) hour += 12;
-    if (contest.startTime.startTimeAmPm === "AM" && hour === 12) hour = 0;
+    if (contest.startTime.startTimeAmPm === 'PM' && hour < 12) hour += 12;
+    if (contest.startTime.startTimeAmPm === 'AM' && hour === 12) hour = 0;
     startDate.setHours(
       hour,
       parseInt(contest.startTime.startTimeMinute, 10),
@@ -467,25 +478,25 @@ const VotingFlow = () => {
   const endDate = new Date(contest?.endDate);
   if (contest?.endTime) {
     let hour = parseInt(contest.endTime.endTimeHour, 10);
-    if (contest.endTime.endTimeAmPm === "PM" && hour < 12) hour += 12;
-    if (contest.endTime.endTimeAmPm === "AM" && hour === 12) hour = 0;
+    if (contest.endTime.endTimeAmPm === 'PM' && hour < 12) hour += 12;
+    if (contest.endTime.endTimeAmPm === 'AM' && hour === 12) hour = 0;
     endDate.setHours(hour, parseInt(contest.endTime.endTimeMinute, 10), 0, 0);
   }
 
   const now = new Date();
 
-  if (contest?.status === "pause") {
+  if (contest?.status === 'pause') {
     return (
-      <div className="min-h-screen flex flex-col">
-        <div className="flex-1 w-full p-6 flex items-center justify-center">
-          <div className="text-center">
-            <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className='min-h-screen flex flex-col'>
+        <div className='flex-1 w-full p-6 flex items-center justify-center'>
+          <div className='text-center'>
+            <AlertTriangle className='w-16 h-16 text-yellow-500 mx-auto mb-4' />
+            <h2 className='text-2xl font-bold text-gray-900 mb-2'>
               Contestant Paused
             </h2>
 
-            <div className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
-              <p className="text-xl font-semibold text-white">{countdown}</p>
+            <div className='px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors'>
+              <p className='text-xl font-semibold text-white'>{countdown}</p>
             </div>
           </div>
         </div>
@@ -495,19 +506,19 @@ const VotingFlow = () => {
 
   if (now < startDate) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <div className="flex-1 w-full p-6 flex items-center justify-center">
-          <div className="text-center">
-            <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className='min-h-screen flex flex-col'>
+        <div className='flex-1 w-full p-6 flex items-center justify-center'>
+          <div className='text-center'>
+            <AlertTriangle className='w-16 h-16 text-yellow-500 mx-auto mb-4' />
+            <h2 className='text-2xl font-bold text-gray-900 mb-2'>
               Contestant Not Started
             </h2>
-            <h3 className="text-lg font-bold text-gray-900 mb-2">
-              Contest <span className="text-orange-600 font-bold">Starts</span>{" "}
+            <h3 className='text-lg font-bold text-gray-900 mb-2'>
+              Contest <span className='text-orange-600 font-bold'>Starts</span>{' '}
               In
             </h3>
-            <div className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
-              <p className="text-xl font-semibold text-white">{countdown}</p>
+            <div className='px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors'>
+              <p className='text-xl font-semibold text-white'>{countdown}</p>
             </div>
           </div>
         </div>
@@ -515,13 +526,13 @@ const VotingFlow = () => {
     );
   }
 
-  if (contest?.status === "ended" || contest?.status === "completed") {
+  if (contest?.status === 'ended' || contest?.status === 'completed') {
     return (
-      <div className="min-h-screen flex flex-col">
-        <div className="flex-1 w-full p-6 flex items-center justify-center">
-          <div className="text-center">
-            <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className='min-h-screen flex flex-col'>
+        <div className='flex-1 w-full p-6 flex items-center justify-center'>
+          <div className='text-center'>
+            <AlertTriangle className='w-16 h-16 text-yellow-500 mx-auto mb-4' />
+            <h2 className='text-2xl font-bold text-gray-900 mb-2'>
               Contest Ended
             </h2>
           </div>
@@ -533,97 +544,112 @@ const VotingFlow = () => {
   // =========================
   // Casting Screen
   // =========================
-  if (currentStep === "cast") {
+  if (currentStep === 'cast') {
     return (
       <>
-        <div className="px-4 md:px-30 py-8 bg-[#F8F8F8]">
-          <div className="mx-auto">
-            <div className="flex items-center gap-4 mb-8">
+        <div className='px-4 md:px-30 py-8 bg-[#F8F8F8]'>
+          <div className='mx-auto'>
+            <div className='flex items-center gap-4 mb-8'>
               <button
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className='p-2 hover:bg-gray-100 rounded-lg transition-colors'
                 onClick={() => navigate(-1)}
               >
-                <ChevronLeft className="w-8 h-8 text-gray-900" />
+                <ChevronLeft className='w-8 h-8 text-gray-900' />
               </button>
-              <h1 className="text-[20px] font-semibold text-gray-900">
+              <h2 className='text-[20px] font-semibold text-gray-900'>
                 Cast your vote
-              </h1>
+              </h2>
             </div>
-
-            {/* Contest type toggle for demo */}
-            {/* <div className="flex justify-end mb-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-700">Demo as:</span>
-                <button
-                  className={`px-3 py-1 rounded-l border border-gray-300 text-sm font-medium ${
-                    contestType === "open"
-                      ? "bg-[#034045] text-white"
-                      : "bg-white text-gray-700"
-                  }`}
-                  onClick={() => setContestType("open")}
-                  type="button"
-                >
-                  Open Contest
-                </button>
-                <button
-                  className={`px-3 py-1 rounded-r border border-gray-300 text-sm font-medium ${
-                    contestType === "closed"
-                      ? "bg-[#034045] text-white"
-                      : "bg-white text-gray-700"
-                  }`}
-                  onClick={() => setContestType("closed")}
-                  type="button"
-                >
-                  Closed Contest
-                </button>
+            {/* Contest Banner, Logo, Title, Description */}
+            {contest && (
+              <div className=' md:px-30 mb-8'>
+                {/* Banner */}
+                <div className='bg-black mb-4 relative overflow-hidden rounded-xl'>
+                  <div className='h-48 flex items-center justify-center'>
+                    {contest.coverImageUrl && (
+                      <img
+                        src={contest.coverImageUrl}
+                        alt={contest.title}
+                        className='absolute inset-0 w-full h-full object-cover opacity-80'
+                      />
+                    )}
+                  </div>
+                </div>
+                {/* Logo, Title, Description */}
+                <div className='flex gap-4 items-center mb-6'>
+                  <div className='w-20 h-20 bg-black rounded-full border-4 border-[#034045] flex items-center justify-center relative overflow-hidden'>
+                    {contest.contestLogoImageUrl && (
+                      <img
+                        src={contest.contestLogoImageUrl}
+                        alt={contest.title}
+                        className='absolute inset-0 w-full h-full object-cover rounded-full'
+                      />
+                    )}
+                  </div>
+                  <div className='flex-1'>
+                    <h3 className='text-xl font-bold text-gray-900 mb-1 truncate'>
+                      {contest.title}
+                    </h3>
+                    <p className='text-gray-600 text-base line-clamp-2'>
+                      {contest.description}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div> */}
+            )}
 
-            <div className="mb-8">
-              <p className="text-gray-700 mb-4">Select your position</p>
-              <div className="flex flex-wrap gap-3">
+            <div className='relative mb-2'>
+              <select
+                id='position-select'
+                value={currentPositionIndex}
+                onChange={(e) =>
+                  setCurrentPositionIndex(Number(e.target.value))
+                }
+                className='block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#034045] focus:border-[#034045] text-base text-white appearance-none pr-10 
+               bg-[#034045] hover:bg-[#034045] transition-colors'
+              >
                 {positions.map((position, index) => (
-                  <button
-                    key={position.name}
-                    onClick={() => setCurrentPositionIndex(index)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                      index === currentPositionIndex
-                        ? "bg-[#034045] text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    }`}
-                  >
-                    {position.name}
-                    <span className="ml-2 text-xs">
-                      {position?.contestants?.length || 0}
-                    </span>
-                  </button>
+                  <option key={position.name} value={index}>
+                    {position.name} ({position?.contestants?.length || 0}{' '}
+                    candidates)
+                  </option>
                 ))}
+              </select>
+
+              <div className='pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white'>
+                <svg
+                  className='fill-current h-5 w-5'
+                  xmlns='http://www.w3.org/2000/svg'
+                  viewBox='0 0 20 20'
+                >
+                  <path d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z' />
+                </svg>
               </div>
             </div>
 
             {/* Candidates List */}
-            <div className="mb-8">
-              <p className="text-gray-700 mb-4">
+            <div className='mb-8'>
+              <p className='text-gray-700 mb-4'>
                 Select the contestant you want to vote for
               </p>
-              <div className="space-y-3">
+              <div className='space-y-3'>
                 {currentPosition?.contestants?.map((candidate) => (
                   <div
                     key={candidate._id}
                     onClick={() => handleCandidateSelect(candidate)}
-                    className="flex items-center justify-between p-4 bg-[#D9D9D94D] rounded-lg border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition-colors"
+                    className='flex items-center justify-between p-4 bg-[#D9D9D94D] rounded-lg border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition-colors'
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-black rounded-full overflow-hidden">
+                    <div className='flex items-center gap-4'>
+                      <div className='w-12 h-12 bg-black rounded-full overflow-hidden'>
                         {candidate.image ? (
                           <img
                             src={candidate.image}
                             alt={candidate.name}
-                            className="w-full h-full object-cover"
+                            className='w-full h-full object-cover'
                           />
                         ) : null}
                       </div>
-                      <span className="text-lg font-medium text-gray-900">
+                      <span className='text-lg font-medium text-gray-900'>
                         {candidate.name}
                       </span>
                     </div>
@@ -632,14 +658,14 @@ const VotingFlow = () => {
                         votes.find(
                           (vote) => vote.positionTitle === currentPosition.name
                         )?.votedFor === candidate._id
-                          ? "bg-[#034045] border-[#034045]"
-                          : "border-gray-300"
+                          ? 'bg-[#034045] border-[#034045]'
+                          : 'border-gray-300'
                       } flex items-center justify-center`}
                     >
                       {votes.find(
                         (vote) => vote.positionTitle === currentPosition.name
                       )?.votedFor === candidate._id && (
-                        <Check className="w-4 h-4 text-white" />
+                        <Check className='w-4 h-4 text-white' />
                       )}
                     </div>
                   </div>
@@ -650,7 +676,7 @@ const VotingFlow = () => {
             {/* Next Button */}
 
             {/* Navigation */}
-            <div className="space-y-4">
+            <div className='space-y-4'>
               <button
                 onClick={handleNextPosition}
                 disabled={
@@ -662,19 +688,19 @@ const VotingFlow = () => {
                   votes.find(
                     (vote) => vote.positionTitle === currentPosition.name
                   )
-                    ? "bg-[#034045] hover:bg-[#045a60] text-white"
-                    : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    ? 'bg-[#034045] hover:bg-[#045a60] text-white'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                 }`}
               >
                 {currentPositionIndex < positions.length - 1
-                  ? "Next Position"
-                  : "Review Votes"}
+                  ? 'Next Position'
+                  : 'Review Votes'}
               </button>
 
-              <div className="text-center">
+              <div className='text-center'>
                 <button
                   onClick={handleSkipToReview}
-                  className="text-[#034045] underline hover:text-[#045a60] transition-colors"
+                  className='text-[#034045] underline hover:text-[#045a60] transition-colors'
                 >
                   Skip other Positions and Submit my Vote
                 </button>
@@ -690,32 +716,32 @@ const VotingFlow = () => {
   // Review Screen
   // =========================
   return (
-    <div className="px-4 md:px-30 py-8 bg-[#F8F8F8] p-4">
-      <div className="mx-auto">
-        <div className="flex items-center gap-4 mb-8">
+    <div className='px-4 md:px-30 py-8 bg-[#F8F8F8] p-4'>
+      <div className='mx-auto'>
+        <div className='flex items-center gap-4 mb-8'>
           <button
             onClick={handleBackToCasting}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            className='p-2 hover:bg-gray-100 rounded-lg transition-colors'
           >
-            <ChevronLeft className="w-8 h-8 text-gray-900" />
+            <ChevronLeft className='w-8 h-8 text-gray-900' />
           </button>
-          <h1 className="text-[20px] font-semibold text-gray-900">
+          <h1 className='text-[20px] font-semibold text-gray-900'>
             Review your votes
           </h1>
         </div>
 
-        <div className="space-y-4 mb-8">
+        <div className='space-y-4 mb-8'>
           {positions.map((position) => (
             <div
               key={position._id || position.name}
-              className="bg-[#D9D9D94D] rounded-lg p-6 border border-gray-200"
+              className='bg-[#D9D9D94D] rounded-lg p-6 border border-gray-200'
             >
-              <div className="flex items-center justify-between">
+              <div className='flex items-center justify-between'>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">{position.name}</p>
-                  <p className="text-xl font-bold text-gray-900">
+                  <p className='text-sm text-gray-500 mb-1'>{position.name}</p>
+                  <p className='text-xl font-bold text-gray-900'>
                     {votes.find((vote) => vote.positionTitle === position.name)
-                      ?.name || "No selection"}
+                      ?.name || 'No selection'}
                   </p>
                 </div>
               </div>
@@ -727,9 +753,9 @@ const VotingFlow = () => {
                       (p) => p.name === position.name
                     );
                     setCurrentPositionIndex(positionIndex);
-                    setCurrentStep("cast");
+                    setCurrentStep('cast');
                   }}
-                  className="mt-3 text-[#034045] hover:text-[#045a60] transition-colors text-sm underline"
+                  className='mt-3 text-[#034045] hover:text-[#045a60] transition-colors text-sm underline'
                 >
                   Select candidate
                 </button>
@@ -740,41 +766,41 @@ const VotingFlow = () => {
 
         {/* Vote Multiplier Section */}
         {contest?.allowMultipleVotes && (
-          <div className="mb-6 p-4 bg-[#F3F7F6] rounded-lg border border-[#034045]/20">
+          <div className='mb-6 p-4 bg-[#F3F7F6] rounded-lg border border-[#034045]/20'>
             <label
-              htmlFor="vote-multiplier"
-              className="block text-gray-800 font-medium mb-2"
+              htmlFor='vote-multiplier'
+              className='block text-gray-800 font-medium mb-2'
             >
               Vote Multiplier
             </label>
-            <div className="flex items-center gap-3">
+            <div className='flex items-center gap-3'>
               <input
-                id="vote-multiplier"
-                type="number"
+                id='vote-multiplier'
+                type='number'
                 min={1}
                 value={multiplier}
                 onChange={(e) =>
                   setMultiplier(Math.max(1, Number(e.target.value)))
                 }
-                className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#034045] text-lg font-semibold text-gray-900 bg-white"
+                className='w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#034045] text-lg font-semibold text-gray-900 bg-white'
               />
-              <span className="text-gray-700">
-                Each selected candidate will receive{" "}
-                <span className="font-bold">{multiplier}</span> vote
-                {multiplier > 1 ? "s" : ""}.
+              <span className='text-gray-700'>
+                Each selected candidate will receive{' '}
+                <span className='font-bold'>{multiplier}</span> vote
+                {multiplier > 1 ? 's' : ''}.
               </span>
             </div>
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className='space-y-4'>
           <button
             onClick={handleSubmitVotes}
             disabled={Object.keys(votes).length === 0}
             className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${
               Object.keys(votes).length > 0
-                ? "bg-[#034045] hover:bg-[#045a60] text-white"
-                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                ? 'bg-[#034045] hover:bg-[#045a60] text-white'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
             Cast my votes

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FileText, Mail, MapPin, X } from 'lucide-react';
+import { FileText, Loader2, User, Mail, MapPin, FileImage } from 'lucide-react';
+import convertGoogleDriveUrl from '../actions/convertGoogleDriveUrl';
 
 const ContestantDetailsStep = ({
   contestantForm = {
@@ -12,208 +12,18 @@ const ContestantDetailsStep = ({
   onContestantInputChange = () => {},
   onContestantImageUpload = () => {},
   onAddContestant = () => {},
+  onRemoveContestant = () => {},
+  contestants = [],
+  onBulkUpload = () => {},
+  handleDragOver = (e) => e.preventDefault(),
+  handleDrop = () => {},
   positions = [],
+  isUploading = false,
 }) => {
-  // Local state for managing contestants, uploads, and the mapping dialog
-  const [contestants, setContestants] = useState([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [csvPreview, setCsvPreview] = useState(null);
-  const [columnMapping, setColumnMapping] = useState({});
-  const [showMappingDialog, setShowMappingDialog] = useState(false);
-  const [csvData, setCsvData] = useState([]);
-  const [bulkImages, setBulkImages] = useState([]);
+  const isFormValid =
+    contestantForm.name.trim() !== '' && contestantForm.position.trim() !== '';
 
-  // Helper function to update the main contestant list
-  const updateContestantList = (newContestants) => {
-    setContestants((prevContestants) => [
-      ...prevContestants,
-      ...newContestants,
-    ]);
-  };
-
-  // Function to remove a contestant by their unique ID
-  const handleRemoveContestant = (contestantId) => {
-    setContestants(
-      contestants.filter((contestant) => contestant.dateId !== contestantId)
-    );
-  };
-
-  // Parses CSV content into an object with headers and rows
-  const parseCSV = (content) => {
-    const lines = content.split('\n').filter((line) => line.trim());
-    if (lines.length < 2) return null;
-
-    const headers = lines[0].split(',').map((h) => h.trim().replace(/"/g, ''));
-    const rows = lines.slice(1).map((line) => {
-      const values = [];
-      let current = '';
-      let inQuotes = false;
-
-      for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        if (char === '"') {
-          inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-          values.push(current.trim().replace(/"/g, ''));
-          current = '';
-        } else {
-          current += char;
-        }
-      }
-      values.push(current.trim().replace(/"/g, ''));
-      return values;
-    });
-
-    return {
-      headers,
-      rows: rows.filter((row) => row.some((cell) => cell.trim())),
-    };
-  };
-
-  // Automatically detects column mapping based on common header names
-  const detectColumnMapping = (headers) => {
-    const mapping = {};
-    headers.forEach((header, index) => {
-      const lowerHeader = header.toLowerCase().trim();
-      if (
-        lowerHeader.includes('name') ||
-        lowerHeader === 'contestant' ||
-        lowerHeader === 'full name'
-      ) {
-        mapping.name = index;
-      } else if (
-        lowerHeader.includes('position') ||
-        lowerHeader.includes('title') ||
-        lowerHeader.includes('role')
-      ) {
-        mapping.position = index;
-      } else if (
-        lowerHeader.includes('bio') ||
-        lowerHeader.includes('description') ||
-        lowerHeader.includes('about')
-      ) {
-        mapping.bio = index;
-      } else if (
-        lowerHeader.includes('email') ||
-        lowerHeader.includes('mail')
-      ) {
-        mapping.email = index;
-      } else if (
-        lowerHeader.includes('image') ||
-        lowerHeader.includes('photo') ||
-        lowerHeader.includes('picture')
-      ) {
-        mapping.image = index;
-      }
-    });
-    return mapping;
-  };
-
-  // Main handler for CSV file upload
-  const handleCSVUpload = (file) => {
-    if (!file) return;
-    setIsUploading(true);
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const parsed = parseCSV(e.target.result);
-        if (!parsed) {
-          alert(
-            'Invalid CSV format. Please ensure your file has headers and data rows.'
-          );
-          setIsUploading(false);
-          return;
-        }
-
-        const autoMapping = detectColumnMapping(parsed.headers);
-
-        if (
-          autoMapping.name !== undefined &&
-          autoMapping.position !== undefined
-        ) {
-          processBulkData(parsed.rows, autoMapping);
-        } else {
-          setCsvData(parsed.rows);
-          setCsvPreview(parsed);
-          setColumnMapping(autoMapping);
-          setShowMappingDialog(true);
-        }
-        setIsUploading(false);
-      } catch (error) {
-        console.error('Error parsing CSV:', error);
-        alert('Error parsing CSV file. Please check the format and try again.');
-        setIsUploading(false);
-      }
-    };
-    reader.onerror = () => {
-      alert('Failed to read file.');
-      setIsUploading(false);
-    };
-    reader.readAsText(file);
-  };
-
-  // Processes bulk data with a confirmed column mapping
-  const processBulkData = (rows, mapping) => {
-    const processedContestants = rows
-      .map((row, index) => {
-        const contestant = {
-          name: mapping.name !== undefined ? row[mapping.name] || '' : '',
-          position:
-            mapping.position !== undefined ? row[mapping.position] || '' : '',
-          bio: mapping.bio !== undefined ? row[mapping.bio] || '' : '',
-          email: mapping.email !== undefined ? row[mapping.email] || '' : '',
-          image: null,
-          dateId: `bulk-${Date.now()}-${index}`,
-        };
-
-        if (mapping.image !== undefined && row[mapping.image]) {
-          const imageName = row[mapping.image].trim();
-          const matchingImage = bulkImages.find(
-            (img) =>
-              img.name.toLowerCase().includes(imageName.toLowerCase()) ||
-              imageName
-                .toLowerCase()
-                .includes(img.name.toLowerCase().split('.')[0])
-          );
-          if (matchingImage) {
-            contestant.image = matchingImage;
-          }
-        }
-        return contestant;
-      })
-      .filter((c) => c.name && c.position);
-
-    updateContestantList(processedContestants);
-
-    // Reset state after successful import
-    setCsvPreview(null);
-    setShowMappingDialog(false);
-    setColumnMapping({});
-    setCsvData([]);
-  };
-
-  const handleDragOver = (e) => e.preventDefault();
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    if (isUploading) return;
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      handleCSVUpload(files[0]);
-    }
-  };
-
-  const handleMappingConfirm = () => {
-    if (
-      columnMapping.name === undefined ||
-      columnMapping.position === undefined
-    ) {
-      alert('Please map at least Name and Position columns.');
-      return;
-    }
-    processBulkData(csvData, columnMapping);
-  };
+  const isAddButtonDisabled = isUploading || !isFormValid;
 
   return (
     <div className='relative space-y-6 sm:space-y-8 bg-[#FBF7F7] p-4 sm:p-6 lg:p-10'>
@@ -226,7 +36,7 @@ const ContestantDetailsStep = ({
           {/* Contestant Name */}
           <div>
             <label className='block text-left text-sm font-medium text-gray-700 mb-2'>
-              Contestant Name
+              Contestant Name <span className='text-red-500'>*</span>
             </label>
             <input
               type='text'
@@ -263,10 +73,10 @@ const ContestantDetailsStep = ({
 
           {/* Position & Email - Side by side on larger screens */}
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6'>
-            {/* Position */}
+            {/* Position (REQUIRED) */}
             <div>
               <label className='block text-sm text-left font-medium text-gray-700 mb-2'>
-                Position
+                Position <span className='text-red-500'>*</span>
               </label>
               <select
                 value={contestantForm.position || ''}
@@ -281,7 +91,7 @@ const ContestantDetailsStep = ({
                 }`}
               >
                 <option value=''>Select Position</option>
-                {positions.map((position, idx) => (
+                {positions?.map((position, idx) => (
                   <option key={idx} value={position.name}>
                     {position.name}
                   </option>
@@ -384,9 +194,9 @@ const ContestantDetailsStep = ({
             <button
               type='button'
               onClick={onAddContestant}
-              disabled={isUploading}
+              disabled={isAddButtonDisabled}
               className={`px-6 sm:px-8 py-2 sm:py-3 rounded-md font-medium transition-colors text-sm sm:text-base w-full sm:w-auto ${
-                isUploading
+                isAddButtonDisabled
                   ? 'bg-orange-400 text-white opacity-50 cursor-not-allowed'
                   : 'bg-orange-500 hover:bg-orange-600 text-white'
               }`}
@@ -401,8 +211,6 @@ const ContestantDetailsStep = ({
         <h2 className='text-lg sm:text-xl font-semibold text-left text-gray-900 mb-4 sm:mb-6'>
           Bulk Upload
         </h2>
-
-        {/* CSV Upload */}
         <div className='bg-gray-50 border border-gray-200 rounded-lg p-4 sm:p-6 lg:p-8'>
           <div
             className={`border-2 border-dashed rounded-lg p-6 sm:p-8 lg:p-12 text-center transition-colors cursor-pointer ${
@@ -411,7 +219,7 @@ const ContestantDetailsStep = ({
                 : 'hover:border-orange-400 border-gray-300'
             }`}
             onDragOver={handleDragOver}
-            onDrop={handleDrop}
+            onDrop={(e) => !isUploading && handleDrop(e, 'bulk')}
             onClick={() =>
               !isUploading &&
               document.getElementById('bulk-upload-input').click()
@@ -437,164 +245,26 @@ const ContestantDetailsStep = ({
                   ? 'bg-orange-400 text-white opacity-50 cursor-not-allowed'
                   : 'bg-orange-500 hover:bg-orange-600 text-white'
               }`}
-              onClick={(e) => {
-                e.stopPropagation();
+              onClick={() =>
                 !isUploading &&
-                  document.getElementById('bulk-upload-input').click();
-              }}
+                document.getElementById('bulk-upload-input').click()
+              }
             >
               Browse Files
             </button>
-            <div className='text-xs text-gray-500 mt-3 sm:mt-4 space-y-1'>
-              <p>CSV should include: Name, Position, Bio (required)</p>
-              <p>Optional: Email, Image filename</p>
-              <p>
-                Column order doesn't matter - we'll auto-detect or let you map
-                them
-              </p>
-            </div>
+            <p className='text-xs text-gray-500 mt-3 sm:mt-4'>
+              File must include Contestant Name, Position, and Bio
+            </p>
             <input
               id='bulk-upload-input'
               type='file'
               accept='.csv'
-              onChange={(e) =>
-                !isUploading && handleCSVUpload(e.target.files[0])
-              }
+              onChange={(e) => !isUploading && onBulkUpload(e.target.files[0])}
               className='hidden'
             />
           </div>
         </div>
       </div>
-      {/* Column Mapping Dialog */}
-      {showMappingDialog && csvPreview && (
-        <div className='fixed inset-0 bg-[#000000]/50 flex items-center justify-center p-4 z-50'>
-          <div className='bg-white rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto'>
-            <div className='flex items-center justify-between mb-4'>
-              <h3 className='text-lg font-semibold text-gray-900'>
-                Map CSV Columns
-              </h3>
-              <button
-                onClick={() => setShowMappingDialog(false)}
-                className='text-gray-400 hover:text-gray-600'
-              >
-                <X className='w-5 h-5' />
-              </button>
-            </div>
-
-            <p className='text-sm text-gray-600 mb-4'>
-              Please map your CSV columns to the required fields. We've made our
-              best guess, but please verify:
-            </p>
-
-            <div className='space-y-4'>
-              {['name', 'position', 'bio', 'email', 'image'].map((field) => (
-                <div key={field} className='flex items-center space-x-4'>
-                  <div className='flex items-center space-x-2 w-20'>
-                    <label
-                      className={`text-sm font-medium capitalize ${
-                        field === 'name' || field === 'position'
-                          ? 'text-red-600'
-                          : 'text-gray-700'
-                      }`}
-                    >
-                      {field}
-                    </label>
-                    {(field === 'name' || field === 'position') && (
-                      <span className='text-red-500 text-xs'>*</span>
-                    )}
-                  </div>
-                  <select
-                    value={
-                      columnMapping[field] !== undefined
-                        ? columnMapping[field]
-                        : ''
-                    }
-                    onChange={(e) =>
-                      setColumnMapping((prev) => ({
-                        ...prev,
-                        [field]:
-                          e.target.value === ''
-                            ? undefined
-                            : parseInt(e.target.value),
-                      }))
-                    }
-                    className='flex-1 px-3 py-2 border border-gray-200 rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500'
-                  >
-                    <option value=''>-- Select Column --</option>
-                    {csvPreview.headers.map((header, index) => (
-                      <option key={index} value={index}>
-                        {header} (Column {index + 1})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ))}
-            </div>
-
-            {/* Preview */}
-            <div className='mt-6'>
-              <h4 className='text-md font-medium text-gray-700 mb-2'>
-                Preview (first 3 rows):
-              </h4>
-              <div className='overflow-x-auto border border-gray-200 rounded-md'>
-                <table className='min-w-full text-sm'>
-                  <thead className='bg-gray-50'>
-                    <tr>
-                      {csvPreview.headers.map((header, index) => (
-                        <th
-                          key={index}
-                          className='px-3 py-2 text-left font-medium text-gray-600 border-r'
-                        >
-                          {header}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className='divide-y divide-gray-200'>
-                    {csvPreview.rows.slice(0, 3).map((row, index) => (
-                      <tr key={index}>
-                        {row.map((cell, cellIndex) => (
-                          <td
-                            key={cellIndex}
-                            className='px-3 py-2 text-gray-900 border-r truncate max-w-[150px]'
-                          >
-                            {cell}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className='flex justify-end space-x-3 mt-6'>
-              <button
-                onClick={() => setShowMappingDialog(false)}
-                className='px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors'
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleMappingConfirm}
-                disabled={
-                  columnMapping.name === undefined ||
-                  columnMapping.position === undefined
-                }
-                className={`px-4 py-2 rounded-md font-medium transition-colors ${
-                  columnMapping.name === undefined ||
-                  columnMapping.position === undefined
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-orange-500 hover:bg-orange-600 text-white'
-                }`}
-              >
-                Import Contestants
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       {/* Contestant List */}
       <div>
         <h2 className='text-lg sm:text-xl font-semibold text-left text-gray-900 mb-4 sm:mb-6'>
@@ -602,52 +272,22 @@ const ContestantDetailsStep = ({
         </h2>
         <div className='bg-white border border-gray-200 rounded-lg overflow-hidden'>
           {/* Desktop Table Header - Hidden on mobile */}
-          <div
-            className={`hidden lg:grid ${
-              columnMapping.email !== undefined ? 'grid-cols-6' : 'grid-cols-5'
-            } gap-4 px-6 py-4 bg-gray-50 font-medium text-gray-700 text-sm border-b border-gray-200`}
-          >
+          <div className='hidden lg:grid grid-cols-5 gap-4 px-6 py-4 bg-gray-50 font-medium text-gray-700 text-sm border-b border-gray-200'>
             <div>Image</div>
             <div>Name</div>
             <div>Position</div>
-            {columnMapping.email !== undefined && <div>Email</div>}
             <div>Bio</div>
             <div>Actions</div>
           </div>
-          {isUploading ? (
-            <div className='px-4 sm:px-6 py-8 sm:py-12 text-center text-gray-500 text-sm sm:text-base'>
-              <div className='flex items-center justify-center space-x-2'>
-                <svg
-                  className='w-6 h-6 animate-spin text-gray-400'
-                  fill='none'
-                  stroke='currentColor'
-                  viewBox='0 0 24 24'
-                >
-                  <circle
-                    className='opacity-25'
-                    cx='12'
-                    cy='12'
-                    r='10'
-                    stroke='currentColor'
-                    strokeWidth='4'
-                  ></circle>
-                  <path
-                    className='opacity-75'
-                    fill='currentColor'
-                    d='M4 12a8 8 0 018-8v8H4z'
-                  ></path>
-                </svg>
-                <p>Loading contestants...</p>
-              </div>
-            </div>
-          ) : contestants.length === 0 ? (
+
+          {contestants.length === 0 ? (
             <div className='px-4 sm:px-6 py-8 sm:py-12 text-center text-gray-500 text-sm sm:text-base'>
               No contestants added yet.
             </div>
           ) : (
             <div className='divide-y divide-gray-200'>
               {contestants.map((contestant) => (
-                <div key={contestant?.dateId} className='p-4 sm:p-6'>
+                <div key={contestant.id} className='p-4 sm:p-6'>
                   {/* Mobile Card Layout */}
                   <div className='lg:hidden'>
                     <div className='flex items-start space-x-4'>
@@ -658,7 +298,7 @@ const ContestantDetailsStep = ({
                             <img
                               src={
                                 typeof contestant.image === 'string'
-                                  ? contestant.image
+                                  ? convertGoogleDriveUrl(contestant.image)
                                   : URL.createObjectURL(contestant.image)
                               }
                               alt={contestant.name}
@@ -679,12 +319,14 @@ const ContestantDetailsStep = ({
                             <h3 className='text-base sm:text-lg font-semibold text-gray-900 truncate'>
                               {contestant.name}
                             </h3>
-                            <div className='flex items-center mt-1 text-sm text-gray-500'>
-                              <MapPin className='w-4 h-4 mr-1' />
-                              <span className='truncate'>
-                                {contestant.position}
-                              </span>
-                            </div>
+                            {contestant.position && (
+                              <div className='flex items-center mt-1 text-sm text-gray-500'>
+                                <MapPin className='w-4 h-4 mr-1' />
+                                <span className='truncate'>
+                                  {contestant.position}
+                                </span>
+                              </div>
+                            )}
                             {contestant.email && (
                               <div className='flex items-center mt-1 text-sm text-gray-500'>
                                 <Mail className='w-4 h-4 mr-1' />
@@ -701,7 +343,10 @@ const ContestantDetailsStep = ({
                               type='button'
                               disabled={isUploading}
                               onClick={() =>
-                                handleRemoveContestant(contestant.dateId)
+                                onRemoveContestant(
+                                  contestant.position,
+                                  contestant.dateId
+                                )
                               }
                               className={`p-2 text-red-400 hover:text-red-600 transition-colors rounded-full hover:bg-red-50 ${
                                 isUploading
@@ -739,20 +384,14 @@ const ContestantDetailsStep = ({
                   </div>
 
                   {/* Desktop Table Layout */}
-                  <div
-                    className={`hidden lg:grid ${
-                      columnMapping.email !== undefined
-                        ? 'grid-cols-6'
-                        : 'grid-cols-5'
-                    } gap-4 items-center text-sm`}
-                  >
+                  <div className='hidden lg:grid grid-cols-5 gap-4 items-center text-sm'>
                     <div>
                       <div className='w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden'>
                         {contestant.image ? (
                           <img
                             src={
                               typeof contestant.image === 'string'
-                                ? contestant.image
+                                ? convertGoogleDriveUrl(contestant.image)
                                 : URL.createObjectURL(contestant.image)
                             }
                             alt={contestant.name}
@@ -768,11 +407,6 @@ const ContestantDetailsStep = ({
                     <div className='text-gray-900 font-medium'>
                       {contestant.name}
                     </div>
-                    {columnMapping.email !== undefined && (
-                      <div className='text-gray-600 truncate'>
-                        {contestant.email}
-                      </div>
-                    )}
                     <div className='text-gray-600'>{contestant.position}</div>
                     <div className='text-gray-600 truncate'>
                       {contestant.bio}
@@ -782,7 +416,10 @@ const ContestantDetailsStep = ({
                         type='button'
                         disabled={isUploading}
                         onClick={() =>
-                          handleRemoveContestant(contestant.dateId)
+                          onRemoveContestant(
+                            contestant.position,
+                            contestant.dateId
+                          )
                         }
                         className={`text-red-400 hover:text-red-600 transition-colors ${
                           isUploading ? 'opacity-50 cursor-not-allowed' : ''
@@ -809,6 +446,16 @@ const ContestantDetailsStep = ({
             </div>
           )}
         </div>
+      </div>
+      {/* Mobile-specific help section */}
+      <div className='sm:hidden bg-blue-50 border border-blue-200 rounded-lg p-3'>
+        <h4 className='text-sm font-medium text-blue-900 mb-2'>Quick Tips:</h4>
+        <ul className='text-xs text-blue-800 space-y-1'>
+          <li>• Fill all required fields before adding a contestant</li>
+          <li>• Use CSV bulk upload for multiple contestants</li>
+          <li>• CSV format: Name, Position, Bio, Email</li>
+          <li>• Image uploads are optional but recommended</li>
+        </ul>
       </div>
     </div>
   );
