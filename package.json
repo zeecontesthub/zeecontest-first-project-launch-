@@ -3,6 +3,6 @@
   "private": true,
   "scripts": {
     "build": "cd FrontEnd && npm install && npm run build && cd ../Backend && npm install",
-    "start": "cd Backend && npm start"
+    "start": "node Backend/index.js"
   }
 }
