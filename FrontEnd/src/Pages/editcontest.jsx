@@ -16,6 +16,7 @@ import { useUser } from '../context/UserContext';
 import { set } from 'date-fns';
 import EditContestPositionSetup from '../Components/EditContestPositionSetup';
 import EditContestContestantList from '../Components/EditContestContestantList';
+import EditContestTypeSetup from '../Components/EditContestTypeSetup';
 
 const Editcontest = () => {
   const { user } = useUser();
@@ -924,6 +925,20 @@ const Editcontest = () => {
               cancelEditingContestant={cancelEditingContestant}
               startEditingContestant={startEditingContestant}
               deleteContestant={deleteContestant}
+            />
+
+            {/* Contest type - paid/free, open/closed */}
+
+            <EditContestTypeSetup
+              payment={formData.payment}
+              isOpen={contest?.isOpen}
+              allowMultipleVotes={formData.allowMultipleVotes}
+              onPaymentChange={(payment) =>
+                setFormData((prev) => ({ ...prev, payment }))
+              }
+              onMultipleVotesChange={(allowMultipleVotes) =>
+                setFormData((prev) => ({ ...prev, allowMultipleVotes }))
+              }
             />
 
             {/* Save Button */}

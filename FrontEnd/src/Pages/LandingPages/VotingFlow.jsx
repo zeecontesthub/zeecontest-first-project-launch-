@@ -212,11 +212,11 @@ const VotingFlow = () => {
         return prev.map((v) =>
           v.positionTitle === posTitle
             ? {
-                ...v,
-                votedFor: candidate._id,
-                name: candidate.name,
-                image: candidate.image,
-              }
+              ...v,
+              votedFor: candidate._id,
+              name: candidate.name,
+              image: candidate.image,
+            }
             : v
         );
       }
@@ -279,6 +279,12 @@ const VotingFlow = () => {
     setShowOpenContestPopup(false);
   };
 
+  // After successful vote submission (both open and closed), redirect to contest details
+  const redirectToContestDetails = () => {
+    navigate(`/contest/${contestId}`); // adjust route if needed
+  };
+
+  // Update handleVotersCodeSubmit to redirect after success
   const handleVotersCodeSubmit = async (data) => {
     try {
       // if payment is required, collect payment first
@@ -289,13 +295,54 @@ const VotingFlow = () => {
           multiplier,
           data
         );
+        redirectToContestDetails();
         return { success: true };
       }
 
       // if no payment, just submit vote directly
-      return await submitVote(data);
+      await submitVote(data);
+      redirectToContestDetails();
+      return { success: true };
     } catch (err) {
       toast.error(err.message || "Unable to submit vote. Please try again.");
+    }
+  };
+
+  // Update handleOpenContestGoogleVerify to redirect after success
+  const handleOpenContestGoogleVerify = async () => {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    try {
+      // 1️⃣ Google popup
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      const voterName = user.displayName || "Anonymous";
+      const voterEmail = user.email;
+      // 2️⃣ Prepare vote payload (adapt to how you store finalVotes/multiplier)
+      const voteData = {
+        voterName,
+        voterEmail,
+        multiplier,
+        votedFor: finalVotes, // e.g. [{ positionTitle, votedFor }]
+      };
+      // 3️⃣ Paid or free contest?
+      if (contest?.payment?.isPaid) {
+        await payWithPaystackOpen(
+          voterEmail,
+          contest.payment.amount,
+          multiplier,
+          voteData
+        );
+        redirectToContestDetails();
+        return { success: true };
+      } else {
+        await submitVoteOpen(voteData);
+        redirectToContestDetails();
+        return { success: true };
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Error verifying you");
     }
   };
 
@@ -359,45 +406,6 @@ const VotingFlow = () => {
   }
 
   // -------------------- Open Contest functions --------------------
-
-  // Call this when the user clicks “Vote with Google”
-  const handleOpenContestGoogleVerify = async () => {
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: "select_account" });
-
-    try {
-      // 1️⃣ Google popup
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      const voterName = user.displayName || "Anonymous";
-      const voterEmail = user.email;
-
-      // 2️⃣ Prepare vote payload (adapt to how you store finalVotes/multiplier)
-      const voteData = {
-        voterName,
-        voterEmail,
-        multiplier,
-        votedFor: finalVotes, // e.g. [{ positionTitle, votedFor }]
-      };
-
-      // 3️⃣ Paid or free contest?
-      if (contest?.payment?.isPaid) {
-        await payWithPaystackOpen(
-          voterEmail,
-          contest.payment.amount,
-          multiplier,
-          voteData
-        );
-
-        return { success: true };
-      } else {
-        return await submitVoteOpen(voteData);
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error(err.message || "Error verifying you");
-    }
-  };
 
   // Paystack payment
   const payWithPaystackOpen = (email, amount, multiplier, voteData) =>
@@ -545,39 +553,47 @@ const VotingFlow = () => {
               >
                 <ChevronLeft className="w-8 h-8 text-gray-900" />
               </button>
-              <h1 className="text-[20px] font-semibold text-gray-900">
+              <h2 className="text-[20px] font-semibold text-gray-900">
                 Cast your vote
-              </h1>
+              </h2>
             </div>
-
-            {/* Contest type toggle for demo */}
-            {/* <div className="flex justify-end mb-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-700">Demo as:</span>
-                <button
-                  className={`px-3 py-1 rounded-l border border-gray-300 text-sm font-medium ${
-                    contestType === "open"
-                      ? "bg-[#034045] text-white"
-                      : "bg-white text-gray-700"
-                  }`}
-                  onClick={() => setContestType("open")}
-                  type="button"
-                >
-                  Open Contest
-                </button>
-                <button
-                  className={`px-3 py-1 rounded-r border border-gray-300 text-sm font-medium ${
-                    contestType === "closed"
-                      ? "bg-[#034045] text-white"
-                      : "bg-white text-gray-700"
-                  }`}
-                  onClick={() => setContestType("closed")}
-                  type="button"
-                >
-                  Closed Contest
-                </button>
+            {/* Contest Banner, Logo, Title, Description */}
+            {contest && (
+              <div className=" md:px-30 mb-8">
+                {/* Banner */}
+                <div className="bg-black mb-4 relative overflow-hidden rounded-xl">
+                  <div className="h-48 flex items-center justify-center">
+                    {contest.coverImageUrl && (
+                      <img
+                        src={contest.coverImageUrl}
+                        alt={contest.title}
+                        className="absolute inset-0 w-full h-full object-cover opacity-80"
+                      />
+                    )}
+                  </div>
+                </div>
+                {/* Logo, Title, Description */}
+                <div className="flex gap-4 items-center mb-6">
+                  <div className="w-20 h-20 bg-black rounded-full border-4 border-[#034045] flex items-center justify-center relative overflow-hidden">
+                    {contest.contestLogoImageUrl && (
+                      <img
+                        src={contest.contestLogoImageUrl}
+                        alt={contest.title}
+                        className="absolute inset-0 w-full h-full object-cover rounded-full"
+                      />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-gray-900 mb-1 truncate">
+                      {contest.title}
+                    </h3>
+                    <p className="text-gray-600 text-base line-clamp-2">
+                      {contest.description}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div> */}
+            )}
 
             <div className="mb-8">
               <p className="text-gray-700 mb-4">Select your position</p>
@@ -586,11 +602,10 @@ const VotingFlow = () => {
                   <button
                     key={position.name}
                     onClick={() => setCurrentPositionIndex(index)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                      index === currentPositionIndex
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${index === currentPositionIndex
                         ? "bg-[#034045] text-white"
                         : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    }`}
+                      }`}
                   >
                     {position.name}
                     <span className="ml-2 text-xs">
@@ -628,19 +643,18 @@ const VotingFlow = () => {
                       </span>
                     </div>
                     <div
-                      className={`w-6 h-6 border-2 rounded ${
-                        votes.find(
-                          (vote) => vote.positionTitle === currentPosition.name
-                        )?.votedFor === candidate._id
+                      className={`w-6 h-6 border-2 rounded ${votes.find(
+                        (vote) => vote.positionTitle === currentPosition.name
+                      )?.votedFor === candidate._id
                           ? "bg-[#034045] border-[#034045]"
                           : "border-gray-300"
-                      } flex items-center justify-center`}
+                        } flex items-center justify-center`}
                     >
                       {votes.find(
                         (vote) => vote.positionTitle === currentPosition.name
                       )?.votedFor === candidate._id && (
-                        <Check className="w-4 h-4 text-white" />
-                      )}
+                          <Check className="w-4 h-4 text-white" />
+                        )}
                     </div>
                   </div>
                 ))}
@@ -658,13 +672,12 @@ const VotingFlow = () => {
                     (vote) => vote.positionTitle === currentPosition?.name
                   )
                 }
-                className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${
-                  votes.find(
-                    (vote) => vote.positionTitle === currentPosition.name
-                  )
+                className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${votes.find(
+                  (vote) => vote.positionTitle === currentPosition.name
+                )
                     ? "bg-[#034045] hover:bg-[#045a60] text-white"
                     : "bg-gray-200 text-gray-400 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 {currentPositionIndex < positions.length - 1
                   ? "Next Position"
@@ -682,6 +695,8 @@ const VotingFlow = () => {
             </div>
           </div>
         </div>
+
+
       </>
     );
   }
@@ -771,11 +786,10 @@ const VotingFlow = () => {
           <button
             onClick={handleSubmitVotes}
             disabled={Object.keys(votes).length === 0}
-            className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${
-              Object.keys(votes).length > 0
+            className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${Object.keys(votes).length > 0
                 ? "bg-[#034045] hover:bg-[#045a60] text-white"
                 : "bg-gray-200 text-gray-400 cursor-not-allowed"
-            }`}
+              }`}
           >
             Cast my votes
           </button>
