@@ -651,7 +651,10 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
               </button>
               <button
                 className='flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium'
-                onClick={() => setIsVotersLinkOpen(true)}
+                onClick={() => {
+                  setVotingLink(`${window.location.origin}/vote/${contestId}`);
+                  setIsVotersLinkOpen(true);
+                }}
               >
                 <Share2 size={16} />
                 Share Voters Link
