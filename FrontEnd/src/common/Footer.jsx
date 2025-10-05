@@ -8,7 +8,7 @@ const Footer = () => {
 
   return (
     <div className='bg-white py-12 px-4 sm:px-6 md:px-12 lg:px-24 space-y-10'>
-      <div className='flex flex-col lg:flex-row justify-between items-center lg:items-start text-center lg:text-left gap-10'>
+      <div className='flex flex-col lg:flex-row justify-between items-start text-center lg:text-left gap-10'>
         {/* Logo and Description */}
         <div className='flex flex-col items-center lg:items-start space-y-4 max-w-sm'>
           <img src={logo} alt='ZeeContest Logo' className='w-32 h-auto' />
@@ -97,6 +97,20 @@ const Footer = () => {
               >
                 Login
               </Link>
+            </li>
+          </ul>
+        </div>
+
+        <div className='flex flex-col items-center lg:items-start text-center lg:text-left space-y-6'>
+          <h4 className='text-lg font-bold text-gray-800'>Get in Touch</h4>{' '}
+          <ul className='space-y-3'>
+            <li className='flex items-center gap-2'>
+              <a
+                href='mailto:support@zeecontest.com'
+                className='text-[#949AA9] hover:text-[#E67347] transition-colors text-sm'
+              >
+                support@zeecontest.com
+              </a>
             </li>
           </ul>
         </div>

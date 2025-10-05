@@ -1,7 +1,14 @@
-import PropTypes from "prop-types";
-import { useNavigate } from "react-router-dom";
+import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router-dom';
 
-const ContestantCard = ({ name, image, votes, position, contestantId, contestId }) => {
+const ContestantCard = ({
+  name,
+  image,
+  votes,
+  position,
+  contestantId,
+  contestId,
+}) => {
   const navigate = useNavigate();
 
   const handleViewClick = () => {
@@ -9,29 +16,33 @@ const ContestantCard = ({ name, image, votes, position, contestantId, contestId 
   };
 
   return (
-    <div className="bg-teal-900 rounded-lg overflow-hidden max-w-xs">
+    <div className='bg-teal-900 rounded-lg overflow-hidden max-w-xs'>
       {/* Contestant Image or Avatar */}
-      <div className="h-48 overflow-hidden flex items-center justify-center text-6xl bg-gray-800">
+      <div className='h-48 overflow-hidden flex items-center justify-center text-6xl bg-gray-800'>
         {image ? (
-          <img src={image} alt={name} className="w-full h-full object-cover" />
+          <img
+            src={image}
+            alt={name}
+            className='w-full h-full object-contain'
+          />
         ) : (
           <span>{name}</span>
         )}
       </div>
 
       {/* Contestant Info */}
-      <div className="p-4">
-        <h3 className="text-white text-left text-lg font-bold mb-3">{name}</h3>
-        <p className="text-gray-400 text-xs mb-2">{position}</p>
+      <div className='p-4'>
+        <h3 className='text-white text-left text-lg font-bold mb-3'>{name}</h3>
+        <p className='text-gray-400 text-xs mb-2'>{position}</p>
         {/* Votes and View Details Button */}
-        <div className="flex justify-between items-center">
+        <div className='flex justify-between items-center'>
           <div>
-            <p className="text-gray-400 text-xs">Votes</p>
-            <p className="text-white font-bold">{votes}</p>
+            <p className='text-gray-400 text-xs'>Votes</p>
+            <p className='text-white font-bold'>{votes}</p>
           </div>
 
           <button
-            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded"
+            className='bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded'
             onClick={handleViewClick}
           >
             View Details

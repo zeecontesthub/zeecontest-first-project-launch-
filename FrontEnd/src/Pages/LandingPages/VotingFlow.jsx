@@ -281,7 +281,7 @@ const VotingFlow = () => {
 
   // After successful vote submission (both open and closed), redirect to contest details
   const redirectToContestDetails = () => {
-    navigate(`/contest/${contestId}`); // adjust route if needed
+    navigate(`/vote/${contestId}/thank-you`);
   };
 
   // Update handleVotersCodeSubmit to redirect after success
@@ -300,32 +300,34 @@ const VotingFlow = () => {
       }
 
       // if no payment, just submit vote directly
-      await submitVote(data);
-      redirectToContestDetails();
-      return { success: true };
+      const result = await submitVote(data);
+      if (result.success) {
+        redirectToContestDetails();
+        return { success: true };
+      }
+      return result;
     } catch (err) {
       toast.error(err.message || 'Unable to submit vote. Please try again.');
+      return { success: false };
     }
   };
-
   // Update handleOpenContestGoogleVerify to redirect after success
   const handleOpenContestGoogleVerify = async () => {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     try {
-      // 1️⃣ Google popup
+      // Google popup
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       const voterName = user.displayName || 'Anonymous';
       const voterEmail = user.email;
-      // 2️⃣ Prepare vote payload (adapt to how you store finalVotes/multiplier)
       const voteData = {
         voterName,
         voterEmail,
         multiplier,
         votedFor: finalVotes, // e.g. [{ positionTitle, votedFor }]
       };
-      // 3️⃣ Paid or free contest?
+      // Paid or free contest?
       if (contest?.payment?.isPaid) {
         await payWithPaystackOpen(
           voterEmail,
@@ -336,35 +338,46 @@ const VotingFlow = () => {
         redirectToContestDetails();
         return { success: true };
       } else {
-        await submitVoteOpen(voteData);
-        redirectToContestDetails();
-        return { success: true };
+        const result = await submitVoteOpen(voteData);
+        if (result.success) {
+          redirectToContestDetails();
+          return { success: true };
+        }
+        return result;
       }
     } catch (err) {
       console.error(err);
       toast.error(err.message || 'Error verifying you');
+      return { success: false };
     }
   };
 
-  // ⬇️ submit vote to backend (used both after payment and for free votes)
+  // ⬇️ Submit vote for CLOSED contests (used both after payment verification and for free votes)
   const submitVote = async (data) => {
-    const res = await axios.post(
-      `/api/contest/contests/${contestId}/addVerifyVote`,
-      {
-        email: data.email,
-        code: data.code,
-        votedFor: finalVotes,
-        multiplier,
+    try {
+      const res = await axios.post(
+        `/api/contest/contests/${contestId}/addVerifyVote`,
+        {
+          email: data.email,
+          code: data.code,
+          votedFor: finalVotes,
+          multiplier,
+        }
+      );
+      if (res.data?.success) {
+        toast.success('Vote submitted successfully!');
+        return { success: true };
+      } else {
+        const message = res.data?.message || 'Something went wrong';
+        toast.error(message);
+        return { success: false, message };
       }
-    );
-
-    if (res?.data.success) {
-      console.log('Vote submission response:', res.data);
-      toast.success('Vote submitted successfully!');
-      navigate(`/vote/${contestId}/thank-you`);
-      return { success: true };
-    } else {
-      throw new Error(res.data?.message || 'Something went wrong');
+    } catch (error) {
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message || 'Something went wrong'
+        : 'Something went wrong';
+      toast.error(message);
+      return { success: false, message };
     }
   };
 
@@ -447,18 +460,25 @@ const VotingFlow = () => {
 
   // Actual vote submission to your Express route
   async function submitVoteOpen(voteData) {
-    const res = await axios.post(
-      `/api/contest/contests/${contestId}/add-vote`,
-      voteData
-    );
-    if (res?.data.success) {
-      console.log('Vote submission response:', res.data);
-      toast.success('Vote submitted successfully!');
-      navigate(`/vote/${contestId}/thank-you`);
-
-      return { success: true };
-    } else {
-      throw new Error(res.data?.message || 'Something went wrong');
+    try {
+      const res = await axios.post(
+        `/api/contest/contests/${contestId}/add-vote`,
+        voteData
+      );
+      if (res.data?.success) {
+        toast.success('Vote submitted successfully!');
+        return { success: true };
+      } else {
+        const message = res.data?.message || 'Something went wrong';
+        toast.error(message);
+        return { success: false, message };
+      }
+    } catch (error) {
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message || 'Something went wrong'
+        : 'Something went wrong';
+      toast.error(message);
+      return { success: false, message };
     }
   }
 
@@ -725,9 +745,9 @@ const VotingFlow = () => {
           >
             <ChevronLeft className='w-8 h-8 text-gray-900' />
           </button>
-          <h1 className='text-[20px] font-semibold text-gray-900'>
+          <p className='text-2xl font-semibold text-gray-900'>
             Review your votes
-          </h1>
+          </p>
         </div>
 
         <div className='space-y-4 mb-8'>

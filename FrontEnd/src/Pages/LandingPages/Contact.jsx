@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, Send } from 'lucide-react';
+import { ChevronDown, Send, Mail } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Header from '../../common/Header';
 import Footer from '../../common/Footer';
@@ -618,9 +618,22 @@ const ContactForm = () => {
           </div>
 
           <div className='text-center mt-8'>
-            <p className='text-gray-500 text-sm'>
+            <p className='text-gray-500 text-sm mb-4'>
               By joining, you'll be notified as soon as Zeecontest launches.
             </p>
+
+            <div className='inline-flex items-center justify-center p-3 bg-[#FFB703]/10 border border-[#FFB703]/30 rounded-lg shadow-sm'>
+              <Mail className='w-5 h-5 text-[#FFB703] mr-2' />
+              <p className='text-sm text-[#343A40] font-medium'>
+                Have questions? Email us at{' '}
+                <a
+                  href='mailto:support@zeecontest.com'
+                  className='text-[#034045] font-semibold hover:underline transition-colors'
+                >
+                  support@zeecontest.com
+                </a>
+              </p>
+            </div>
           </div>
         </div>
       </div>

@@ -14,8 +14,21 @@ const Contestant = () => {
   const navigate = useNavigate();
 
   // Get positions from contest data
-  const positions = contest?.positions?.map((pos) => pos.name) || [];
-  const filterOptions = ['All', ...positions];
+  // Also calculate the number of contestants for each position
+  const positionsWithCounts =
+    contest?.positions?.map((pos) => ({
+      name: pos.name,
+      contestantCount: pos.contestants?.length || 0,
+    })) || [];
+
+  // The filter options array: ['All', 'Position1', 'Position2', ...]
+  const filterOptions = ['All', ...positionsWithCounts.map((pos) => pos.name)];
+
+  // A mapping to easily get the count for a position name
+  const positionCountMap = positionsWithCounts.reduce((map, pos) => {
+    map[pos.name] = pos.contestantCount;
+    return map;
+  }, {});
 
   const allPositions = contest?.positions || [];
 
@@ -149,7 +162,19 @@ const Contestant = () => {
 
   const totalContestants = allContestants.length;
 
-  // ✅ Get every position object
+  // Handler for dropdown change
+  const handleDropdownChange = (e) => {
+    setSelectedPosition(e.target.value);
+  };
+
+  // Function to render the option label, including count for non-'All' options
+  const getOptionLabel = (pos) => {
+    if (pos === 'All') {
+      return 'All Positions';
+    }
+    const count = positionCountMap[pos] || 0;
+    return `${pos} (${count} candidate${count !== 1 ? 's' : ''})`;
+  };
 
   return (
     <div className='flex min-h-screen overflow-x-hidden lg:gap-[10rem]'>
@@ -169,7 +194,7 @@ const Contestant = () => {
           </h2>
         </div>
 
-        <div className='relative mb-2  h-65'>
+        <div className='relative mb-2 h-65'>
           <img
             src={contest?.coverImageUrl || BannerImage}
             alt='Contest Banner'
@@ -178,7 +203,7 @@ const Contestant = () => {
         </div>
 
         {/* Main Header Content */}
-        <div className='relative z-10  backdrop-blur-sm rounded-3xl p-6 lg:p-8'>
+        <div className='relative z-10 backdrop-blur-sm rounded-3xl p-6 lg:p-8'>
           <div className='flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
             {/* Left Section - Logo and Content */}
             <div className='flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 min-w-0 flex-1'>
@@ -201,7 +226,7 @@ const Contestant = () => {
                 </p>
 
                 {/* Stats - Make responsive */}
-                <div className='flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8 mt-4 overflow-x-auto'>
+                <div className='flex items-start sm:items-center gap-4 sm:gap-8 mt-4 overflow-x-auto'>
                   <div className='flex-shrink-0'>
                     <span className='text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900'>
                       {totalVotes}
@@ -224,8 +249,8 @@ const Contestant = () => {
           </div>
         </div>
 
-        {/* Filter Buttons */}
-        <div className='flex flex-wrap gap-3 mb-8 mt-7'>
+        {/* Filter Buttons (Desktop/Tablet) */}
+        <div className='hidden sm:flex flex-wrap gap-3 mb-8 mt-7'>
           {filterOptions.map((pos) => (
             <button
               key={pos}
@@ -239,6 +264,38 @@ const Contestant = () => {
               {pos}
             </button>
           ))}
+        </div>
+
+        {/* Filter Dropdown (Mobile) */}
+        <div className='sm:hidden mb-8 mt-7'>
+          <label htmlFor='position-select-mobile' className='sr-only'>
+            Filter by Position
+          </label>
+          <div className='relative'>
+            <select
+              id='position-select-mobile'
+              value={selectedPosition}
+              onChange={handleDropdownChange}
+              className='block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-base text-white appearance-none pr-10 
+                    bg-teal-800 hover:bg-teal-700 transition-colors cursor-pointer'
+            >
+              {filterOptions.map((pos) => (
+                <option key={pos} value={pos}>
+                  {getOptionLabel(pos)}
+                </option>
+              ))}
+            </select>
+            {/* Custom chevron icon for the dropdown */}
+            <div className='pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white'>
+              <svg
+                className='fill-current h-4 w-4'
+                xmlns='http://www.w3.org/2000/svg'
+                viewBox='0 0 20 20'
+              >
+                <path d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z' />
+              </svg>
+            </div>
+          </div>
         </div>
 
         {/* Contestants List */}
