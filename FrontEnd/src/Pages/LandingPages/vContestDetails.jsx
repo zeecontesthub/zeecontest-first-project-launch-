@@ -1,19 +1,23 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   ChevronLeft,
   Users,
   UserCheck,
   Trophy,
   DollarSign,
-} from "lucide-react";
-import VotingPositionsSection from "../../Components/LandingPageComp/contest/VotingPosition";
-import CandidatesSection from "../../Components/LandingPageComp/contest/CandidateSection";
-import axios from "axios";
+} from 'lucide-react';
+import VotingPositionsSection from '../../Components/LandingPageComp/contest/VotingPosition';
+import CandidatesSection from '../../Components/LandingPageComp/contest/CandidateSection';
+import axios from 'axios';
+
+const MAX_CHARS = 100;
+
 const ContestDetailPage = () => {
   const { contestId } = useParams();
   const [contest, setContest] = useState(null);
-  const [countdown, setCountdown] = useState("");
+  const [countdown, setCountdown] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
   const navigate = useNavigate();
 
   // Simulated contest start and end date/time for countdown
@@ -25,7 +29,7 @@ const ContestDetailPage = () => {
     const startDate = new Date(contest?.startDate);
     if (contest?.startTime) {
       let hour = parseInt(contest?.startTime.startTimeHour, 10);
-      if (contest?.startTime.startTimeAmPm === "PM" && hour < 12) hour += 12;
+      if (contest?.startTime.startTimeAmPm === 'PM' && hour < 12) hour += 12;
       startDate.setHours(
         hour,
         parseInt(contest?.startTime.startTimeMinute, 10),
@@ -38,7 +42,7 @@ const ContestDetailPage = () => {
     const endDate = new Date(contest?.endDate);
     if (contest?.endTime) {
       let hour = parseInt(contest?.endTime.endTimeHour, 10);
-      if (contest?.endTime.endTimeAmPm === "PM" && hour < 12) hour += 12;
+      if (contest?.endTime.endTimeAmPm === 'PM' && hour < 12) hour += 12;
       endDate.setHours(
         hour,
         parseInt(contest?.endTime.endTimeMinute, 10),
@@ -81,7 +85,7 @@ const ContestDetailPage = () => {
         setCountdown(`${days}d ${hours}h ${minutes}m ${seconds}s`);
       } else {
         // Contest ended
-        setCountdown("Contest Ended");
+        setCountdown('Contest Ended');
         clearInterval(interval);
       }
     }, 1000);
@@ -99,14 +103,14 @@ const ContestDetailPage = () => {
         setContest(res.data.contest);
         setActivePosition(res.data.contest?.positions[0]?.name);
       } catch (err) {
-        console.error("Failed to fetch contest:", err);
+        console.error('Failed to fetch contest:', err);
       }
     };
     if (contestId) fetchContest();
   }, [contestId]);
 
   useEffect(() => {
-    if (!contest || contest.status === "completed") return;
+    if (!contest || contest.status === 'completed') return;
 
     // Build end datetime
     let endDate = new Date(contest.endDate); // already ISO midnight
@@ -114,8 +118,8 @@ const ContestDetailPage = () => {
       let hour = parseInt(contest.endTime.endTimeHour, 10);
       let minute = parseInt(contest.endTime.endTimeMinute, 10);
 
-      if (contest.endTime.endTimeAmPm === "PM" && hour < 12) hour += 12;
-      if (contest.endTime.endTimeAmPm === "AM" && hour === 12) hour = 0;
+      if (contest.endTime.endTimeAmPm === 'PM' && hour < 12) hour += 12;
+      if (contest.endTime.endTimeAmPm === 'AM' && hour === 12) hour = 0;
 
       endDate.setHours(hour, minute, 0, 0);
     }
@@ -126,12 +130,12 @@ const ContestDetailPage = () => {
       if (now >= endDate) {
         try {
           await axios.put(`/api/contest/${contest._id}/status`, {
-            status: "completed",
+            status: 'completed',
           });
-          setContest((prev) => ({ ...prev, status: "completed" }));
-          console.log("Contest marked as completed automatically.");
+          setContest((prev) => ({ ...prev, status: 'completed' }));
+          console.log('Contest marked as completed automatically.');
         } catch (err) {
-          console.error("Failed to update contest:", err);
+          console.error('Failed to update contest:', err);
         }
       }
     };
@@ -196,27 +200,27 @@ const ContestDetailPage = () => {
   const stats = [
     {
       icon: Users,
-      label: "Total Votes",
+      label: 'Total Votes',
       value: totalVotes,
-      bgColor: "bg-gray-100",
+      bgColor: 'bg-gray-100',
     },
     {
       icon: UserCheck,
-      label: "Total Contestants",
+      label: 'Total Contestants',
       value: totalContestants,
-      bgColor: "bg-gray-100",
+      bgColor: 'bg-gray-100',
     },
     {
       icon: Trophy,
-      label: "Positions",
+      label: 'Positions',
       value: contest?.positions?.length,
-      bgColor: "bg-gray-100",
+      bgColor: 'bg-gray-100',
     },
     {
       icon: DollarSign,
-      label: "Amount Per Vote",
-      value: contest?.payment?.isPaid ? `₦${contest?.payment?.amount}` : "Free",
-      bgColor: "bg-gray-100",
+      label: 'Amount Per Vote',
+      value: contest?.payment?.isPaid ? `₦${contest?.payment?.amount}` : 'Free',
+      bgColor: 'bg-gray-100',
     },
   ];
 
@@ -229,67 +233,87 @@ const ContestDetailPage = () => {
     setSelectedCandidate(candidate);
   };
 
+  // --- TRUNCATION LOGIC ---
+  const description = contest?.description || '';
+  const isLong = description.length > MAX_CHARS;
+
+  const displayDescription =
+    isExpanded || !isLong
+      ? description
+      : `${description.substring(0, MAX_CHARS).trim()}...`;
+
+  const toggleExpansion = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   return (
     <>
-      <div className="min-h-screen bg-white">
-        <div className="bg-white">
-          <div className="pl-4 md:pl-30 mx-auto px-4 py-4">
-            <div className="flex items-center gap-4">
+      <div className='min-h-screen bg-white'>
+        <div className='bg-white'>
+          <div className='pl-4 md:pl-30 mx-auto px-4 py-4'>
+            <div className='flex items-center gap-4'>
               <button
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className='p-2 hover:bg-gray-100 rounded-lg transition-colors'
                 onClick={() => navigate(-1)}
               >
-                <ChevronLeft className="w-8 h-8 text-gray-900" />
+                <ChevronLeft className='w-8 h-8 text-gray-900' />
               </button>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <p className='text-2xl font-bold text-gray-900'>
                 {contest?.title}
-              </h1>
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-black mb-4 md:mb-8 relative overflow-hidden">
-          <div className="h-64 md:h-80 flex items-center justify-center">
+        <div className='bg-black mb-4 md:mb-8 relative overflow-hidden'>
+          <div className='h-64 md:h-80 flex items-center justify-center'>
             <img
               src={contest?.coverImageUrl}
               alt={contest?.title}
-              className="absolute inset-0 w-full h-full object-cover"
+              className='absolute inset-0 w-full h-full object-cover'
             />
           </div>
         </div>
 
-        <div className="mx-auto px-4 md:px-30 py-4 md:py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            <div className="lg:col-span-2 flex gap-6 items-center justify-center">
+        <div className='mx-auto px-4 md:px-30 py-4 md:py-8'>
+          <div className='grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8'>
+            <div className='lg:col-span-2 flex gap-6 items-center justify-center'>
               <div>
-                <div className="w-32 h-32 bg-black rounded-full border-4 border-[#034045] flex items-center justify-center relative">
+                <div className='w-32 h-32 bg-black rounded-full border-4 border-[#034045] flex items-center justify-center relative'>
                   <img
                     src={contest?.contestLogoImageUrl}
                     alt={contest?.title}
-                    className="absolute inset-0 w-full h-full object-cover rounded-full"
+                    className='absolute inset-0 w-full h-full object-cover rounded-full'
                   />
                 </div>
               </div>
 
-              <div className="flex-grow">
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+              <div className='flex-grow'>
+                <h2 className='text-2xl md:text-3xl font-bold text-gray-900 mb-2'>
                   {contest?.title}
                 </h2>
-                <p className="text-gray-600 text-lg mb-4">
-                  {contest?.description}
-                </p>
+                <p className='text-gray-600 text-lg'>{displayDescription}</p>
+
+                {isLong && (
+                  <a
+                    onClick={toggleExpansion}
+                    className='text-sm font-semibold text-[#034045] hover:text-[#011F21] transition-colors focus:outline-none'
+                  >
+                    {isExpanded ? 'Show Less' : 'Read More'}
+                  </a>
+                )}
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="bg-[#00B25F] text-white px-6 py-3 rounded-lg text-center font-medium">
+            <div className='space-y-4'>
+              <div className='bg-[#00B25F] text-white px-6 py-3 rounded-lg text-center font-medium'>
                 {(() => {
                   const startDate = new Date(contest?.startDate);
                   if (contest?.startTime) {
                     let hour = parseInt(contest.startTime.startTimeHour, 10);
-                    if (contest.startTime.startTimeAmPm === "PM" && hour < 12)
+                    if (contest.startTime.startTimeAmPm === 'PM' && hour < 12)
                       hour += 12;
-                    if (contest.startTime.startTimeAmPm === "AM" && hour === 12)
+                    if (contest.startTime.startTimeAmPm === 'AM' && hour === 12)
                       hour = 0;
                     startDate.setHours(
                       hour,
@@ -302,9 +326,9 @@ const ContestDetailPage = () => {
                   const endDate = new Date(contest?.endDate);
                   if (contest?.endTime) {
                     let hour = parseInt(contest.endTime.endTimeHour, 10);
-                    if (contest.endTime.endTimeAmPm === "PM" && hour < 12)
+                    if (contest.endTime.endTimeAmPm === 'PM' && hour < 12)
                       hour += 12;
-                    if (contest.endTime.endTimeAmPm === "AM" && hour === 12)
+                    if (contest.endTime.endTimeAmPm === 'AM' && hour === 12)
                       hour = 0;
                     endDate.setHours(
                       hour,
@@ -317,21 +341,21 @@ const ContestDetailPage = () => {
                   const now = new Date();
 
                   // ✅ Contest paused
-                  if (contest?.status === "pause") {
+                  if (contest?.status === 'pause') {
                     return (
                       <>
-                        <div className="text-sm">Contest Paused</div>
+                        <div className='text-sm'>Contest Paused</div>
                       </>
                     );
                   }
                   // ✅ Contest completed or ended
-                  else if (contest?.status === "completed" || now > endDate) {
+                  else if (contest?.status === 'completed' || now > endDate) {
                     return (
                       <>
-                        <h3 className="text-lg font-bold text-white mb-2">
+                        <h3 className='text-lg font-bold text-white mb-2'>
                           Completed
                         </h3>
-                        <p className="text-xl font-semibold text-[#E67347]">
+                        <p className='text-xl font-semibold text-[#E67347]'>
                           Contest Ended
                         </p>
                       </>
@@ -341,14 +365,14 @@ const ContestDetailPage = () => {
                   else if (now < startDate) {
                     return (
                       <>
-                        <h3 className="text-lg font-bold text-white mb-2">
-                          Contest{" "}
-                          <span className="text-[#E67347] font-bold">
+                        <h3 className='text-lg font-bold text-white mb-2'>
+                          Contest{' '}
+                          <span className='text-[#E67347] font-bold'>
                             Starts
-                          </span>{" "}
+                          </span>{' '}
                           In
                         </h3>
-                        <p className="text-xl font-semibold text-white">
+                        <p className='text-xl font-semibold text-white'>
                           {countdown}
                         </p>
                       </>
@@ -358,12 +382,12 @@ const ContestDetailPage = () => {
                   else {
                     return (
                       <>
-                        <h3 className="text-lg font-bold text-white mb-2">
-                          Contest{" "}
-                          <span className="text-[#E67347] font-bold">Ends</span>{" "}
+                        <h3 className='text-lg font-bold text-white mb-2'>
+                          Contest{' '}
+                          <span className='text-[#E67347] font-bold'>Ends</span>{' '}
                           In
                         </h3>
-                        <p className="text-xl font-semibold text-white">
+                        <p className='text-xl font-semibold text-white'>
                           {countdown}
                         </p>
                       </>
@@ -373,7 +397,7 @@ const ContestDetailPage = () => {
               </div>
 
               <button
-                className="w-full bg-[#E67347] hover:bg-orange-600 text-white px-6 py-4 rounded-lg font-semibold text-lg transition-colors duration-200 flex items-center justify-center gap-2 cursor-pointer"
+                className='w-full bg-[#E67347] hover:bg-orange-600 text-white px-6 py-4 rounded-lg font-semibold text-lg transition-colors duration-200 flex items-center justify-center gap-2 cursor-pointer'
                 onClick={() => navigate(`/vote/${contestId}`)}
               >
                 Cast your Vote
@@ -382,22 +406,22 @@ const ContestDetailPage = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+          <div className='grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6'>
             {stats.map((stat, index) => (
               <div
                 key={index}
-                className="bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-200"
+                className='bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-200'
               >
-                <div className="flex items-center gap-4">
+                <div className='flex items-center gap-4'>
                   <div className={`${stat.bgColor} p-3 rounded-lg`}>
-                    <stat.icon className="w-4 h-4 md:w-6 md:h-6 text-gray-600" />
+                    <stat.icon className='w-4 h-4 md:w-6 md:h-6 text-gray-600' />
                   </div>
 
                   <div>
-                    <div className="text-sm text-gray-600 mb-1">
+                    <div className='text-sm text-gray-600 mb-1'>
                       {stat.label}
                     </div>
-                    <div className="text-2xl font-bold text-gray-900">
+                    <div className='text-2xl font-bold text-gray-900'>
                       {stat.value}
                     </div>
                   </div>
