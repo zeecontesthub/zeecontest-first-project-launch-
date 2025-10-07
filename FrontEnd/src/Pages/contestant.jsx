@@ -6,11 +6,13 @@ import { Edit, Share2, ChevronLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import ContestantCard from '../Components/ContestantCard';
 import axios from 'axios';
+import SkeletonLoader from '../Components/SkeletonLoader';
 
 const Contestant = () => {
   const { contestId } = useParams();
   const [contest, setContest] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState('All');
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   // Get positions from contest data
@@ -84,12 +86,14 @@ const Contestant = () => {
 
   useEffect(() => {
     const fetchContest = async () => {
+      setIsLoading(true);
       try {
         const res = await axios.get(`/api/contest/${contestId}`);
-        console.log(res);
         setContest(res.data.contest);
       } catch (err) {
         console.error('Failed to fetch contest:', err);
+      } finally {
+        setIsLoading(false);
       }
     };
     if (contestId) fetchContest();
@@ -215,7 +219,6 @@ const Contestant = () => {
                   className='w-full h-full object-cover'
                 />
               </div>
-
               {/* Content */}
               <div className='min-w-0 flex-1'>
                 <h2 className='text-xl sm:text-2xl lg:text-[32px] text-left font-bold text-gray-900 mb-2 break-words'>
@@ -224,7 +227,6 @@ const Contestant = () => {
                 <p className='text-gray-600 text-left text-sm lg:text-base break-words'>
                   {contest?.description || ''}
                 </p>
-
                 {/* Stats - Make responsive */}
                 <div className='flex items-start sm:items-center gap-4 sm:gap-8 mt-4 overflow-x-auto'>
                   <div className='flex-shrink-0'>
@@ -300,17 +302,25 @@ const Contestant = () => {
 
         {/* Contestants List */}
         <div className='mt-10 grid grid-cols-1 sm:grid-cols-2 text-left md:grid-cols-3 lg:grid-cols-4 gap-6'>
-          {filteredContestants.map((contestant, index) => (
-            <ContestantCard
-              key={contestant._id || index}
-              name={contestant.name}
-              image={contestant.image || contestant.avatar || ''}
-              votes={contestant.votes || 0}
-              position={contestant.position}
-              contestantId={contestant.id}
-              contestId={contestId}
-            />
-          ))}
+          {isLoading ? (
+            <SkeletonLoader lines={4} className='col-span-4' />
+          ) : filteredContestants.length > 0 ? (
+            filteredContestants.map((contestant, index) => (
+              <ContestantCard
+                key={contestant._id || index}
+                name={contestant.name}
+                image={contestant.image || contestant.avatar || ''}
+                votes={contestant.votes || 0}
+                position={contestant.position}
+                contestantId={contestant.id}
+                contestId={contestId}
+              />
+            ))
+          ) : (
+            <p className='text-gray-500 italic w-120 col-span-4'>
+              No contestants found.
+            </p>
+          )}
         </div>
       </div>
     </div>

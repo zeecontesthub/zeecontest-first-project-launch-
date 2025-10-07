@@ -8,6 +8,7 @@ import { Bell, Target, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useUser } from "../context/UserContext"; // if you store user in context
+import SkeletonLoader from "../Components/SkeletonLoader";
 
 const ContestTypeOption = ({ icon, title, onClick }) => {
   return (
@@ -26,24 +27,24 @@ const ContestTypeOption = ({ icon, title, onClick }) => {
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, setUserContests, userContests, setCreateContest } = useUser(); // get user from context
+  const [isLoading, setIsLoading] = React.useState(true);
 
   useEffect(() => {
     const fetchContests = async () => {
       if (!user?._id) return;
-      // Only fetch if userContests is empty
-      // if (userContests && userContests.length > 0) return;
-
+      setIsLoading(true);
       try {
         const res = await axios.get(`/api/contest/organizer/${user._id}`);
         const allContests = res.data.contests || [];
-        // Optionally update userContests in context
         setUserContests(allContests);
       } catch (err) {
         console.error("Failed to fetch contests:", err);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchContests();
-  }, [user, userContests, setUserContests]);
+  }, [user, setUserContests]);
 
   const handleSpotlightClick = () => {
     navigate("/create-spotlight-contest");
@@ -100,8 +101,10 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.isArray(userContests) &&
-            userContests.filter((c) => c.status === "upcoming").length > 0 ? (
+            {isLoading ? (
+              <SkeletonLoader lines={4} className="col-span-3" />
+            ) : Array.isArray(userContests) &&
+              userContests.filter((c) => c.status === "upcoming").length > 0 ? (
               userContests
                 .filter((c) => c.status === "upcoming")
                 .map((contest) => (
@@ -128,8 +131,10 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.isArray(userContests) &&
-            userContests.filter((c) => c.status === "ongoing").length > 0 ? (
+            {isLoading ? (
+              <SkeletonLoader lines={4} className="col-span-3" />
+            ) : Array.isArray(userContests) &&
+              userContests.filter((c) => c.status === "ongoing").length > 0 ? (
               userContests
                 .filter((c) => c.status === "ongoing")
                 .map((contest) => (
@@ -156,8 +161,10 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.isArray(userContests) &&
-            userContests.filter((c) => c.status === "completed").length > 0 ? (
+            {isLoading ? (
+              <SkeletonLoader lines={4} className="col-span-3" />
+            ) : Array.isArray(userContests) &&
+              userContests.filter((c) => c.status === "completed").length > 0 ? (
               userContests
                 .filter((c) => c.status === "completed")
                 .map((contest) => (
@@ -186,8 +193,10 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.isArray(userContests) &&
-            userContests.filter((c) => c.status === "draft").length > 0 ? (
+            {isLoading ? (
+              <SkeletonLoader lines={4} className="col-span-3" />
+            ) : Array.isArray(userContests) &&
+              userContests.filter((c) => c.status === "draft").length > 0 ? (
               userContests
                 .filter((c) => c.status === "draft")
                 .map((contest) => (

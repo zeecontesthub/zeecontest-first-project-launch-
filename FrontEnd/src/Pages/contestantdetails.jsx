@@ -20,6 +20,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { uploadToCloudinary } from "../actions/cloudinaryAction";
 import CandidateLink from "../Components/candidatelink";
+import SkeletonLoader from "../Components/SkeletonLoader";
 
 const ContestantDetails = () => {
   const { position, contestantId, contestId } = useParams();
@@ -35,14 +36,18 @@ const ContestantDetails = () => {
     email: "",
   });
   const [isCandidateLinkOpen, setIsCandidateLinkOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchContest = async () => {
+      setIsLoading(true);
       try {
         const res = await axios.get(`/api/contest/${contestId}`);
         setContest(res.data.contest);
       } catch (err) {
         console.error("Failed to fetch contest:", err);
+      } finally {
+        setIsLoading(false);
       }
     };
     if (contestId) fetchContest();
@@ -159,6 +164,17 @@ const ContestantDetails = () => {
 
   // Get the candidate link for this contestant
   const candidateLink = `${window.location.origin}/vcontestantdetails/${position}/${contestantId}/${contestId}`;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen">
+        <Sidebar />
+        <div className="flex-1 w-full p-6 flex items-center justify-center">
+          <SkeletonLoader lines={8} avatar className="w-full max-w-xl" />
+        </div>
+      </div>
+    );
+  }
 
   if (!currentContestant) {
     return (

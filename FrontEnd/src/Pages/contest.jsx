@@ -8,9 +8,11 @@ import { useUser } from "../context/UserContext";
 // import { useNavigate } from "react-router-dom";
 
 import { useLocation } from "react-router-dom";
+import SkeletonLoader from "../Components/SkeletonLoader";
 
 const Contest = () => {
   const [activeTab, setActiveTab] = useState("All");
+  const [isLoading, setIsLoading] = useState(true);
 
   const { userContests } = useUser(); // get user from context
   const location = useLocation();
@@ -25,6 +27,14 @@ const Contest = () => {
       setActiveTab(tabParam);
     }
   }, [location.search]);
+
+  useEffect(() => {
+    if (userContests === undefined) {
+      setIsLoading(true);
+    } else {
+      setIsLoading(false);
+    }
+  }, [userContests]);
 
   const stats = [
     { label: "Total Contests", value: userContests.length || "0" },
@@ -88,19 +98,30 @@ const Contest = () => {
 
         {/* Contest Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {userContests
-            .filter(
-              (contest) =>
-                activeTab === "All" ||
-                contest.status === activeTab.toLocaleLowerCase()
-            )
-            .map((contest) => (
-              <ContestCard
-                key={contest._id}
-                contest={contest}
-                // Pass isDraft prop if needed
-              />
-            ))}
+          {isLoading ? (
+            <SkeletonLoader lines={4} className="col-span-3" />
+          ) : userContests
+              .filter(
+                (contest) =>
+                  activeTab === "All" ||
+                  contest.status === activeTab.toLocaleLowerCase()
+              ).length > 0 ? (
+            userContests
+              .filter(
+                (contest) =>
+                  activeTab === "All" ||
+                  contest.status === activeTab.toLocaleLowerCase()
+              )
+              .map((contest) => (
+                <ContestCard
+                  key={contest._id}
+                  contest={contest}
+                  // Pass isDraft prop if needed
+                />
+              ))
+          ) : (
+            <p className="text-gray-500 italic w-120">No contests found.</p>
+          )}
         </div>
       </div>
     </div>

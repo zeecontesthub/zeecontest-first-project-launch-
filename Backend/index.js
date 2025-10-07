@@ -19,7 +19,8 @@ const app = express();
 
 // ✅ Middleware
 app.use(cors());
-app.use(express.json()); // ✅ Parse JSON before route handling
+app.use(express.json({ limit: "20mb" })); // Increased body size limit
+app.use(express.urlencoded({ limit: "20mb", extended: true })); // Increased body size limit
 
 // ✅ API routes
 app.use("/api/users", userRoutes);
