@@ -650,7 +650,7 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                           style: 'currency',
                           currency: 'NGN',
                           maximumFractionDigits: 0,
-                        }).format(calculateContestRevenue(cont))}
+                        }).format(calculateContestRevenue(contest))}
                       />
                     ) : (
                       <Stat label='' value='Free Contest' />
