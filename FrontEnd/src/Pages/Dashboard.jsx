@@ -8,7 +8,7 @@ import { Bell, Target, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useUser } from "../context/UserContext"; // if you store user in context
-import SkeletonLoader from "../Components/SkeletonLoader";
+import FullPageLoader from "../Components/FullPageLoader";
 
 const ContestTypeOption = ({ icon, title, onClick }) => {
   return (
@@ -28,6 +28,13 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user, setUserContests, userContests, setCreateContest } = useUser(); // get user from context
   const [isLoading, setIsLoading] = React.useState(true);
+  const [showPageLoader, setShowPageLoader] = React.useState(true);
+
+  useEffect(() => {
+    // Show loader for at least 1s, then allow contest fetch to control isLoading
+    const timer = setTimeout(() => setShowPageLoader(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const fetchContests = async () => {
@@ -49,6 +56,10 @@ const Dashboard = () => {
   const handleSpotlightClick = () => {
     navigate("/create-spotlight-contest");
   };
+
+  if (showPageLoader || isLoading) {
+    return <FullPageLoader />;
+  }
 
   return (
     <div className="flex min-h-screen bg-white overflow-x-hidden lg:gap-[10rem]">

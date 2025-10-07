@@ -101,6 +101,11 @@ const contestSchema = new mongoose.Schema({
     default: "draft",
   },
   isClosedContest: { type: Boolean, default: false },
+  socialLinks: {
+    instagram: { type: String, default: '' },
+    x: { type: String, default: '' },
+    website: { type: String, default: '' },
+  },
   // Add more fields as needed
 });
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Sidebar from '../Components/sidebar';
 import BannerImage from '../assets/Rectangle _5189.png';
 import LogoImage from '../assets/Ellipse 20.png';
@@ -7,13 +7,17 @@ import { useNavigate, useParams } from 'react-router-dom';
 import ContestantCard from '../Components/ContestantCard';
 import axios from 'axios';
 import SkeletonLoader from '../Components/SkeletonLoader';
+import FullPageLoader from '../Components/FullPageLoader';
 
 const Contestant = () => {
   const { contestId } = useParams();
   const [contest, setContest] = useState(null);
   const [selectedPosition, setSelectedPosition] = useState('All');
   const [isLoading, setIsLoading] = useState(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
+  const dropdownRef = useRef(null);
 
   // Get positions from contest data
   // Also calculate the number of contestants for each position
@@ -137,6 +141,20 @@ const Contestant = () => {
     return () => clearInterval(interval);
   }, [contest]);
 
+  // Handle outside click to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const calculateTotalVotes = (contest) => {
     if (!contest) return 0;
 
@@ -179,6 +197,13 @@ const Contestant = () => {
     const count = positionCountMap[pos] || 0;
     return `${pos} (${count} candidate${count !== 1 ? 's' : ''})`;
   };
+
+  // Get filtered positions for dropdown
+  const filteredPositions = filterOptions.filter(pos =>
+    pos.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (isLoading) return <FullPageLoader />;
 
   return (
     <div className='flex min-h-screen overflow-x-hidden lg:gap-[10rem]'>
@@ -251,21 +276,62 @@ const Contestant = () => {
           </div>
         </div>
 
-        {/* Filter Buttons (Desktop/Tablet) */}
-        <div className='hidden sm:flex flex-wrap gap-3 mb-8 mt-7'>
-          {filterOptions.map((pos) => (
-            <button
-              key={pos}
-              onClick={() => setSelectedPosition(pos)}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                selectedPosition === pos
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-teal-800 text-white hover:bg-teal-700'
-              }`}
+        {/* Filter Dropdown (Desktop/Tablet) */}
+        <div className='hidden sm:block mb-8 mt-7'>
+          <div className='relative' ref={dropdownRef}>
+            <div
+              className='flex items-center justify-between px-4 py-3 bg-teal-800 text-white rounded-lg cursor-pointer hover:bg-teal-700 transition-colors'
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
-              {pos}
-            </button>
-          ))}
+              <span className='font-medium'>{getOptionLabel(selectedPosition)}</span>
+              <svg
+                className={`w-5 h-5 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+              </svg>
+            </div>
+
+            {isDropdownOpen && (
+              <div className='absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-60 overflow-hidden'>
+                <div className='p-2 border-b border-gray-200'>
+                  <input
+                    type='text'
+                    placeholder='Search positions...'
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm'
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+                <div className='max-h-48 overflow-y-auto'>
+                  {filteredPositions.length > 0 ? (
+                    filteredPositions.map((pos) => (
+                      <div
+                        key={pos}
+                        className={`px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors ${
+                          selectedPosition === pos ? 'bg-orange-50 text-orange-600' : 'text-gray-700'
+                        }`}
+                        onClick={() => {
+                          setSelectedPosition(pos);
+                          setIsDropdownOpen(false);
+                          setSearchTerm('');
+                        }}
+                      >
+                        {getOptionLabel(pos)}
+                      </div>
+                    ))
+                  ) : (
+                    <div className='px-4 py-3 text-gray-500 text-center'>
+                      No positions found
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Filter Dropdown (Mobile) */}

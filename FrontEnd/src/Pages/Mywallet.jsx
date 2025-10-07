@@ -18,12 +18,14 @@ import PayoutSetting from "../Components/payoutsetting";
 import Withdrawal from "../Components/withdrawal";
 import axios from "axios";
 import { useUser } from "../context/UserContext";
+import FullPageLoader from "../Components/FullPageLoader";
 
 const Mywallet = () => {
   const [isPayoutOpen, setIsPayoutOpen] = useState(false);
   const [isWithdrawalOpen, setIsWithdrawalOpen] = useState(false);
   const { user, setUser } = useUser();
   const [contests, setContests] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [walletData, setWalletData] = useState({
     availableBalance: 0,
@@ -38,6 +40,7 @@ const Mywallet = () => {
     if (!user?.firebaseUid) return;
 
     const fetchWallet = async () => {
+      setIsLoading(true);
       try {
         const { data } = await axios.get(
           "/api/contest/get-user-wallet/user-wallet",
@@ -60,6 +63,8 @@ const Mywallet = () => {
         }
       } catch (error) {
         console.log(error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -219,6 +224,8 @@ const Mywallet = () => {
     walletData.contests
       ?.filter((c) => c.status === "completed" && !c.payment?.isWithdrawn)
       .reduce((sum, c) => sum + (c.revenue || 0), 0) * 0.7;
+
+  if (isLoading) return <FullPageLoader />;
 
   return (
     <div className="flex min-h-screen flex-col lg:flex-row lg:gap-[10rem]">

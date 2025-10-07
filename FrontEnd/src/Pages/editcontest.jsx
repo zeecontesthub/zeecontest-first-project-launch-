@@ -17,6 +17,7 @@ import { set } from 'date-fns';
 import EditContestPositionSetup from '../Components/EditContestPositionSetup';
 import EditContestContestantList from '../Components/EditContestContestantList';
 import EditContestTypeSetup from '../Components/EditContestTypeSetup';
+import FullPageLoader from '../Components/FullPageLoader';
 
 const Editcontest = () => {
   const { user } = useUser();
@@ -35,6 +36,7 @@ const Editcontest = () => {
   const [tempPositionName, setTempPositionName] = useState('');
   const [tempPositionDescription, setTempPositionDescription] = useState('');
   const [originalPositionData, setOriginalPositionData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [contestants, setContestants] = useState(contest?.contestants || []);
   const [coverImage, setCoverImage] = useState(BannerImage);
@@ -53,8 +55,10 @@ const Editcontest = () => {
         const res = await axios.get(`/api/contest/${contestId}`);
         console.log(res);
         setContest(res.data.contest);
+        setIsLoading(false);
       } catch (err) {
         console.error('Failed to fetch contest:', err);
+        setIsLoading(false);
       }
     };
     if (contestId) fetchContest();
@@ -97,6 +101,7 @@ const Editcontest = () => {
           amount: 0,
         },
         allowMultipleVotes: contest.allowMultipleVotes || false,
+        socialLinks: contest.socialLinks || {},
       });
       setPositions(contest?.positions || []);
       setContestants(allContestants || []);
@@ -168,10 +173,10 @@ const Editcontest = () => {
         positions.map((pos) =>
           pos.id === editingPositionId
             ? {
-                ...pos,
-                name: originalPositionData?.name,
-                description: originalPositionData?.description,
-              }
+              ...pos,
+              name: originalPositionData?.name,
+              description: originalPositionData?.description,
+            }
             : pos
         )
       );
@@ -190,10 +195,10 @@ const Editcontest = () => {
       positions.map((pos) =>
         pos._id === editingPositionId
           ? {
-              ...pos,
-              name: tempPositionName,
-              description: tempPositionDescription,
-            }
+            ...pos,
+            name: tempPositionName,
+            description: tempPositionDescription,
+          }
           : pos
       )
     );
@@ -241,9 +246,9 @@ const Editcontest = () => {
         contestants.map((contestant) =>
           contestant._id === editingContestantId
             ? {
-                ...contestant,
-                ...originalContestantData,
-              }
+              ...contestant,
+              ...originalContestantData,
+            }
             : contestant
         )
       );
@@ -478,6 +483,7 @@ const Editcontest = () => {
         contestLogoImageUrl: logoImage,
         payment: formData.payment,
         allowMultipleVotes: formData.allowMultipleVotes,
+        socialLinks: formData.socialLinks, // <-- FIX: include socialLinks in payload
         status, // computed status
         type: 'spot-light',
         uid: user?.firebaseUid,
@@ -494,6 +500,32 @@ const Editcontest = () => {
       toast.error('Failed to create contest. Please try again.');
     }
   };
+
+  // Danger Zone: Delete Contest
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteInput, setDeleteInput] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const contestNameCaps = contest?.title?.toUpperCase() || '';
+
+  const handleDeleteContest = async () => {
+    if (deleteInput !== contestNameCaps) {
+      toast.error('Contest name does not match. Please type the contest name in CAPITAL LETTERS.');
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      await axios.delete(`/api/contest/${contestId}`);
+      toast.success('Contest deleted successfully!');
+      setShowDeleteModal(false);
+      navigate('/dashboard'); // Redirect to dashboard or home
+    } catch (err) {
+      toast.error('Failed to delete contest.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  if (isLoading) return <FullPageLoader />;
 
   return (
     <div className='flex min-h-screen bg-white lg:gap-[10rem]'>
@@ -587,9 +619,8 @@ const Editcontest = () => {
             {/* Logo Section */}
             <div className='p-4 sm:p-6'>
               <div
-                className={`${
-                  logoIsUploading ? 'opacity-70' : ''
-                } relative w-20 h-20 sm:w-24 sm:h-24`}
+                className={`${logoIsUploading ? 'opacity-70' : ''
+                  } relative w-20 h-20 sm:w-24 sm:h-24`}
               >
                 <div className='w-full h-full bg-white border-2 border-gray-200 rounded-full flex items-center justify-center'>
                   <img
@@ -941,6 +972,126 @@ const Editcontest = () => {
               }
             />
 
+            {/* Organizer's Social Links */}
+            <div>
+              <label className='block text-sm text-left font-medium text-gray-700 mb-2'>
+                Organizer's Links
+              </label>
+              <div className='space-y-4'>
+                <input
+                  type='url'
+                  value={formData.socialLinks?.instagram || ''}
+                  onChange={(e) => {
+                    onInputChange('socialLinks', {
+                      ...formData.socialLinks,
+                      instagram: e.target.value,
+                    });
+                    setFormData((prev) => ({
+                      ...prev,
+                      socialLinks: {
+                        ...prev.socialLinks,
+                        instagram: e.target.value,
+                      },
+                    }));
+                  }}
+                  placeholder='Instagram URL'
+                  className='w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors text-sm sm:text-base'
+                />
+                <input
+                  type='url'
+                  value={formData.socialLinks?.x || ''}
+                  onChange={(e) => {
+                    onInputChange('socialLinks', {
+                      ...formData.socialLinks,
+                      x: e.target.value,
+                    });
+                    setFormData((prev) => ({
+                      ...prev,
+                      socialLinks: {
+                        ...prev.socialLinks,
+                        x: e.target.value,
+                      },
+                    }));
+                  }}
+                  placeholder='X URL'
+                  className='w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors text-sm sm:text-base'
+                />
+                <input
+                  type='url'
+                  value={formData.socialLinks?.website || ''}
+                  onChange={(e) => {
+                    onInputChange('socialLinks', {
+                      ...formData.socialLinks,
+                      website: e.target.value,
+                    });
+                    setFormData((prev) => ({
+                      ...prev,
+                      socialLinks: {
+                        ...prev.socialLinks,
+                        website: e.target.value,
+                      },
+                    }));
+                  }}
+                  placeholder='Website URL'
+                  className='w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-50 border border-gray-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors text-sm sm:text-base'
+                />
+              </div>
+            </div>
+
+            {/* Danger Zone: Delete Contest */}
+            <div className='mt-12 border-t pt-8'>
+              <div className='bg-red-50 border border-red-200 rounded-xl p-6 max-w-xl mx-auto'>
+                <h2 className='text-xl font-bold text-red-700 mb-2'>Delete Contest</h2>
+                <p className='text-sm text-red-600 mb-4'>
+                  Delete contest and the entire contest history, votes, contestants, and details permanently. This action cannot be undone.
+                </p>
+                <button
+                  className='bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-md font-semibold transition-colors shadow-sm'
+                  onClick={() => setShowDeleteModal(true)}
+                >
+                  Delete Contest
+                </button>
+              </div>
+
+              {/* Delete Modal */}
+              {showDeleteModal && (
+                <div className='fixed inset-0 z-50 flex items-center justify-center bg-[#000000]/50 bg-opacity-40'>
+                  <div className='bg-white rounded-xl p-8 max-w-md w-full shadow-lg border border-red-200'>
+                    <h3 className='text-lg font-bold text-red-700 mb-2'>Sensitive Action</h3>
+                    <p className='text-sm text-gray-700 mb-4'>
+                      You are about to take a sensitive action. Are you sure you want to delete your contest?
+                    </p>
+                    <p className='text-xs text-gray-500 mb-4'>
+                      Type your contest name <span className='font-bold text-red-700'>IN CAPITAL LETTERS</span> to delete contest:
+                    </p>
+                    <input
+                      type='text'
+                      value={deleteInput}
+                      onChange={e => setDeleteInput(e.target.value)}
+                      placeholder={contestNameCaps}
+                      className='w-full px-3 py-2 border border-red-400 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-red-500'
+                    />
+                    <div className='flex gap-4 justify-end'>
+                      <button
+                        className='px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium'
+                        onClick={() => setShowDeleteModal(false)}
+                        disabled={isDeleting}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className={`px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white font-semibold ${isDeleting ? 'opacity-50' : ''}`}
+                        onClick={handleDeleteContest}
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Save Button */}
             <div className='flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4 gap-2'>
               <button
@@ -952,9 +1103,8 @@ const Editcontest = () => {
               <button
                 onClick={onPublishEdit}
                 disabled={isUploading}
-                className={`${
-                  isUploading ? 'opacity-30' : ''
-                } bg-orange-500 hover:bg-orange-600 text-white px-6 sm:px-8 py-3 rounded-md font-medium transition-colors order-1 sm:order-2`}
+                className={`${isUploading ? 'opacity-30' : ''
+                  } bg-orange-500 hover:bg-orange-600 text-white px-6 sm:px-8 py-3 rounded-md font-medium transition-colors order-1 sm:order-2`}
               >
                 {isUploading ? 'Saving...' : 'Save'}
               </button>
@@ -985,14 +1135,14 @@ const Editcontest = () => {
             prev.map((pos) =>
               pos?.name === newContestant?.position
                 ? {
-                    ...pos,
-                    contestants: [
-                      ...(Array.isArray(pos.contestants)
-                        ? pos.contestants
-                        : []),
-                      { ...newContestant, dateId: Date.now() },
-                    ],
-                  }
+                  ...pos,
+                  contestants: [
+                    ...(Array.isArray(pos.contestants)
+                      ? pos.contestants
+                      : []),
+                    { ...newContestant, dateId: Date.now() },
+                  ],
+                }
                 : pos
             )
           );
@@ -1006,6 +1156,8 @@ const Editcontest = () => {
         }}
         positions={positions}
       />
+
+
     </div>
   );
 };

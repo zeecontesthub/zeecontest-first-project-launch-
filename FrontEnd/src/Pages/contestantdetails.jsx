@@ -21,6 +21,7 @@ import { toast } from "react-toastify";
 import { uploadToCloudinary } from "../actions/cloudinaryAction";
 import CandidateLink from "../Components/candidatelink";
 import SkeletonLoader from "../Components/SkeletonLoader";
+import FullPageLoader from "../Components/FullPageLoader";
 
 const ContestantDetails = () => {
   const { position, contestantId, contestId } = useParams();
@@ -165,16 +166,7 @@ const ContestantDetails = () => {
   // Get the candidate link for this contestant
   const candidateLink = `${window.location.origin}/vcontestantdetails/${position}/${contestantId}/${contestId}`;
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <div className="flex-1 w-full p-6 flex items-center justify-center">
-          <SkeletonLoader lines={8} avatar className="w-full max-w-xl" />
-        </div>
-      </div>
-    );
-  }
+  if (isLoading) return <FullPageLoader />;
 
   if (!currentContestant) {
     return (

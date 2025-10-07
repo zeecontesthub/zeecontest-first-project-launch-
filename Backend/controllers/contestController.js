@@ -47,6 +47,7 @@ export const createContest = async (req, res) => {
       status,
       type,
       isClosedContest,
+      socialLinks: req.body.socialLinks,
     };
 
     let contest;

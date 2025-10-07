@@ -1,9 +1,10 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Sidebar from "../Components/sidebar";
 import BannerImage from "../assets/Rectangle _5189.png";
 import LogoImage from "../assets/Ellipse 20.png";
+import FullPageLoader from "../Components/FullPageLoader";
 import {
   Edit,
   Share2,
@@ -69,13 +70,18 @@ ChartJS.register(
 const Leaderboards = () => {
   const { contestId } = useParams();
   const [contest, setContest] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("");
   const [positionStats, setPositionStats] = useState({
     totalVotes: 0,
     voterCount: 0,
   });
   const [isVotersLinkOpen, setIsVotersLinkOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+  const dropdownRef = useRef(null);
+  
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -91,6 +97,8 @@ const Leaderboards = () => {
         }
       } catch (err) {
         console.error("Failed to fetch contest:", err);
+      } finally {
+        setIsLoading(false);
       }
     };
     if (contestId) fetchContest();
@@ -134,8 +142,23 @@ const Leaderboards = () => {
     setPositionStats({ totalVotes, voterCount });
   }, [activeTab, contest]);
 
+  // Handle outside click to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   // Get position data from contest
   const positions = contest?.positions || [];
+  const filteredPositions = positions.filter(pos => pos.name.toLowerCase().includes(searchTerm.toLowerCase()));
   const activePosition = positions.find((pos) => pos.name === activeTab);
 
   // Get contestants and votes for active position
@@ -360,6 +383,8 @@ const Leaderboards = () => {
   // Get the voting link for this contest
   const votingLink = `${window.location.origin}/vote/${contestId}`;
 
+  if (isLoading) return <FullPageLoader />;
+
   return (
     <div className="flex min-h-screen bg-white overflow-x-hidden lg:gap-[10rem]">
       <Sidebar />
@@ -508,47 +533,47 @@ const Leaderboards = () => {
             ))}
           </div>
 
-          {/* Position Tabs */}
-          <div className="w-full overflow-x-auto mt-12 mb-8">
-            <div className="flex gap-2 sm:gap-4 min-w-max sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 sm:min-w-0">
-              {positions.map((pos) => {
-                // === 🔹 1️⃣ Calculate each candidate's votes for THIS position ===
-
-                // === 🔹 3️⃣ Total votes for the position (including multiplier) ===
-                const totalPositionVotes = !contest.isClosedContest
-                  ? pos.voters?.reduce(
-                      (sum, v) => sum + (v.multiplier || 0),
-                      0
-                    ) || 0
-                  : contest.closedContestVoters?.reduce((sum, v) => {
-                      const count =
-                        v.votedFor?.filter(
-                          (vote) => vote.positionTitle === pos.name
-                        ).length || 0;
-                      return sum + count * (v.multiplier || 0);
-                    }, 0) || 0;
-                return (
-                  <button
-                    key={pos.name}
-                    onClick={() => setActiveTab(pos.name)}
-                    className={`px-4 py-4 sm:px-6 sm:py-6 rounded-lg font-medium transition-all duration-200 flex-shrink-0 sm:flex-shrink min-w-[120px] sm:min-w-0 ${
-                      activeTab === pos.name
-                        ? "bg-orange-500 text-white shadow-lg transform scale-105"
-                        : "bg-teal-800 text-white hover:bg-teal-700 hover:shadow-md"
-                    }`}
-                  >
-                    <div className="flex flex-col items-center">
-                      <span className="font-semibold text-sm sm:text-base truncate max-w-full">
-                        {pos.name}
-                      </span>
-                      <span className="text-xs opacity-75 whitespace-nowrap">
-                        ({totalPositionVotes || 0} votes)
-                      </span>
+          {/* Position Dropdown */}
+          <div className="mt-12 mb-8 relative" ref={dropdownRef}>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onFocus={() => setIsDropdownOpen(true)}
+              placeholder="Search positions..."
+              className="px-4 py-2 rounded-lg bg-teal-800 text-white font-medium hover:bg-teal-700 transition-colors w-full"
+            />
+            {isDropdownOpen && (
+              <div className="absolute top-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto w-full z-10">
+                {filteredPositions.map((pos) => {
+                  const totalPositionVotes = !contest.isClosedContest
+                    ? pos.voters?.reduce(
+                        (sum, v) => sum + (v.multiplier || 0),
+                        0
+                      ) || 0
+                    : contest.closedContestVoters?.reduce((sum, v) => {
+                        const count =
+                          v.votedFor?.filter(
+                            (vote) => vote.positionTitle === pos.name
+                          ).length || 0;
+                        return sum + count * (v.multiplier || 0);
+                      }, 0) || 0;
+                  return (
+                    <div
+                      key={pos.name}
+                      onClick={() => {
+                        setActiveTab(pos.name);
+                        setSearchTerm("");
+                        setIsDropdownOpen(false);
+                      }}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    >
+                      {pos.name} ({totalPositionVotes} votes)
                     </div>
-                  </button>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Main Content Grid */}

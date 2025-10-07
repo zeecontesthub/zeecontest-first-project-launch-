@@ -17,6 +17,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import VotersRegistrationLink from '../Components/votersregistrationlink';
 import { toast } from 'react-toastify';
+import FullPageLoader from '../Components/FullPageLoader';
 
 // A new component for the mobile-friendly card view
 const VoterCard = ({ voter, isClosedContest, handleDeleteVoter }) => {
@@ -68,16 +69,20 @@ const VotersDetails = () => {
   const itemsPerPage = 5;
   const navigate = useNavigate();
   const [isVotersRegLinkOpen, setIsVotersRegLinkOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const votersRegLink = contest?.isClosedContest
     ? `${window.location.origin}/voterregistration/${contestId}`
     : `${window.location.origin}/vote/${contestId}`;
   useEffect(() => {
     const fetchContest = async () => {
+      setIsLoading(true);
       try {
         const res = await axios.get(`/api/contest/${contestId}`);
         setContest(res.data.contest);
       } catch (err) {
         console.error('Failed to fetch contest:', err);
+      } finally {
+        setIsLoading(false);
       }
     };
     if (contestId) fetchContest();
@@ -269,6 +274,8 @@ const VotersDetails = () => {
       setLoading(false);
     }
   };
+
+  if (isLoading) return <FullPageLoader />;
 
   return (
     <div className='flex min-h-screen bg-white overflow-x-hidden flex-col lg:flex-row'>

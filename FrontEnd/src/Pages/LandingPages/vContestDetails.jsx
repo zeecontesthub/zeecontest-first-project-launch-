@@ -7,6 +7,8 @@ import {
   Trophy,
   DollarSign,
 } from 'lucide-react';
+import { FaInstagram, FaGlobe } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import VotingPositionsSection from '../../Components/LandingPageComp/contest/VotingPosition';
 import CandidatesSection from '../../Components/LandingPageComp/contest/CandidateSection';
 import axios from 'axios';
@@ -301,6 +303,52 @@ const ContestDetailPage = () => {
                   >
                     {isExpanded ? 'Show Less' : 'Read More'}
                   </p>
+                )}
+
+                {/* Organizer Social Links */}
+                {contest?.socialLinks && (
+                  <div className='mt-4'>
+                    <h3 className='text-sm font-semibold text-gray-800 mb-2'>
+                      Follow the Organizer:
+                    </h3>
+                    <div className='flex gap-4 items-center'>
+                      {['instagram', 'x', 'website'].map((key) => {
+                        const link = contest.socialLinks[key];
+                        if (link && link.trim().length > 0) {
+                          let Icon;
+                          let color;
+                          switch (key) {
+                            case 'instagram':
+                              Icon = FaInstagram;
+                              color = 'text-pink-500 hover:text-pink-600';
+                              break;
+                            case 'x':
+                              Icon = FaXTwitter;
+                              color = 'text-blue-500 hover:text-blue-600';
+                              break;
+                            case 'website':
+                              Icon = FaGlobe;
+                              color = 'text-gray-500 hover:text-gray-600';
+                              break;
+                            default:
+                              return null;
+                          }
+                          return (
+                            <a
+                              key={key}
+                              href={link}
+                              target='_blank'
+                              rel='noopener noreferrer'
+                              className={`flex items-center gap-2 text-sm ${color}`}
+                            >
+                              <Icon size={22} />
+                            </a>
+                          );
+                        }
+                        return null;
+                      })}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>

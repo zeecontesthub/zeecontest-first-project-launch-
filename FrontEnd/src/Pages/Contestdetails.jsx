@@ -29,6 +29,7 @@ import positionData from '../data/positionData';
 import { toast } from 'react-toastify';
 import VotersLink from '../Components/voterslink';
 import ContestActionConfirm from '../Components/ContestActionConfirm';
+import FullPageLoader from '../Components/FullPageLoader';
 
 // eslint-disable-next-line no-unused-vars
 const Contestdetails = ({ isPaidContest, voterFee }) => {
@@ -42,14 +43,17 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
   const [isVotersLinkOpen, setIsVotersLinkOpen] = useState(false);
   const [isActionConfirmOpen, setIsActionConfirmOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
+  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   // const [positionData, setPositionData] = useState({});
 
-  const socialLinks = {
-    instagram: 'https://www.instagram.com/your-username',
-    x: 'https://x.com/your-username',
-    website: 'https://www.your-website.com',
-  };
+  // Use contest?.socialLinks from backend, not hardcoded
+  const socialLinks = contest?.socialLinks || {};
+
+  const hasSocialLinks = useMemo(() => {
+    return socialLinks && Object.values(socialLinks).some((link) => link && link.length > 0);
+  }, [socialLinks]);
 
   useEffect(() => {
     if (!contest) return;
@@ -121,10 +125,11 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
     const fetchContest = async () => {
       try {
         const res = await axios.get(`/api/contest/${contestId}`);
-        console.log(res);
         setContest(res.data.contest);
+        setIsLoading(false);
       } catch (err) {
         console.error('Failed to fetch contest:', err);
+        setIsLoading(false);
       }
     };
     if (contestId) fetchContest();
@@ -515,9 +520,9 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
     return votes * pricePerVote;
   };
 
-  const hasSocialLinks = useMemo(() => {
-    return Object.values(socialLinks).some((link) => link.length > 0);
-  }, [socialLinks]);
+  if (isLoading) {
+    return <FullPageLoader />;
+  }
 
   return (
     <div className='flex min-h-screen overflow-x-hidden lg:gap-[10rem]'>
@@ -527,7 +532,6 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
         <h2 className='text-2xl sm:text-[30px] text-left font-bold text-gray-900 mb-6 sm:mb-8'>
           Contest
         </h2>
-
         <div className='relative mb-2 h-40 sm:h-48 lg:h-65'>
           <img
             src={contest?.coverImageUrl || BannerImage}
@@ -535,7 +539,6 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
             className='w-full object-cover rounded-lg h-full absolute inset-0'
           />
         </div>
-
         {/* Main Header Content */}
         <div className='relative z-10 backdrop-blur-sm rounded-3xl p-4 sm:p-6 lg:p-8'>
           <div className='flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6'>
@@ -549,15 +552,32 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                   className='w-full h-full object-cover'
                 />
               </div>
-
               {/* Content */}
               <div className='flex-1 min-w-0'>
                 <h2 className='text-xl sm:text-2xl lg:text-[32px] text-left font-bold text-gray-900 mb-2'>
                   {contest?.title || 'Contest Name'}
                 </h2>
-                <p className='text-gray-600 text-left text-sm sm:text-base'>
+                <p
+                  className={`text-gray-600 text-left text-sm sm:text-base ${
+                    showFullDescription ? '' : 'line-clamp-2'
+                  }`}
+                  style={{
+                    display: '-webkit-box',
+                    WebkitLineClamp: showFullDescription ? 'none' : 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: showFullDescription ? 'visible' : 'hidden',
+                  }}
+                >
                   {contest?.description || ''}
                 </p>
+                {contest?.description && contest?.description.length > 120 && (
+                  <button
+                    className='text-orange-600 hover:underline text-xs mt-1 px-0 py-0 bg-transparent border-none cursor-pointer'
+                    onClick={() => setShowFullDescription((prev) => !prev)}
+                  >
+                    {showFullDescription ? 'Show Less' : 'Read More'}
+                  </button>
+                )}
 
                 {hasSocialLinks && (
                   <div className='mt-4'>
@@ -565,9 +585,9 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                       Organizer's Social Links
                     </h3>
                     <div className='flex flex-wrap items-center gap-4'>
-                      {Object.keys(socialLinks).map((key, index) => {
+                      {['instagram', 'x', 'website'].map((key, index) => {
                         const link = socialLinks[key];
-                        if (link) {
+                        if (link && link.trim().length > 0) {
                           let Icon;
                           let color;
                           switch (key) {
@@ -588,7 +608,7 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                           }
                           return (
                             <a
-                              key={index}
+                              key={key}
                               href={link}
                               target='_blank'
                               rel='noopener noreferrer'
@@ -630,7 +650,7 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                           style: 'currency',
                           currency: 'NGN',
                           maximumFractionDigits: 0,
-                        }).format(calculateContestRevenue(contest))}
+                        }).format(calculateContestRevenue(cont))}
                       />
                     ) : (
                       <Stat label='' value='Free Contest' />
