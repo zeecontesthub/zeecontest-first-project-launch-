@@ -295,12 +295,12 @@ const ContestDetailPage = () => {
                 <p className='text-gray-600 text-lg'>{displayDescription}</p>
 
                 {isLong && (
-                  <a
+                  <p
                     onClick={toggleExpansion}
-                    className='text-sm font-semibold text-[#034045] hover:text-[#011F21] transition-colors focus:outline-none'
+                    className='text-sm font-semibold text-[#034045] hover:text-[#011F21] underline transition-colors focus:outline-none'
                   >
                     {isExpanded ? 'Show Less' : 'Read More'}
-                  </a>
+                  </p>
                 )}
               </div>
             </div>
