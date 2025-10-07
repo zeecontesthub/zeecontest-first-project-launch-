@@ -567,9 +567,9 @@ const VotingFlow = () => {
   if (currentStep === 'cast') {
     return (
       <>
-        <div className='px-4 md:px-30 py-8 bg-[#F8F8F8]'>
+        <div className='px-4 md:px-30 py-4 md:py-8 bg-[#F8F8F8]'>
           <div className='mx-auto'>
-            <div className='flex items-center gap-4 mb-8'>
+            <div className='flex items-center gap-4 mb-2 md:mb-8'>
               <button
                 className='p-2 hover:bg-gray-100 rounded-lg transition-colors'
                 onClick={() => navigate(-1)}
@@ -597,7 +597,7 @@ const VotingFlow = () => {
                 </div>
                 {/* Logo, Title, Description */}
                 <div className='flex gap-4 items-center mb-6'>
-                  <div className='w-20 h-20 bg-black rounded-full border-4 border-[#034045] flex items-center justify-center relative overflow-hidden'>
+                  <div className='w-16 h-16 sm:w-20 sm:h-20 bg-black rounded-full border-4 border-[#034045] flex items-center justify-center relative overflow-hidden flex-shrink-0'>
                     {contest.contestLogoImageUrl && (
                       <img
                         src={contest.contestLogoImageUrl}
@@ -606,11 +606,12 @@ const VotingFlow = () => {
                       />
                     )}
                   </div>
-                  <div className='flex-1'>
-                    <h3 className='text-xl font-bold text-gray-900 mb-1 truncate'>
+
+                  <div className='flex-1 min-w-0'>
+                    <p className='text-lg sm:text-xl font-bold text-gray-900 mb-1'>
                       {contest.title}
-                    </h3>
-                    <p className='text-gray-600 text-base line-clamp-2'>
+                    </p>
+                    <p className='text-sm sm:text-base text-gray-600 line-clamp-2'>
                       {contest.description}
                     </p>
                   </div>
