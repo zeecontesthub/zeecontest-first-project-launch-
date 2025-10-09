@@ -493,6 +493,17 @@ const ContestDetailPage = () => {
           />
         </div>
       </div>
+      <div className="fixed bottom-6 right-6 z-50">
+        <a
+          href="https://www.instagram.com/zeecontest?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 bg-gradient-to-r from-pink-500 to-orange-500 text-white px-6 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 text-lg font-bold animate-pulse"
+        >
+          <FaInstagram size={28} />
+          <span className="text-lg font-bold">Follow ZeeContest</span>
+        </a>
+      </div>
     </>
   );
 };

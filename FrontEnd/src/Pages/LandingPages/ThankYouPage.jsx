@@ -1,4 +1,4 @@
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Instagram } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const ThankYouPage = () => {
@@ -19,14 +19,27 @@ const ThankYouPage = () => {
         <CheckCircle className='w-20 h-20 text-[#034045] mx-auto mb-6' />
 
         {/* Header */}
-        <h1 className='text-3xl font-bold text-gray-900 mb-3'>
+        <h2 className='text-[30px] font-bold text-gray-900 mb-3'>
           Thanks for Your Vote
-        </h1>
+        </h2>
 
         {/* Main Message */}
         <p className='text-gray-600 mb-8 text-lg'>
           We&apos;ve received your vote.
         </p>
+
+        {/* Follow Section */}
+        <div className='mb-8 bg-[#034045] background-transparent p-4 rounded-lg border border-gray-200'>
+          <h2 className='text-gray-600 font-bold text-[20px] text-white text-base'>
+            Follow ZeeContest on social media .
+          </h2>
+          <p className='mb-5 text-white'> Follow us and stand a chance to win amazing prizes and also get more info about other contests</p>
+          <div className='flex justify-center'>
+            <a href='https://www.instagram.com/zeecontest?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==' target='_blank' rel='noopener noreferrer' className='text-white hover:text-[#045a60] transition-colors'>
+              <Instagram className='w-8 h-8' />
+            </a>
+          </div>
+        </div>
 
         {/* TWO-COLUMN ACTION SECTION */}
         <div className='flex flex-col md:flex-row gap-4 mb-6'>
