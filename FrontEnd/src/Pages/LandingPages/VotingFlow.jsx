@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ChevronLeft, Check, AlertTriangle } from 'lucide-react';
+import { FaInstagram } from 'react-icons/fa';
 import axios from 'axios';
 import VotersCode from '../../Components/LandingPageComp/contest/VotersCode';
 import OpenContestRegistration from '../../Components/LandingPageComp/contest/OpenContestRegistration';
@@ -507,57 +508,96 @@ const VotingFlow = () => {
 
   if (contest?.status === 'pause') {
     return (
-      <div className='min-h-screen flex flex-col'>
-        <div className='flex-1 w-full p-6 flex items-center justify-center'>
-          <div className='text-center'>
-            <AlertTriangle className='w-16 h-16 text-yellow-500 mx-auto mb-4' />
-            <h2 className='text-2xl font-bold text-gray-900 mb-2'>
-              Contestant Paused
-            </h2>
+      <>
+        <div className='min-h-screen flex flex-col'>
+          <div className='flex-1 w-full p-6 flex items-center justify-center'>
+            <div className='text-center'>
+              <AlertTriangle className='w-16 h-16 text-yellow-500 mx-auto mb-4' />
+              <h2 className='text-2xl font-bold text-gray-900 mb-2'>
+                Contestant Paused
+              </h2>
 
-            <div className='px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors'>
-              <p className='text-xl font-semibold text-white'>{countdown}</p>
+              <div className='px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors'>
+                <p className='text-xl font-semibold text-white'>{countdown}</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+        <div className="fixed bottom-6 right-6 z-50">
+          <a
+            href="https://www.instagram.com/zeecontest?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 bg-gradient-to-r from-pink-500 to-orange-500 text-white px-6 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 text-lg font-bold animate-pulse"
+          >
+            <FaInstagram size={28} />
+            <span className="text-lg font-bold">Follow ZeeContest</span>
+          </a>
+        </div>
+      </>
     );
   }
 
   if (now < startDate) {
     return (
-      <div className='min-h-screen flex flex-col'>
-        <div className='flex-1 w-full p-6 flex items-center justify-center'>
-          <div className='text-center'>
-            <AlertTriangle className='w-16 h-16 text-yellow-500 mx-auto mb-4' />
-            <h2 className='text-2xl font-bold text-gray-900 mb-2'>
-              Contestant Not Started
-            </h2>
-            <h3 className='text-lg font-bold text-gray-900 mb-2'>
-              Contest <span className='text-orange-600 font-bold'>Starts</span>{' '}
-              In
-            </h3>
-            <div className='px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors'>
-              <p className='text-xl font-semibold text-white'>{countdown}</p>
+      <>
+        <div className='min-h-screen flex flex-col'>
+          <div className='flex-1 w-full p-6 flex items-center justify-center'>
+            <div className='text-center'>
+              <AlertTriangle className='w-16 h-16 text-yellow-500 mx-auto mb-4' />
+              <h2 className='text-2xl font-bold text-gray-900 mb-2'>
+                Contestant Not Started
+              </h2>
+              <h3 className='text-lg font-bold text-gray-900 mb-2'>
+                Contest <span className='text-orange-600 font-bold'>Starts</span>{' '}
+                In
+              </h3>
+              <div className='px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors'>
+                <p className='text-xl font-semibold text-white'>{countdown}</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+        <div className="fixed bottom-6 right-6 z-50">
+          <a
+            href="https://www.instagram.com/zeecontest?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 bg-gradient-to-r from-pink-500 to-orange-500 text-white px-6 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 text-lg font-bold animate-pulse"
+          >
+            <FaInstagram size={28} />
+            <span className="text-lg font-bold">Follow ZeeContest</span>
+          </a>
+        </div>
+      </>
     );
   }
 
   if (contest?.status === 'ended' || contest?.status === 'completed') {
     return (
-      <div className='min-h-screen flex flex-col'>
-        <div className='flex-1 w-full p-6 flex items-center justify-center'>
-          <div className='text-center'>
-            <AlertTriangle className='w-16 h-16 text-yellow-500 mx-auto mb-4' />
-            <h2 className='text-2xl font-bold text-gray-900 mb-2'>
-              Contest Ended
-            </h2>
+      <>
+        <div className='min-h-screen flex flex-col'>
+          <div className='flex-1 w-full p-6 flex items-center justify-center'>
+            <div className='text-center'>
+              <AlertTriangle className='w-16 h-16 text-yellow-500 mx-auto mb-4' />
+              <h2 className='text-2xl font-bold text-gray-900 mb-2'>
+                Contest Ended
+              </h2>
+            </div>
           </div>
         </div>
-      </div>
+        <div className="fixed bottom-6 right-6 z-50">
+          <a
+            href="https://www.instagram.com/zeecontest?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 bg-gradient-to-r from-pink-500 to-orange-500 text-white px-6 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 text-lg font-bold animate-pulse"
+          >
+            <FaInstagram size={28} />
+            <span className="text-lg font-bold">Follow ZeeContest</span>
+          </a>
+        </div>
+      </>
     );
   }
 

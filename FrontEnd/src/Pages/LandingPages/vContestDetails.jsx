@@ -12,6 +12,7 @@ import { FaXTwitter } from 'react-icons/fa6';
 import VotingPositionsSection from '../../Components/LandingPageComp/contest/VotingPosition';
 import CandidatesSection from '../../Components/LandingPageComp/contest/CandidateSection';
 import axios from 'axios';
+import FullPageLoader from '../../Components/FullPageLoader';
 
 const MAX_CHARS = 100;
 
@@ -21,6 +22,7 @@ const ContestDetailPage = () => {
   const [countdown, setCountdown] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   // Simulated contest start and end date/time for countdown
   // These should be replaced with actual values from backend or global state
@@ -104,8 +106,10 @@ const ContestDetailPage = () => {
         console.log(res);
         setContest(res.data.contest);
         setActivePosition(res.data.contest?.positions[0]?.name);
+        setLoading(false);
       } catch (err) {
         console.error('Failed to fetch contest:', err);
+        setLoading(false);
       }
     };
     if (contestId) fetchContest();
@@ -247,6 +251,10 @@ const ContestDetailPage = () => {
   const toggleExpansion = () => {
     setIsExpanded(!isExpanded);
   };
+
+  if (loading) {
+    return <FullPageLoader />;
+  }
 
   return (
     <>
