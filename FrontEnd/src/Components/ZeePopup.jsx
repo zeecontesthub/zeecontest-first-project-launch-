@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Sparkles, Zap, MessageCircle } from 'lucide-react';
 import Highlights from './Highlights';
 import PlugIn from './PlugIn';
@@ -10,6 +10,25 @@ import LiveComments from './LiveComments';
 const ZeePopup = ({ isOpen = true, onClose = () => {}, contestId = "123" }) => {
   const [selectedOption, setSelectedOption] = useState(null);
   const [isClosing, setIsClosing] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showSnackbar, setShowSnackbar] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (selectedOption === 'liveComments' && isMobile) {
+      setShowSnackbar(true);
+      const timer = setTimeout(() => setShowSnackbar(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedOption, isMobile]);
 
   if (!isOpen && !isClosing) return null;
 
@@ -310,6 +329,12 @@ const ZeePopup = ({ isOpen = true, onClose = () => {}, contestId = "123" }) => {
                 {selectedOption === 'plugin' && <PlugIn contestId={contestId} />}
                 {selectedOption === 'zeeClash' && <ZeeClash contestId={contestId} />}
                 {selectedOption === 'liveComments' && <LiveComments contestId={contestId} />}
+                {selectedOption === 'liveComments' && !isMobile && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
+                    <p className="font-bold text-gray-800">Want to drop your comment?</p>
+                    <p className="text-gray-600">Visit  the profile of your favorite contestant and click on the comment button</p>
+                  </div>
+                )}
                 {selectedOption === 'aiPrediction' && <ZeePrediction contestId={contestId} />}
               </div>
             </div>
@@ -325,6 +350,22 @@ const ZeePopup = ({ isOpen = true, onClose = () => {}, contestId = "123" }) => {
           }}
         />
       </div>
+
+      {/* Snackbar for mobile */}
+      {showSnackbar && (
+        <div
+          className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-60 px-4 py-3 rounded-lg shadow-lg transition-all duration-600"
+          style={{
+            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+            color: 'white',
+            boxShadow: '0 10px 25px rgba(16, 185, 129, 0.3)',
+            borderRadius: '12px'
+          }}
+        >
+          <p className="font-bold text-sm">Want to drop your comment?</p>
+          <p className="text-xs opacity-90">Visit  the profile of your favorite contestant and click on the comment button</p>
+        </div>
+      )}
 
       <style jsx>{`
         @keyframes fadeIn {

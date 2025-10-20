@@ -12,6 +12,7 @@ const CommentModal = ({ isOpen, onClose, contestant, contest }) => {
   const [submitting, setSubmitting] = useState(false);
   const [user, setUser] = useState(null);
 
+
   useEffect(() => {
     if (isOpen && contestant && contest) {
       fetchComments();
@@ -57,6 +58,8 @@ const CommentModal = ({ isOpen, onClose, contestant, contest }) => {
     }
   };
 
+
+
   const handleSubmitComment = async (e) => {
     e.preventDefault();
 
@@ -99,13 +102,15 @@ const CommentModal = ({ isOpen, onClose, contestant, contest }) => {
     }
   };
 
+
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-[#000000]/80 bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden shadow-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-xl">
+        {/* Header - Fixed */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center gap-3">
             <MessageCircle className="w-6 h-6 text-blue-600" />
             <h2 className="text-xl font-bold text-gray-900">
@@ -120,8 +125,8 @@ const CommentModal = ({ isOpen, onClose, contestant, contest }) => {
           </button>
         </div>
 
-        {/* Comments List */}
-        <div className="max-h-96 overflow-y-auto p-6">
+        {/* Comments List - Scrollable */}
+        <div className="flex-1 overflow-y-auto p-6 min-h-0">
           {loading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -144,14 +149,15 @@ const CommentModal = ({ isOpen, onClose, contestant, contest }) => {
                     </span>
                   </div>
                   <p className="text-gray-700">{comment.comment}</p>
+
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        {/* Comment Form */}
-        <div className="border-t border-gray-200 p-6">
+        {/* Comment Form - Fixed at bottom */}
+        <div className="border-t border-gray-200 p-6 flex-shrink-0">
           {contest.isClosedContest ? (
             // Closed contest form
             <form onSubmit={handleSubmitComment} className="space-y-4">

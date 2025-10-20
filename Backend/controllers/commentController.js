@@ -27,7 +27,7 @@ export const getComments = async (req, res) => {
 export const addComment = async (req, res) => {
   try {
     const { contestId, contestantId } = req.params;
-    const { userName, comment } = req.body;
+    const { userName, comment, parentCommentId } = req.body;
 
     if (!userName || !comment) {
       return res.status(400).json({
@@ -40,7 +40,8 @@ export const addComment = async (req, res) => {
       contestantId,
       contestId,
       userName,
-      comment
+      comment,
+      parentCommentId: parentCommentId || null
     });
 
     await newComment.save();

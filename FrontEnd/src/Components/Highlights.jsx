@@ -12,6 +12,7 @@ const Highlights = ({ contestId }) => {
   const lastUpdateTime = useRef(new Date());
   const countdownInterval = useRef(null);
   const hasGeneratedPostContest = useRef(false);
+  const cardRef = useRef(null);
 
   // Auto-advance to next highlight every 5 seconds
   useEffect(() => {
@@ -464,6 +465,20 @@ const Highlights = ({ contestId }) => {
     setCurrentIndex((prev) => (prev - 1 + highlights.length) % highlights.length);
   };
 
+  const handleTap = (e) => {
+    if (window.innerWidth >= 768) return; // Only for mobile
+
+    const rect = cardRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const cardWidth = rect.width;
+
+    if (clickX < cardWidth / 2) {
+      goToPrev();
+    } else {
+      goToNext();
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -506,6 +521,8 @@ const Highlights = ({ contestId }) => {
 
       {/* Story card */}
       <div
+        ref={cardRef}
+        onClick={handleTap}
         className={`relative rounded-3xl  overflow-hidden bg-gradient-to-br ${currentHighlight.gradient} mx-auto`}
         style={{
           aspectRatio: '9/16',

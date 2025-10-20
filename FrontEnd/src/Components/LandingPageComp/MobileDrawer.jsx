@@ -27,17 +27,10 @@ export default function MobileDrawer({ open, toggleDrawer }) {
             className='text-xl font-medium text-center py-2 px-4 rounded-lg text-gray-800 hover:bg-gray-100 transition-colors w-full'
             onClick={toggleDrawer(false)}
           >
-            Waitlist
+            Contact
           </Link>
 
-          <Link to='/login' className='w-full'>
-            <button
-              className='w-full bg-[#E67347] text-white py-3 px-6 rounded-full font-semibold text-center transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg'
-              onClick={toggleDrawer(false)}
-            >
-              Login to your Organizer Account
-            </button>
-          </Link>
+          
         </nav>
       </div>
     </Drawer>
