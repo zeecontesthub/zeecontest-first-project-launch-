@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
-import { ChevronDown, Search } from 'lucide-react';
-import React, { useState } from 'react';
+import { ChevronDown, Search, Check } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
 
 const VotingPositionsSection = ({
   activePosition,
@@ -8,6 +8,9 @@ const VotingPositionsSection = ({
   contest,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [positionSearchTerm, setPositionSearchTerm] = useState('');
+  const dropdownRef = useRef(null);
 
   const getPositionColors = (position, isActive) => {
     if (isActive) {
@@ -41,50 +44,137 @@ const VotingPositionsSection = ({
     contest?.positions?.find((pos) => pos.name === activePosition)?.voters ||
     [];
 
+  // Handle outside click to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const getOptionLabel = (position) => {
+    const count = position?.contestants?.length ?? 0;
+    const votes = !contest?.isClosedContest
+      ? position?.voters?.reduce(
+        (total, voter) => total + (voter.multiplier || 0),
+        0
+      ) ?? 0
+      : contest?.closedContestVoters?.reduce((total, voter) => {
+        const count =
+          voter.votedFor?.filter(
+            (v) => v.positionTitle === position?.name
+          ).length || 0;
+        return total + count * (voter.multiplier || 0);
+      }, 0) ?? 0;
+    return `${position.name} - ${count} Candidates • ${votes} votes`;
+  };
+
+  const filteredPositions = contest?.positions?.filter(position =>
+    position.name.toLowerCase().includes(positionSearchTerm.toLowerCase())
+  ) || [];
+
   return (
     <div className='w-full mx-auto mt-6'>
-      <div className='flex overflow-x-auto gap-3 mb-8 shadow-sm p-4 rounded-xl'>
+      <div className='flex  gap-3 mb-8 shadow-sm p-4 rounded-xl'>
         <div className='relative w-full md:w-auto'>
-          <select
-            onChange={(e) => onPositionChange(e.target.value)}
-            value={activePosition}
-            className={`
-          appearance-none w-full px-6 py-3 pr-10 rounded-xl font-medium cursor-pointer transition-all duration-200
-          border-2 focus:ring-2 focus:outline-none 
-          ${getPositionColors(activePosition, true)}
-        `}
-          >
-            {contest?.positions.map((position) => (
-              <option key={position.name} value={position.name}>
-                {position.name} - {position?.contestants?.length ?? 0}{' '}
-                Candidates •{' '}
-                {!contest?.isClosedContest
-                  ? position?.voters?.reduce(
-                      (total, voter) => total + (voter.multiplier || 0),
-                      0
-                    ) ?? 0
-                  : contest?.closedContestVoters?.reduce((total, voter) => {
-                      const count =
-                        voter.votedFor?.filter(
-                          (v) => v.positionTitle === position?.name
-                        ).length || 0;
-                      return total + count * (voter.multiplier || 0);
-                    }, 0) ?? 0}{' '}
-                votes
-              </option>
-            ))}
-          </select>
-          <div className='pointer-events-none absolute inset-y-0 right-0 flex items-center px-2'>
-            <ChevronDown
-              className={`h-6 w-6 font-bold transition-transform duration-200 
-          ${
-            getPositionColors(activePosition, true) ===
-            'bg-gray-100 text-gray-700'
-              ? 'text-gray-500'
-              : 'text-white'
-          }`}
-            />
+          <div className='relative' ref={dropdownRef}>
+            {/* Dropdown Button */}
+            <button
+              className={`w-full flex items-center justify-between px-5 py-3.5 rounded-xl cursor-pointer transition-all duration-200 border-2 focus:ring-4 focus:ring-opacity-20 focus:outline-none shadow-sm hover:shadow-md ${getPositionColors(activePosition, true)}`}
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              aria-expanded={isDropdownOpen}
+              aria-haspopup="listbox"
+            >
+              <span className='font-semibold text-base'>
+                {getOptionLabel(contest?.positions?.find(pos => pos.name === activePosition))}
+              </span>
+              <ChevronDown
+                className={`h-5 w-5 transition-transform duration-300 ease-out ${isDropdownOpen ? 'rotate-180' : ''
+                  }`}
+              />
+            </button>
+
+            {/* Dropdown Menu */}
+            {isDropdownOpen && (
+              <div className='absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden animate-slideDown'>
+                {/* Search Box */}
+                <div className='p-3 bg-gray-50 border-b border-gray-200'>
+                  <div className='relative'>
+                    <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none' />
+                    <input
+                      type='text'
+                      placeholder='Search positions...'
+                      value={positionSearchTerm}
+                      onChange={(e) => setPositionSearchTerm(e.target.value)}
+                      className='w-full py-2.5 pl-10 pr-4 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-150 outline-none'
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </div>
+
+                {/* Options List */}
+                <div className='max-h-64 overflow-y-auto'>
+                  {filteredPositions.length > 0 ? (
+                    <div role='listbox'>
+                      {filteredPositions.map((position) => {
+                        const isActive = activePosition === position.name;
+                        return (
+                          <div
+                            key={position.name}
+                            role='option'
+                            aria-selected={isActive}
+                            className={`px-4 py-3 cursor-pointer transition-all duration-150 flex items-center justify-between group ${isActive
+                                ? 'bg-blue-50 text-blue-700 font-medium'
+                                : 'text-gray-700 hover:bg-gray-50'
+                              }`}
+                            onClick={() => {
+                              onPositionChange(position.name);
+                              setIsDropdownOpen(false);
+                              setPositionSearchTerm('');
+                            }}
+                          >
+                            <span className='text-sm'>{getOptionLabel(position)}</span>
+                            {isActive && (
+                              <Check className='h-4 w-4 opacity-70' />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className='px-4 py-8 text-gray-400 text-center'>
+                      <Search className='h-8 w-8 mx-auto mb-2 opacity-30' />
+                      <p className='text-sm'>No positions found</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* Add this CSS somewhere in your component or global styles */}
+          <style jsx>{`
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-slideDown {
+    animation: slideDown 0.2s ease-out;
+  }
+`}</style>
         </div>
       </div>
 
@@ -179,8 +269,8 @@ const VotingPositionsSection = ({
                     <div
                       className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center
                         font-bold text-sm md:text-lg ${getRankBadgeColor(
-                          index + 1
-                        )}`}
+                        index + 1
+                      )}`}
                     >
                       {index + 1}
                     </div>
@@ -212,19 +302,18 @@ const VotingPositionsSection = ({
                   <div className='flex items-center gap-3 mt-3 sm:mt-0'>
                     {candidate.votes === maxVotes && maxVotes > 0 && (
                       <div className='bg-[#00B25F] text-white px-4 md:px-6 py-2 rounded-[20px] font-medium text-sm'>
-                        Leading
+                        {contest?.status === 'completed' ? 'Winner' : 'Leading'}
                       </div>
                     )}
                     <button
                       className='bg-orange-500 hover:bg-orange-600 text-white px-4 md:px-6 py-2 rounded-[20px] font-medium text-sm transition-colors'
                       onClick={() => {
-                        window.location.href = `/vote/${
-                          contest._id
-                        }?position=${encodeURIComponent(
-                          activePosition
-                        )}&candidateId=${encodeURIComponent(
-                          candidate._id
-                        )}&candidateName=${encodeURIComponent(candidate.name)}`;
+                        window.location.href = `/vote/${contest._id
+                          }?position=${encodeURIComponent(
+                            activePosition
+                          )}&candidateId=${encodeURIComponent(
+                            candidate._id
+                          )}&candidateName=${encodeURIComponent(candidate.name)}`;
                       }}
                     >
                       Vote

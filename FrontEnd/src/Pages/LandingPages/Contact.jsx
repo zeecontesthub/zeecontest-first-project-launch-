@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { ChevronDown, Send, Mail } from 'lucide-react';
+import { Send, Mail, Phone, MessageSquare, Calendar, ChevronDown } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Header from '../../common/Header';
 import Footer from '../../common/Footer';
+import contactArrow from '../../assets/contact-arrow.png';
 
 const ContactForm = () => {
   const [formData, setFormData] = useState({
@@ -21,6 +22,17 @@ const ContactForm = () => {
     expectedContestants: '',
     extraInfo: '',
   });
+
+  const [contactFormData, setContactFormData] = useState({
+    contactName: '',
+    contactEmail: '',
+    contactWhatsapp: '',
+    contactReason: '',
+    contactPreferred: '',
+  });
+
+  const [contactErrors, setContactErrors] = useState({});
+  const [isContactLoading, setIsContactLoading] = useState(false);
 
   const [errors, setErrors] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -116,6 +128,99 @@ const ContactForm = () => {
         ...prev,
         [name]: '',
       }));
+    }
+  };
+
+  const handleContactChange = (e) => {
+    const { name, value } = e.target;
+    setContactFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    if (contactErrors[name]) {
+      setContactErrors((prev) => ({
+        ...prev,
+        [name]: '',
+      }));
+    }
+  };
+
+  const validateContactField = (name, value) => {
+    let error = '';
+
+    switch (name) {
+      case 'contactName':
+        if (!value.trim()) error = 'Name is required';
+        break;
+      case 'contactEmail':
+        if (!value.trim()) {
+          error = 'Email is required';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          error = 'Please enter a valid email address';
+        }
+        break;
+      case 'contactWhatsapp':
+        if (!value.trim()) {
+          error = 'WhatsApp number is required';
+        } else if (!/^[\+]?[0-9\s\-\(\)]{10,}$/.test(value)) {
+          error = 'Please enter a valid WhatsApp number';
+        }
+        break;
+      case 'contactReason':
+        if (!value.trim()) error = 'Reason for reaching out is required';
+        break;
+      case 'contactPreferred':
+        if (!value) error = 'Please select a preferred means of communication';
+        break;
+      default:
+        break;
+    }
+    return error;
+  };
+
+  const validateContactForm = () => {
+    const newErrors = {};
+
+    ['contactName', 'contactEmail', 'contactWhatsapp', 'contactReason', 'contactPreferred'].forEach(
+      (field) => {
+        const error = validateContactField(field, contactFormData[field]);
+        if (error) newErrors[field] = error;
+      }
+    );
+
+    setContactErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmitContact = async (e) => {
+    e.preventDefault();
+    if (validateContactForm()) {
+      setIsContactLoading(true);
+
+      try {
+        const response = await fetch(URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          cache: 'no-cache',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(contactFormData),
+        });
+
+        toast.success('Your contact request has been submitted!');
+      } catch (error) {
+        console.error('Contact submission failed:', error);
+        toast.error('Contact submission failed. Please try again later.');
+      } finally {
+        setIsContactLoading(false);
+      }
+    } else {
+      toast.warn('Please fill in all required fields.', {
+        position: 'top-center',
+        autoClose: 3000,
+      });
     }
   };
 
@@ -233,7 +338,7 @@ const ContactForm = () => {
         <div className='max-w-3xl mx-auto'>
           <div className='text-center mb-10'>
             <h1 className='text-[#343A40] text-4xl font-bold mb-3 tracking-tight'>
-              Join the Zeecontest Waitlist
+              Want to Host your Contest on ZeeContest?
             </h1>
             <p className='text-gray-600 text-lg'>
               Be among the first to organize contests on our platform!
@@ -608,7 +713,7 @@ const ContactForm = () => {
                     ) : (
                       <>
                         <Send className='w-5 h-5' />
-                        <span>Join Waitlist</span>
+                        <span>Submit Request</span>
                       </>
                     )}
                   </button>
@@ -617,22 +722,200 @@ const ContactForm = () => {
             </form>
           </div>
 
-          <div className='text-center mt-8'>
-            <p className='text-gray-500 text-sm mb-4'>
-              By joining, you'll be notified as soon as Zeecontest launches.
-            </p>
+          <div className="min-h-screen  py-20 px-4">
+            <div className="max-w-7xl mx-auto">
+              <div className="text-center mb-16">
+                <h2 className="text-5xl font-bold text-slate-800 mb-4">
+                  Let's Start a Conversation
+                </h2>
+                <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+                  Got questions? We're all ears! Our team is ready to help you create an amazing contest experience.
+                </p>
+              </div>
 
-            <div className='inline-flex items-center justify-center p-3 bg-[#FFB703]/10 border border-[#FFB703]/30 rounded-lg shadow-sm'>
-              <Mail className='w-5 h-5 text-[#FFB703] mr-2' />
-              <p className='text-sm text-[#343A40] font-medium'>
-                Have questions? Email us at{' '}
-                <a
-                  href='mailto:support@zeecontest.com'
-                  className='text-[#034045] font-semibold hover:underline transition-colors'
-                >
-                  support@zeecontest.com
-                </a>
-              </p>
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                {/* Form Section */}
+                <div className="bg-white rounded-3xl shadow-2xl p-8 lg:p-12 border border-slate-100">
+                  <div className="space-y-6">
+                    <div className="relative">
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Your Name
+                      </label>
+                      <input
+                        type="text"
+                        name="contactName"
+                        value={formData.contactName}
+                        onChange={handleChange}
+                        className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all outline-none text-slate-800"
+                        placeholder="John Doe"
+                      />
+                    </div>
+
+                    <div className="relative">
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Email Address
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                        <input
+                          type="email"
+                          name="contactEmail"
+                          value={formData.contactEmail}
+                          onChange={handleChange}
+                          className="w-full pl-12 pr-5 py-4 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all outline-none text-slate-800"
+                          placeholder="john@example.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="relative">
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        WhatsApp Number
+                      </label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                        <input
+                          type="tel"
+                          name="contactWhatsapp"
+                          value={formData.contactWhatsapp}
+                          onChange={handleChange}
+                          className="w-full pl-12 pr-5 py-4 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all outline-none text-slate-800"
+                          placeholder="+234 xxx xxxx xxx"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="relative">
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        How can we help you?
+                      </label>
+                      <div className="relative">
+                        <MessageSquare className="absolute left-4 top-4 w-5 h-5 text-slate-400" />
+                        <textarea
+                          name="contactReason"
+                          value={formData.contactReason}
+                          onChange={handleChange}
+                          rows={4}
+                          className="w-full pl-12 pr-5 py-4 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all resize-none outline-none text-slate-800"
+                          placeholder="Tell us about your contest idea..."
+                        />
+                      </div>
+                    </div>
+
+                    <div className="relative">
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Preferred Contact Method
+                      </label>
+                      <div className="relative">
+                        <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 z-10" />
+                        <select
+                          name="contactPreferred"
+                          value={formData.contactPreferred}
+                          onChange={handleChange}
+                          className="w-full pl-12 pr-5 py-4 bg-slate-50 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all appearance-none outline-none text-slate-800"
+                        >
+                          <option value="">Choose your preference</option>
+                          <option value="phone">Phone/WhatsApp Call</option>
+                          <option value="email">Email</option>
+                          <option value="whatsapp">WhatsApp Messaging</option>
+                          <option value="meet">Google Meet</option>
+                        </select>
+                        <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleSubmit}
+                      disabled={isLoading}
+                      className="w-full bg-gradient-to-r from-teal-700 to-teal-600 text-white font-bold py-5 px-8 rounded-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 flex items-center justify-center space-x-3 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                      {isLoading ? (
+                        <>
+                          <svg className="animate-spin h-6 w-6 text-white" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span className="text-lg">Sending...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-6 h-6" />
+                          <span className="text-lg">Send Message</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3D Illustration Section */}
+                <div className="relative flex items-center justify-center">
+                  <div className="relative w-full max-w-lg">
+                    {/* Floating elements */}
+                    <div className="absolute top-10 left-10 w-20 h-20 bg-gradient-to-br from-amber-400 to-amber-300 rounded-2xl shadow-2xl animate-bounce" style={{ animationDuration: '3s' }}></div>
+                    <div className="absolute top-32 right-8 w-16 h-16 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full shadow-2xl animate-bounce" style={{ animationDuration: '4s', animationDelay: '0.5s' }}></div>
+                    <div className="absolute bottom-20 left-16 w-14 h-14 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl shadow-2xl animate-bounce" style={{ animationDuration: '3.5s', animationDelay: '1s' }}></div>
+
+                    {/* Main illustration */}
+                    <div className="relative z-10 bg-gradient-to-br from-white to-slate-100 rounded-3xl p-12 shadow-2xl border border-slate-200">
+                      <div className="space-y-8">
+                        {/* Envelope Icon */}
+                        <div className="flex justify-center">
+                          <div className="relative">
+                            <div className="w-32 h-32 bg-gradient-to-br from-teal-700 to-teal-600 rounded-3xl shadow-2xl flex items-center justify-center transform hover:rotate-6 transition-transform duration-300">
+                              <Mail className="w-16 h-16 text-white" />
+                            </div>
+                            <div className="absolute -top-2 -right-2 w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center shadow-lg">
+                              <span className="text-white font-bold text-sm">!</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Feature Cards */}
+                        <div className="space-y-4">
+                          <div className="bg-white p-6 rounded-2xl shadow-lg border-l-4 border-amber-400 hover:scale-105 transition-transform">
+                            <div className="flex items-center space-x-4">
+                              <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                                <Phone className="w-6 h-6 text-amber-500" />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-slate-800">Quick Response</h4>
+                                <p className="text-sm text-slate-600">We reply within 24 hours</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="bg-white p-6 rounded-2xl shadow-lg border-l-4 border-blue-500 hover:scale-105 transition-transform">
+                            <div className="flex items-center space-x-4">
+                              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                <MessageSquare className="w-6 h-6 text-blue-500" />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-slate-800">Expert Support</h4>
+                                <p className="text-sm text-slate-600">Dedicated team assistance</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="bg-white p-6 rounded-2xl shadow-lg border-l-4 border-green-500 hover:scale-105 transition-transform">
+                            <div className="flex items-center space-x-4">
+                              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                                <Calendar className="w-6 h-6 text-green-500" />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-slate-800">Flexible Scheduling</h4>
+                                <p className="text-sm text-slate-600">Book a call anytime</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Background decoration */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-400/20 to-transparent rounded-3xl -z-10 transform rotate-3"></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

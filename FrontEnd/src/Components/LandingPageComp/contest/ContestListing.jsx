@@ -37,7 +37,6 @@ const getButtonConfig = (status) => {
 
 const ContestCard = ({
   contest,
-  key,
   filteredContests,
   index,
   lastItemRef,
@@ -86,7 +85,7 @@ const ContestCard = ({
 
   return (
     <div
-      key={contest._id || key}
+      key={contest._id}
       ref={isLastItem ? lastItemRef : null}
       className="bg-[#84818133] rounded-xl overflow-hidden hover:shadow-xl transition-shadow duration-300"
     >
@@ -179,7 +178,6 @@ const ContestListing = ({ contests, loading, error, lastItemRef }) => {
       ? contests
       : contests.filter((contest) => contest.status === activeFilter);
 
-  // Get status badge styling
   // Get status badge styling
 
   return (

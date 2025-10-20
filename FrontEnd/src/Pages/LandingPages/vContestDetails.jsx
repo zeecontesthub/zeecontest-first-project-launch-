@@ -3,9 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   ChevronLeft,
   Users,
+  Vote,
   UserCheck,
   Trophy,
   DollarSign,
+  Bot,
 } from 'lucide-react';
 import { FaInstagram, FaGlobe } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
@@ -13,6 +15,7 @@ import VotingPositionsSection from '../../Components/LandingPageComp/contest/Vot
 import CandidatesSection from '../../Components/LandingPageComp/contest/CandidateSection';
 import axios from 'axios';
 import FullPageLoader from '../../Components/FullPageLoader';
+import ZeePopup from '../../Components/ZeePopup';
 
 const MAX_CHARS = 100;
 
@@ -23,6 +26,30 @@ const ContestDetailPage = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [isZeeOpen, setIsZeeOpen] = useState(false);
+  const [speechText, setSpeechText] = useState('');
+
+  const speechTexts = [
+    "👋 Hey there! Zee's got some hot updates 🔥",
+    "💫 Tap me: I've got something cool to show you!",
+    "🎉 Wanna see what's trending right now?",
+    "⚡ The contest is heating up come check it out!",
+    "👀 Zee's watching the votes live tap to peek!",
+    "💥 New highlights just dropped let's go!",
+    "✨ Zee's got fresh vibes for you click me!"
+  ];
+
+  useEffect(() => {
+    // Set initial random text
+    setSpeechText(speechTexts[Math.floor(Math.random() * speechTexts.length)]);
+
+    // Change text every 5 minutes
+    const interval = setInterval(() => {
+      setSpeechText(speechTexts[Math.floor(Math.random() * speechTexts.length)]);
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Simulated contest start and end date/time for countdown
   // These should be replaced with actual values from backend or global state
@@ -258,229 +285,199 @@ const ContestDetailPage = () => {
 
   return (
     <>
-      <div className='min-h-screen bg-white'>
-        <div className='bg-white'>
-          <div className='pl-4 md:pl-30 mx-auto px-4 py-4'>
+      <div className='min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50'>
+        {/* Header with Glass Effect */}
+        <div className='sticky top-0 z-50 backdrop-blur-xl bg-white/80 border-b border-gray-200/50 shadow-sm'>
+          <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4'>
             <div className='flex items-center gap-4'>
               <button
-                className='p-2 hover:bg-gray-100 rounded-lg transition-colors'
+                className='p-2 hover:bg-gray-100 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95'
                 onClick={() => navigate(-1)}
               >
-                <ChevronLeft className='w-8 h-8 text-gray-900' />
+                <ChevronLeft className='w-6 h-6 text-gray-900' />
               </button>
-              <p className='text-2xl font-bold text-gray-900'>
+              <h3 className='text-xl sm:text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent'>
                 {contest?.title}
-              </p>
+              </h3>
             </div>
           </div>
         </div>
 
-        <div className='bg-black mb-4 md:mb-8 relative overflow-hidden'>
-          <div className='h-64 md:h-80 flex items-center justify-center'>
-            <img
-              src={contest?.coverImageUrl}
-              alt={contest?.title}
-              className='absolute inset-0 w-full h-full object-cover'
-            />
+        {/* Hero Section with Gradient Overlay */}
+        <div className='relative h-72 sm:h-96'>
+          <div className='absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/60 z-10' />
+          <img
+            src={contest?.coverImageUrl}
+            alt={contest?.title}
+            className='absolute inset-0 w-full h-full object-cover'
+          />
+
+          {/* Floating Contest Logo */}
+          <div className='absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 z-50'>
+            <div className='relative group'>
+              <div className='absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full blur-xl opacity-75 group-hover:opacity-100 transition-opacity duration-300 animate-pulse' />
+              <div className='relative w-32 h-32 sm:w-40 sm:h-40 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-white'>
+                <img
+                  src={contest?.contestLogoImageUrl}
+                  alt={contest?.title}
+                  className='w-full h-full object-cover'
+                />
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className='mx-auto px-4 md:px-30 py-4 md:py-8'>
-          <div className='grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8'>
-            <div className='lg:col-span-2 flex gap-6 items-center justify-center'>
-              <div>
-                <div className='w-32 h-32 bg-black rounded-full border-4 border-[#034045] flex items-center justify-center relative'>
-                  <img
-                    src={contest?.contestLogoImageUrl}
-                    alt={contest?.title}
-                    className='absolute inset-0 w-full h-full object-cover rounded-full'
-                  />
-                </div>
-              </div>
-
-              <div className='flex-grow'>
-                <h2 className='text-2xl md:text-3xl font-bold text-gray-900 mb-2'>
-                  {contest?.title}
-                </h2>
-                <p className='text-gray-600 text-lg'>{displayDescription}</p>
-
-                {isLong && (
-                  <p
-                    onClick={toggleExpansion}
-                    className='text-sm font-semibold text-[#034045] hover:text-[#011F21] underline transition-colors focus:outline-none'
-                  >
-                    {isExpanded ? 'Show Less' : 'Read More'}
-                  </p>
-                )}
-
-                {/* Organizer Social Links */}
-                {contest?.socialLinks && (
-                  <div className='mt-4'>
-                    <h3 className='text-sm font-semibold text-gray-800 mb-2'>
-                      Follow the Organizer:
-                    </h3>
-                    <div className='flex gap-4 items-center'>
-                      {['instagram', 'x', 'website'].map((key) => {
-                        const link = contest.socialLinks[key];
-                        if (link && link.trim().length > 0) {
-                          let Icon;
-                          let color;
-                          switch (key) {
-                            case 'instagram':
-                              Icon = FaInstagram;
-                              color = 'text-pink-500 hover:text-pink-600';
-                              break;
-                            case 'x':
-                              Icon = FaXTwitter;
-                              color = 'text-blue-500 hover:text-blue-600';
-                              break;
-                            case 'website':
-                              Icon = FaGlobe;
-                              color = 'text-gray-500 hover:text-gray-600';
-                              break;
-                            default:
-                              return null;
-                          }
-                          return (
-                            <a
-                              key={key}
-                              href={link}
-                              target='_blank'
-                              rel='noopener noreferrer'
-                              className={`flex items-center gap-2 text-sm ${color}`}
-                            >
-                              <Icon size={22} />
-                            </a>
-                          );
-                        }
-                        return null;
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className='space-y-4'>
-              <div className='bg-[#00B25F] text-white px-6 py-3 rounded-lg text-center font-medium'>
-                {(() => {
-                  const startDate = new Date(contest?.startDate);
-                  if (contest?.startTime) {
-                    let hour = parseInt(contest.startTime.startTimeHour, 10);
-                    if (contest.startTime.startTimeAmPm === 'PM' && hour < 12)
-                      hour += 12;
-                    if (contest.startTime.startTimeAmPm === 'AM' && hour === 12)
-                      hour = 0;
-                    startDate.setHours(
-                      hour,
-                      parseInt(contest.startTime.startTimeMinute, 10),
-                      0,
-                      0
-                    );
-                  }
-
-                  const endDate = new Date(contest?.endDate);
-                  if (contest?.endTime) {
-                    let hour = parseInt(contest.endTime.endTimeHour, 10);
-                    if (contest.endTime.endTimeAmPm === 'PM' && hour < 12)
-                      hour += 12;
-                    if (contest.endTime.endTimeAmPm === 'AM' && hour === 12)
-                      hour = 0;
-                    endDate.setHours(
-                      hour,
-                      parseInt(contest.endTime.endTimeMinute, 10),
-                      0,
-                      0
-                    );
-                  }
-
-                  const now = new Date();
-
-                  // ✅ Contest paused
-                  if (contest?.status === 'pause') {
-                    return (
-                      <>
-                        <div className='text-sm'>Contest Paused</div>
-                      </>
-                    );
-                  }
-                  // ✅ Contest completed or ended
-                  else if (contest?.status === 'completed' || now > endDate) {
-                    return (
-                      <>
-                        <h3 className='text-lg font-bold text-white mb-2'>
-                          Completed
-                        </h3>
-                        <p className='text-xl font-semibold text-[#E67347]'>
-                          Contest Ended
-                        </p>
-                      </>
-                    );
-                  }
-                  // ✅ Contest not started yet
-                  else if (now < startDate) {
-                    return (
-                      <>
-                        <h3 className='text-lg font-bold text-white mb-2'>
-                          Contest{' '}
-                          <span className='text-[#E67347] font-bold'>
-                            Starts
-                          </span>{' '}
-                          In
-                        </h3>
-                        <p className='text-xl font-semibold text-white'>
-                          {countdown}
-                        </p>
-                      </>
-                    );
-                  }
-                  // ✅ Contest ongoing
-                  else {
-                    return (
-                      <>
-                        <h3 className='text-lg font-bold text-white mb-2'>
-                          Contest{' '}
-                          <span className='text-[#E67347] font-bold'>Ends</span>{' '}
-                          In
-                        </h3>
-                        <p className='text-xl font-semibold text-white'>
-                          {countdown}
-                        </p>
-                      </>
-                    );
-                  }
-                })()}
-              </div>
-
+        {/* Main Content */}
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12'>
+          {/* Title & Description Section */}
+          <div className='text-center mb-12'>
+            <h2 className='text-xl sm:text-2xl lg:text-3xl font-bold mb-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent'>
+              {contest?.title}
+            </h2>
+            <p className='text-gray-600 text-base sm:text-lg max-w-3xl mx-auto leading-relaxed'>
+              {displayDescription}
+            </p>
+            {isLong && (
               <button
-                className='w-full bg-[#E67347] hover:bg-orange-600 text-white px-6 py-4 rounded-lg font-semibold text-lg transition-colors duration-200 flex items-center justify-center gap-2 cursor-pointer'
-                onClick={() => navigate(`/vote/${contestId}`)}
+                onClick={toggleExpansion}
+                className='mt-3 text-sm font-semibold text-purple-600 hover:text-purple-700 transition-colors'
               >
-                Cast your Vote
+                {isExpanded ? '↑ Show Less' : '↓ Read More'}
               </button>
+            )}
+
+            {/* Social Links */}
+            {contest?.socialLinks && (
+              <div className='flex justify-center gap-4 mt-6'>
+                {contest.socialLinks.instagram && (
+                  <a
+                    href={contest.socialLinks.instagram}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='p-3 bg-gradient-to-br from-pink-500 to-purple-600 text-white rounded-xl hover:scale-110 transition-transform duration-200 shadow-lg hover:shadow-xl'
+                  >
+                    <FaInstagram size={20} />
+                  </a>
+                )}
+                {contest.socialLinks.x && (
+                  <a
+                    href={contest.socialLinks.x}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='p-3 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl hover:scale-110 transition-transform duration-200 shadow-lg hover:shadow-xl'
+                  >
+                    <FaXTwitter size={20} />
+                  </a>
+                )}
+                {contest.socialLinks.website && (
+                  <a
+                    href={contest.socialLinks.website}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='p-3 bg-gradient-to-br from-gray-700 to-gray-800 text-white rounded-xl hover:scale-110 transition-transform duration-200 shadow-lg hover:shadow-xl'
+                  >
+                    <FaGlobe size={20} />
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Countdown & CTA Card */}
+          <div className='max-w-2xl mx-auto mb-12'>
+            <div className='relative group'>
+              <div className='absolute inset-0 bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-300' />
+              <div className='relative bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-8 shadow-2xl'>
+                <div className='text-center text-white mb-6'>
+                  {(() => {
+                    const startDate = new Date(contest?.startDate);
+                    if (contest?.startTime) {
+                      let hour = parseInt(contest.startTime.startTimeHour, 10);
+                      if (contest.startTime.startTimeAmPm === 'PM' && hour < 12)
+                        hour += 12;
+                      if (contest.startTime.startTimeAmPm === 'AM' && hour === 12)
+                        hour = 0;
+                      startDate.setHours(
+                        hour,
+                        parseInt(contest.startTime.startTimeMinute, 10),
+                        0,
+                        0
+                      );
+                    }
+
+                    const endDate = new Date(contest?.endDate);
+                    if (contest?.endTime) {
+                      let hour = parseInt(contest.endTime.endTimeHour, 10);
+                      if (contest.endTime.endTimeAmPm === 'PM' && hour < 12)
+                        hour += 12;
+                      if (contest.endTime.endTimeAmPm === 'AM' && hour === 12)
+                        hour = 0;
+                      endDate.setHours(
+                        hour,
+                        parseInt(contest.endTime.endTimeMinute, 10),
+                        0,
+                        0
+                      );
+                    }
+
+                    const now = new Date();
+
+                    if (contest?.status === 'pause') {
+                      return (
+                        <>
+                          <h3 className='text-lg font-semibold mb-2 opacity-90'>Contest Status</h3>
+                          <p className='text-3xl sm:text-4xl font-bold tracking-tight'>Paused</p>
+                        </>
+                      );
+                    } else if (contest?.status === 'completed' || now > endDate) {
+                      return (
+                        <>
+                          <h3 className='text-lg font-semibold mb-2 opacity-90'>Contest Status</h3>
+                          <p className='text-3xl sm:text-4xl font-bold tracking-tight'>Ended</p>
+                        </>
+                      );
+                    } else if (now < startDate) {
+                      return (
+                        <>
+                          <h3 className='text-lg font-semibold mb-2 opacity-90'>Contest Starts In</h3>
+                          <p className='text-3xl sm:text-4xl font-bold tracking-tight'>{countdown}</p>
+                        </>
+                      );
+                    } else {
+                      return (
+                        <>
+                          <h3 className='text-lg font-semibold mb-2 opacity-90'>Contest Ends In</h3>
+                          <p className='text-3xl sm:text-4xl font-bold tracking-tight'>{countdown}</p>
+                        </>
+                      );
+                    }
+                  })()}
+                </div>
+                <button
+                  className='w-full bg-white text-emerald-600 px-8 py-4 rounded-xl font-bold text-lg transition-all duration-200 hover:scale-105 hover:shadow-2xl active:scale-95 flex items-center justify-center gap-3 group'
+                  onClick={() => navigate(`/vote/${contestId}`)}
+                >
+                  <Vote className='w-6 h-6 group-hover:rotate-12 transition-transform duration-200' />
+                  Cast Your Vote Now
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Stats Grid */}
-          <div className='grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6'>
+          {/* Stats Grid with Modern Cards */}
+          <div className='grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-16'>
             {stats.map((stat, index) => (
               <div
                 key={index}
-                className='bg-white rounded-xl p-4 md:p-6 shadow-sm border border-gray-200'
+                className='group relative overflow-hidden bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border border-gray-100'
               >
-                <div className='flex items-center gap-4'>
-                  <div className={`${stat.bgColor} p-3 rounded-lg`}>
-                    <stat.icon className='w-4 h-4 md:w-6 md:h-6 text-gray-600' />
+                <div className='absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-gray-50 to-transparent rounded-full -mr-16 -mt-16 opacity-50' />
+                <div className='relative'>
+                  <div className={`${stat.bgColor} w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                    <stat.icon className='w-7 h-7 text-gray-600' />
                   </div>
-
-                  <div>
-                    <div className='text-sm text-gray-600 mb-1'>
-                      {stat.label}
-                    </div>
-                    <div className='text-2xl font-bold text-gray-900'>
-                      {stat.value}
-                    </div>
-                  </div>
+                  <div className='text-sm text-gray-500 font-medium mb-1'>{stat.label}</div>
+                  <div className='text-3xl font-bold text-gray-900'>{stat.value}</div>
                 </div>
               </div>
             ))}
@@ -489,29 +486,45 @@ const ContestDetailPage = () => {
           <VotingPositionsSection
             activePosition={activePosition}
             onPositionChange={handlePositionChange}
-            // candidatesData={candidatesData}
             contest={contest}
           />
           <CandidatesSection
             activePosition={activePosition}
-            // candidatesData={candidatesData}
             selectedCandidate={selectedCandidate}
             onCandidateSelect={handleCandidateSelect}
             contest={contest}
           />
         </div>
       </div>
-      <div className="fixed bottom-6 right-6 z-50">
-        <a
-          href="https://www.instagram.com/zeecontest?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-3 bg-gradient-to-r from-pink-500 to-orange-500 text-white px-6 py-3 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 text-lg font-bold animate-pulse"
+
+
+      {/* Zee Floating Icon */}
+      <div className="fixed bottom-8 right-6 z-50 flex flex-col items-end">
+        {/* Speech Bubble */}
+        <div className="relative mb-2">
+          <div className="bg-[#ffffff]/50 text-gray-800 px-4 py-2 rounded-lg shadow-lg max-w-xs text-sm font-medium border border-gray-200">
+            {speechText}
+          </div>
+          {/* Speech bubble pointer */}
+          <div className="absolute top-full right-6 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white"></div>
+        </div>
+
+        {/* Button */}
+        <button
+          onClick={() => setIsZeeOpen(true)}
+          className="flex items-center gap-6 bg-[#034045] hover:bg-[#011F21] text-white p-4 rounded-full shadow-xl hover:shadow-2xl transition-all duration-300"
+          title="I am Zee"
         >
-          <FaInstagram size={28} />
-          <span className="text-lg font-bold">Follow ZeeContest</span>
-        </a>
+          <Bot size={24} />
+          <span className="text-lg font-bold">Zee</span>
+        </button>
       </div>
+
+      <ZeePopup
+        isOpen={isZeeOpen}
+        onClose={() => setIsZeeOpen(false)}
+        contestId={contestId}
+      />
     </>
   );
 };

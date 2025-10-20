@@ -50,17 +50,13 @@ const Hero = () => {
             <li className='relative text-white text-lg lg:text-xl font-medium'>
               <Link to='/contact' className='flex items-center space-x-2 group'>
                 <span className='relative'>
-                  Contact
+                 Contact Us
                   <span className='absolute left-0 bottom-0 w-0 h-[2px] bg-[#E67347] group-hover:w-full transition-all duration-300'></span>
                 </span>
               </Link>
             </li>
           </ul>
-          <Link to='/login'>
-            <button className='bg-[#E67347] rounded-full text-white py-3 px-6 font-semibold shadow-md hover:shadow-lg transform hover:scale-105 transition-transform duration-300'>
-              Login to your Organizer Account
-            </button>
-          </Link>
+          
         </div>
 
         {/* Mobile Menu Button */}

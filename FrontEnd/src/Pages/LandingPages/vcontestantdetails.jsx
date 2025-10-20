@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Crown, Medal, Award, Users, ChevronLeft } from 'lucide-react';
+import { Crown, Medal, Award, Users, ChevronLeft, MessageCircle } from 'lucide-react';
 import { FaInstagram } from 'react-icons/fa';
 import axios from 'axios';
 import FullPageLoader from '../../Components/FullPageLoader';
+import CommentModal from '../../Components/CommentModal';
 
 const VContestantDetails = () => {
   const { position, contestantId, contestId } = useParams();
   const navigate = useNavigate();
   const [contest, setContest] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -258,7 +260,7 @@ const VContestantDetails = () => {
               </div>
             </div>
 
-            <div className='flex justify-center'>
+            <div className='flex justify-center gap-4'>
               <button
                 className='mt-4 w-full max-w-xs bg-[#034045] hover:bg-[#045a60] text-white py-4 rounded-lg font-bold text-lg shadow-lg'
                 onClick={() => {
@@ -272,6 +274,13 @@ const VContestantDetails = () => {
                 }}
               >
                 Cast Your Vote
+              </button>
+              <button
+                className='mt-4 w-full max-w-xs bg-orange-600 hover:bg-orange-300 text-white py-4 rounded-lg font-bold text-lg shadow-lg flex items-center justify-center gap-2'
+                onClick={() => setIsCommentModalOpen(true)}
+              >
+                <MessageCircle className='w-5 h-5' />
+                Comments
               </button>
             </div>
           </div>
@@ -336,6 +345,14 @@ const VContestantDetails = () => {
           <span className="text-lg font-bold">Follow ZeeContest</span>
         </a>
       </div>
+
+      {/* Comment Modal */}
+      <CommentModal
+        isOpen={isCommentModalOpen}
+        onClose={() => setIsCommentModalOpen(false)}
+        contestant={currentContestant}
+        contest={contest}
+      />
     </>
   );
 };

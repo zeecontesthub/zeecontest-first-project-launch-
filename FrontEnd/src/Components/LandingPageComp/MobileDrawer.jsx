@@ -27,7 +27,7 @@ export default function MobileDrawer({ open, toggleDrawer }) {
             className='text-xl font-medium text-center py-2 px-4 rounded-lg text-gray-800 hover:bg-gray-100 transition-colors w-full'
             onClick={toggleDrawer(false)}
           >
-            Contact
+            Waitlist
           </Link>
 
           <Link to='/login' className='w-full'>

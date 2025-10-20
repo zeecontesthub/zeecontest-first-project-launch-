@@ -18,6 +18,7 @@ import {
   getUserWallet,
   withdrawal,
 } from "../controllers/contestController.js";
+import { getComments, addComment, getAllCommentsForContest } from "../controllers/commentController.js";
 
 const router = express.Router();
 
@@ -50,5 +51,10 @@ router.post("/verify-payment", verifyPayment);
 router.get("/get-user-wallet/user-wallet", getUserWallet);
 
 router.post("/withdraw/:uid", withdrawal);
+
+// Comment routes
+router.get("/:contestId/contestants/:contestantId/comments", getComments);
+router.post("/:contestId/contestants/:contestantId/comments", addComment);
+router.get("/:contestId/comments", getAllCommentsForContest);
 
 export default router;

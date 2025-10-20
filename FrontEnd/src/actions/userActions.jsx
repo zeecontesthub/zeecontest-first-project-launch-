@@ -19,3 +19,5 @@ export const sendOTPLink = async (email) => {
   await sendSignInLinkToEmail(auth, email, actionCodeSettings);
   window.localStorage.setItem("emailForSignIn", email);
 };
+
+
