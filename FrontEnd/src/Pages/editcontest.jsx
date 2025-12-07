@@ -102,6 +102,7 @@ const Editcontest = () => {
         },
         allowMultipleVotes: contest.allowMultipleVotes || false,
         socialLinks: contest.socialLinks || {},
+        isVoteCountVisible: contest.isVoteCountVisible !== undefined ? contest.isVoteCountVisible : true,
       });
       setPositions(contest?.positions || []);
       setContestants(allContestants || []);
@@ -129,6 +130,7 @@ const Editcontest = () => {
       amount: 0,
     },
     allowMultipleVotes: contest?.allowMultipleVotes || false,
+    isVoteCountVisible: contest?.isVoteCountVisible !== undefined ? contest.isVoteCountVisible : true,
   });
 
   const fileInputRef = useRef(null);
@@ -484,6 +486,7 @@ const Editcontest = () => {
         payment: formData.payment,
         allowMultipleVotes: formData.allowMultipleVotes,
         socialLinks: formData.socialLinks, // <-- FIX: include socialLinks in payload
+        isVoteCountVisible: formData.isVoteCountVisible,
         status, // computed status
         type: 'spot-light',
         uid: user?.firebaseUid,
@@ -969,6 +972,10 @@ const Editcontest = () => {
               }
               onMultipleVotesChange={(allowMultipleVotes) =>
                 setFormData((prev) => ({ ...prev, allowMultipleVotes }))
+              }
+              isVoteCountVisible={formData.isVoteCountVisible}
+              onVoteCountVisibilityChange={(isVoteCountVisible) =>
+                setFormData((prev) => ({ ...prev, isVoteCountVisible }))
               }
             />
 

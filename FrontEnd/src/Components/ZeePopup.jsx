@@ -329,12 +329,6 @@ const ZeePopup = ({ isOpen = true, onClose = () => {}, contestId = "123" }) => {
                 {selectedOption === 'plugin' && <PlugIn contestId={contestId} />}
                 {selectedOption === 'zeeClash' && <ZeeClash contestId={contestId} />}
                 {selectedOption === 'liveComments' && <LiveComments contestId={contestId} />}
-                {selectedOption === 'liveComments' && !isMobile && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
-                    <p className="font-bold text-gray-800">Want to drop your comment?</p>
-                    <p className="text-gray-600">Visit  the profile of your favorite contestant and click on the comment button</p>
-                  </div>
-                )}
                 {selectedOption === 'aiPrediction' && <ZeePrediction contestId={contestId} />}
               </div>
             </div>

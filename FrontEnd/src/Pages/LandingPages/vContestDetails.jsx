@@ -231,12 +231,16 @@ const ContestDetailPage = () => {
   const totalContestants = allContestants.length;
 
   const stats = [
-    {
-      icon: Users,
-      label: 'Total Votes',
-      value: totalVotes,
-      bgColor: 'bg-gray-100',
-    },
+    ...(contest?.isVoteCountVisible || contest?.status === 'completed'
+      ? [
+        {
+          icon: Users,
+          label: 'Total Votes',
+          value: totalVotes,
+          bgColor: 'bg-gray-100',
+        },
+      ]
+      : []),
     {
       icon: UserCheck,
       label: 'Total Contestants',
@@ -463,6 +467,18 @@ const ContestDetailPage = () => {
               </div>
             </div>
           </div>
+
+          {/* Vote Count Hidden Notification */}
+          {(!contest?.isVoteCountVisible && contest?.status !== 'completed') && (
+            <div className='mb-8 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center gap-3 text-blue-800'>
+              <div className='p-2 bg-blue-100 rounded-lg'>
+                <Users className='w-5 h-5' />
+              </div>
+              <p className='font-medium'>
+                Vote count has been hidden by the event organizer
+              </p>
+            </div>
+          )}
 
           {/* Stats Grid with Modern Cards */}
           <div className='grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-16'>

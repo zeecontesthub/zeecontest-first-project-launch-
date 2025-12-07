@@ -4,14 +4,13 @@ import { Crown, Medal, Award, Users, ChevronLeft, MessageCircle } from 'lucide-r
 import { FaInstagram } from 'react-icons/fa';
 import axios from 'axios';
 import FullPageLoader from '../../Components/FullPageLoader';
-import CommentModal from '../../Components/CommentModal';
+import LiveComments from '../../Components/LiveComments';
 
 const VContestantDetails = () => {
   const { position, contestantId, contestId } = useParams();
   const navigate = useNavigate();
   const [contest, setContest] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -85,10 +84,22 @@ const VContestantDetails = () => {
       return { ...c, id, votes, percentage };
     });
 
-    withVotes.sort((a, b) => b.votes - a.votes);
-    withVotes.forEach((c, i) => (c.rank = i + 1));
+    const isVoteVisible = contest?.isVoteCountVisible || contest?.status === 'completed';
+
+    if (!isVoteVisible) {
+      // Shuffle for random order
+      for (let i = withVotes.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [withVotes[i], withVotes[j]] = [withVotes[j], withVotes[i]];
+      }
+      // Don't assign rank
+    } else {
+      withVotes.sort((a, b) => b.votes - a.votes);
+      withVotes.forEach((c, i) => (c.rank = i + 1));
+    }
+
     return withVotes;
-  }, [positionInfo, positionVotes]);
+  }, [positionInfo, positionVotes, contest?.isVoteCountVisible, contest?.status]);
 
   const currentContestant = useMemo(() => {
     if (!allContestants.length) return null;
@@ -206,7 +217,7 @@ const VContestantDetails = () => {
               <h2 className='text-3xl font-bold text-gray-900'>
                 {currentContestant.name}
               </h2>
-              {getRankIcon(currentContestant.rank)}
+              {(contest?.isVoteCountVisible || contest?.status === 'completed') && getRankIcon(currentContestant.rank)}
             </div>
             <p className='text-gray-600 text-lg mb-6'>
               {currentContestant.description ||
@@ -215,36 +226,47 @@ const VContestantDetails = () => {
             </p>
 
             {/* Stats */}
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-8 max-w-lg mx-auto mb-8'>
-              <div className='text-center p-4 bg-gray-50 rounded-xl border'>
-                <div className='text-4xl font-bold text-gray-900 mb-1'>
-                  {currentContestant.votes}
+            {(contest?.isVoteCountVisible || contest?.status === 'completed') ? (
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-8 max-w-lg mx-auto mb-8'>
+                <div className='text-center p-4 bg-gray-50 rounded-xl border'>
+                  <div className='text-4xl font-bold text-gray-900 mb-1'>
+                    {currentContestant.votes}
+                  </div>
+                  <div className='text-sm font-medium text-gray-600'>
+                    Total Votes
+                  </div>
                 </div>
-                <div className='text-sm font-medium text-gray-600'>
-                  Total Votes
+                <div className='text-center p-4 bg-gray-50 rounded-xl border'>
+                  <div
+                    className={`text-4xl font-bold mb-1 ${getRankColor(
+                      currentContestant.rank
+                    )}`}
+                  >
+                    #{currentContestant.rank}
+                  </div>
+                  <div className='text-sm font-medium text-gray-600'>
+                    Current Rank
+                  </div>
+                </div>
+                <div className='text-center p-4 bg-gray-50 rounded-xl border'>
+                  <div className='text-4xl font-bold text-blue-600 mb-1'>
+                    {currentContestant.percentage}%
+                  </div>
+                  <div className='text-sm font-medium text-gray-600'>
+                    Vote Share
+                  </div>
                 </div>
               </div>
-              <div className='text-center p-4 bg-gray-50 rounded-xl border'>
-                <div
-                  className={`text-4xl font-bold mb-1 ${getRankColor(
-                    currentContestant.rank
-                  )}`}
-                >
-                  #{currentContestant.rank}
+            ) : (
+              <div className='mb-8 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-center gap-3 text-blue-800 max-w-lg mx-auto'>
+                <div className='p-2 bg-blue-100 rounded-lg'>
+                  <Users className='w-5 h-5' />
                 </div>
-                <div className='text-sm font-medium text-gray-600'>
-                  Current Rank
-                </div>
+                <p className='font-medium'>
+                  Vote count has been hidden by the event organizer
+                </p>
               </div>
-              <div className='text-center p-4 bg-gray-50 rounded-xl border'>
-                <div className='text-4xl font-bold text-blue-600 mb-1'>
-                  {currentContestant.percentage}%
-                </div>
-                <div className='text-sm font-medium text-gray-600'>
-                  Vote Share
-                </div>
-              </div>
-            </div>
+            )}
 
             {/* Contest Info */}
             <div className='flex flex-col md:flex-row gap-6 text-sm bg-gray-50 rounded-lg p-4 w-full max-w-lg place-self-center'>
@@ -264,23 +286,15 @@ const VContestantDetails = () => {
               <button
                 className='mt-4 w-full max-w-xs bg-[#034045] hover:bg-[#045a60] text-white py-4 rounded-lg font-bold text-lg shadow-lg'
                 onClick={() => {
-                  window.location.href = `/vote/${
-                    contest._id
-                  }?position=${encodeURIComponent(
-                    position
-                  )}&candidateId=${encodeURIComponent(
-                    currentContestant.id || currentContestant._id
-                  )}&candidateName=${encodeURIComponent(currentContestant.name)}`;
+                  window.location.href = `/vote/${contest._id
+                    }?position=${encodeURIComponent(
+                      position
+                    )}&candidateId=${encodeURIComponent(
+                      currentContestant.id || currentContestant._id
+                    )}&candidateName=${encodeURIComponent(currentContestant.name)}`;
                 }}
               >
                 Cast Your Vote
-              </button>
-              <button
-                className='mt-4 w-full max-w-xs bg-orange-600 hover:bg-orange-300 text-white py-4 rounded-lg font-bold text-lg shadow-lg flex items-center justify-center gap-2'
-                onClick={() => setIsCommentModalOpen(true)}
-              >
-                <MessageCircle className='w-5 h-5' />
-                Comments
               </button>
             </div>
           </div>
@@ -304,7 +318,7 @@ const VContestantDetails = () => {
                       i
                     )}`}
                   >
-                    {c.rank}
+                    {(contest?.isVoteCountVisible || contest?.status === 'completed') ? c.rank : '-'}
                   </div>
                   <div className='w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 via-purple-500 to-pink-400 flex items-center justify-center text-white text-lg font-bold'>
                     {c.image ? (
@@ -322,11 +336,13 @@ const VContestantDetails = () => {
                       <div className='font-semibold text-gray-900 text-lg'>
                         {c.name}
                       </div>
-                      {getRankIcon(c.rank)}
+                      {(contest?.isVoteCountVisible || contest?.status === 'completed') && getRankIcon(c.rank)}
                     </div>
-                    <div className='text-sm text-gray-600 font-medium'>
-                      {c.votes} votes • {c.percentage}%
-                    </div>
+                    {(contest?.isVoteCountVisible || contest?.status === 'completed') && (
+                      <div className='text-sm text-gray-600 font-medium'>
+                        {c.votes} votes • {c.percentage}%
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -346,13 +362,7 @@ const VContestantDetails = () => {
         </a>
       </div>
 
-      {/* Comment Modal */}
-      <CommentModal
-        isOpen={isCommentModalOpen}
-        onClose={() => setIsCommentModalOpen(false)}
-        contestant={currentContestant}
-        contest={contest}
-      />
+
     </>
   );
 };

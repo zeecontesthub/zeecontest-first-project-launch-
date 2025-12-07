@@ -72,6 +72,7 @@ const CreateSpotlightContest = () => {
     },
     allowMultipleVotes: createContest?.allowMultipleVotes || false,
     contestType: createContest?.contestType || 'open', // new field
+    isVoteCountVisible: createContest?.isVoteCountVisible !== undefined ? createContest.isVoteCountVisible : true,
   });
 
   // State for security settings
@@ -199,12 +200,12 @@ const CreateSpotlightContest = () => {
       (prev || []).map((pos) =>
         pos.name === newContestant.position
           ? {
-              ...pos,
-              contestants: [
-                ...(Array.isArray(pos.contestants) ? pos.contestants : []),
-                newContestant,
-              ],
-            }
+            ...pos,
+            contestants: [
+              ...(Array.isArray(pos.contestants) ? pos.contestants : []),
+              newContestant,
+            ],
+          }
           : pos
       )
     );
@@ -215,12 +216,12 @@ const CreateSpotlightContest = () => {
       const updatedPositions = (prev.positions || []).map((pos) =>
         pos.name === newContestant.position
           ? {
-              ...pos,
-              contestants: [
-                ...(Array.isArray(pos.contestants) ? pos.contestants : []),
-                newContestant,
-              ],
-            }
+            ...pos,
+            contestants: [
+              ...(Array.isArray(pos.contestants) ? pos.contestants : []),
+              newContestant,
+            ],
+          }
           : pos
       );
 
@@ -251,9 +252,9 @@ const CreateSpotlightContest = () => {
       prevPositions.map((pos) =>
         pos.name === positionName
           ? {
-              ...pos,
-              contestants: pos.contestants.filter((c) => c.dateId !== id),
-            }
+            ...pos,
+            contestants: pos.contestants.filter((c) => c.dateId !== id),
+          }
           : pos
       )
     );
@@ -270,9 +271,9 @@ const CreateSpotlightContest = () => {
       const newPositions = prevCreateContest.positions.map((pos) =>
         pos.name === positionName
           ? {
-              ...pos,
-              contestants: pos.contestants.filter((c) => c.dateId !== id),
-            }
+            ...pos,
+            contestants: pos.contestants.filter((c) => c.dateId !== id),
+          }
           : pos
       );
 
@@ -362,14 +363,14 @@ const CreateSpotlightContest = () => {
               );
               return posContestants.length > 0
                 ? {
-                    ...pos,
-                    contestants: [
-                      ...(Array.isArray(pos.contestants)
-                        ? pos.contestants
-                        : []),
-                      ...posContestants,
-                    ],
-                  }
+                  ...pos,
+                  contestants: [
+                    ...(Array.isArray(pos.contestants)
+                      ? pos.contestants
+                      : []),
+                    ...posContestants,
+                  ],
+                }
                 : pos;
             });
           });
@@ -390,14 +391,14 @@ const CreateSpotlightContest = () => {
               );
               return posContestants.length > 0
                 ? {
-                    ...pos,
-                    contestants: [
-                      ...(Array.isArray(pos.contestants)
-                        ? pos.contestants
-                        : []),
-                      ...posContestants,
-                    ],
-                  }
+                  ...pos,
+                  contestants: [
+                    ...(Array.isArray(pos.contestants)
+                      ? pos.contestants
+                      : []),
+                    ...posContestants,
+                  ],
+                }
                 : pos;
             });
 
@@ -487,6 +488,7 @@ const CreateSpotlightContest = () => {
         type: 'spot-light',
         uid: user?.firebaseUid,
         isClosedContest: formData.contestType === 'closed' ? true : false,
+        isVoteCountVisible: formData.isVoteCountVisible,
       };
 
       const res = await axios.post('/api/contest/create-contest', payload);
@@ -523,6 +525,7 @@ const CreateSpotlightContest = () => {
         uid: user?.firebaseUid,
         _id: createContest?._id || null, // Include contest ID if editing
         isClosedContest: formData.contestType === 'closed' ? true : false,
+        isVoteCountVisible: formData.isVoteCountVisible,
       };
 
       const res = await axios.post('/api/contest/create-contest', payload);
@@ -668,28 +671,25 @@ const CreateSpotlightContest = () => {
                 {stepTitles.map((title, index) => (
                   <div key={index} className='flex items-center min-w-fit'>
                     <div
-                      className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center text-sm lg:text-base font-medium transition-all duration-200 ${
-                        index <= currentStep
-                          ? 'bg-orange-500 text-white shadow-md'
-                          : 'bg-gray-200 text-gray-600'
-                      }`}
+                      className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center text-sm lg:text-base font-medium transition-all duration-200 ${index <= currentStep
+                        ? 'bg-orange-500 text-white shadow-md'
+                        : 'bg-gray-200 text-gray-600'
+                        }`}
                     >
                       {index + 1}
                     </div>
                     <span
-                      className={`ml-2 lg:ml-3 text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${
-                        index <= currentStep
-                          ? 'text-orange-600 font-medium'
-                          : 'text-gray-500'
-                      }`}
+                      className={`ml-2 lg:ml-3 text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${index <= currentStep
+                        ? 'text-orange-600 font-medium'
+                        : 'text-gray-500'
+                        }`}
                     >
                       {title}
                     </span>
                     {index < stepTitles.length - 1 && (
                       <div
-                        className={`ml-3 lg:ml-6 w-12 lg:w-20 h-0.5 transition-all duration-300 ${
-                          index < currentStep ? 'bg-orange-500' : 'bg-gray-200'
-                        }`}
+                        className={`ml-3 lg:ml-6 w-12 lg:w-20 h-0.5 transition-all duration-300 ${index < currentStep ? 'bg-orange-500' : 'bg-gray-200'
+                          }`}
                       />
                     )}
                   </div>
@@ -744,9 +744,8 @@ const CreateSpotlightContest = () => {
               </button>
               <button
                 onClick={nextStep}
-                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors text-sm ${
-                  isUploading ? 'opacity-50 cursor-not-allowed' : ''
-                } bg-orange-500 hover:bg-orange-600 text-white`}
+                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors text-sm ${isUploading ? 'opacity-50 cursor-not-allowed' : ''
+                  } bg-orange-500 hover:bg-orange-600 text-white`}
                 disabled={isUploading}
               >
                 Next
@@ -754,9 +753,8 @@ const CreateSpotlightContest = () => {
             </div>
             <button
               onClick={saveDraft}
-              className={`w-full px-4 py-3 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors text-sm ${
-                isUploading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              className={`w-full px-4 py-3 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors text-sm ${isUploading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               disabled={isUploading}
             >
               Save as Draft
@@ -765,9 +763,8 @@ const CreateSpotlightContest = () => {
             {currentStep === steps.length - 1 && (
               <button
                 onClick={onPublish}
-                className={`w-full px-4 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors text-sm mb-8 ${
-                  isUploading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
+                className={`w-full px-4 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors text-sm mb-8 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 disabled={isUploading}
               >
                 Publish Contest
@@ -779,9 +776,8 @@ const CreateSpotlightContest = () => {
           <div className='hidden sm:flex sm:flex-row sm:justify-between sm:items-center'>
             <button
               onClick={saveDraft}
-              className={`px-6 py-2 lg:px-8 lg:py-3 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors ${
-                isUploading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}
+              className={`px-6 py-2 lg:px-8 lg:py-3 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               disabled={isUploading}
             >
               Save as Draft
@@ -797,9 +793,8 @@ const CreateSpotlightContest = () => {
               {currentStep !== steps.length - 1 && (
                 <button
                   onClick={nextStep}
-                  className={`px-6 py-2 lg:px-8 lg:py-3 rounded-lg font-medium transition-colors ${
-                    isUploading ? 'opacity-50 cursor-not-allowed' : ''
-                  } bg-orange-500 hover:bg-orange-600 text-white`}
+                  className={`px-6 py-2 lg:px-8 lg:py-3 rounded-lg font-medium transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''
+                    } bg-orange-500 hover:bg-orange-600 text-white`}
                   disabled={isUploading}
                 >
                   Next

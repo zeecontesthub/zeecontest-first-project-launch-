@@ -1,5 +1,0 @@
-- [x] Remove Reply import from lucide-react
-- [x] Remove replyingTo and replyText state variables
-- [x] Remove handleReply, handleCancelReply, handleSubmitReply functions
-- [x] Remove the reply button from comment rendering
-- [x] Remove the conditional reply form

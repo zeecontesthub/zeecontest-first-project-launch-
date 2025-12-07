@@ -72,6 +72,10 @@ const VotingPositionsSection = ({
           ).length || 0;
         return total + count * (voter.multiplier || 0);
       }, 0) ?? 0;
+
+    if (contest?.isVoteCountVisible === false) {
+      return `${position.name} - ${count} Candidates`;
+    }
     return `${position.name} - ${count} Candidates • ${votes} votes`;
   };
 
@@ -130,8 +134,8 @@ const VotingPositionsSection = ({
                             role='option'
                             aria-selected={isActive}
                             className={`px-4 py-3 cursor-pointer transition-all duration-150 flex items-center justify-between group ${isActive
-                                ? 'bg-blue-50 text-blue-700 font-medium'
-                                : 'text-gray-700 hover:bg-gray-50'
+                              ? 'bg-blue-50 text-blue-700 font-medium'
+                              : 'text-gray-700 hover:bg-gray-50'
                               }`}
                             onClick={() => {
                               onPositionChange(position.name);
@@ -237,10 +241,17 @@ const VotingPositionsSection = ({
                 ...candidatesWithVotes.map((c) => c.votes)
               );
 
-              // 3️⃣ Sort by votes (descending)
-              const sorted = [...candidatesWithVotes].sort(
-                (a, b) => b.votes - a.votes
-              );
+              // 3️⃣ Sort by votes (descending) or Shuffle
+              let sorted = [...candidatesWithVotes];
+              if (contest?.isVoteCountVisible === false) {
+                // Shuffle for random order
+                for (let i = sorted.length - 1; i > 0; i--) {
+                  const j = Math.floor(Math.random() * (i + 1));
+                  [sorted[i], sorted[j]] = [sorted[j], sorted[i]];
+                }
+              } else {
+                sorted.sort((a, b) => b.votes - a.votes);
+              }
 
               // 4️⃣ Filter the sorted list based on the search term
               const lowerCaseSearchTerm = searchTerm.toLowerCase();
@@ -268,11 +279,12 @@ const VotingPositionsSection = ({
                   <div className='flex items-center gap-2 md:gap-4'>
                     <div
                       className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center
-                        font-bold text-sm md:text-lg ${getRankBadgeColor(
-                        index + 1
-                      )}`}
+                        font-bold text-sm md:text-lg ${contest?.isVoteCountVisible !== false
+                          ? getRankBadgeColor(index + 1)
+                          : 'bg-gray-200 text-gray-700'
+                        }`}
                     >
-                      {index + 1}
+                      {contest?.isVoteCountVisible !== false ? index + 1 : '-'}
                     </div>
 
                     <div className='w-10 h-10 md:w-12 md:h-12 bg-black rounded-full flex items-center justify-center overflow-hidden'>
@@ -292,7 +304,7 @@ const VotingPositionsSection = ({
                         {candidate.name}
                       </h3>
                       <p className='text-gray-600 text-sm'>
-                        {candidate.votes} Votes
+                        {contest?.isVoteCountVisible !== false && `${candidate.votes} Votes`}
                       </p>
                     </div>
                   </div>
@@ -300,7 +312,7 @@ const VotingPositionsSection = ({
                   {/* Show “Leading” only if this candidate has the highest votes */}
 
                   <div className='flex items-center gap-3 mt-3 sm:mt-0'>
-                    {candidate.votes === maxVotes && maxVotes > 0 && (
+                    {candidate.votes === maxVotes && maxVotes > 0 && contest?.isVoteCountVisible !== false && (
                       <div className='bg-[#00B25F] text-white px-4 md:px-6 py-2 rounded-[20px] font-medium text-sm'>
                         {contest?.status === 'completed' ? 'Winner' : 'Leading'}
                       </div>

@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 const commentSchema = new mongoose.Schema({
   contestantId: {
     type: mongoose.Schema.Types.ObjectId,
-    required: true,
-    ref: 'Contest.positions.contestants' // Reference to contestant in contest
+    ref: 'Contest',
+    default: null,
   },
   contestId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -32,5 +32,4 @@ const commentSchema = new mongoose.Schema({
 });
 
 const Comment = mongoose.model("Comment", commentSchema);
-
 export default Comment;

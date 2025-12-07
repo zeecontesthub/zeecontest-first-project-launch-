@@ -41,15 +41,13 @@ const CandidateSection = ({ activePosition, onCandidateSelect, contest }) => {
     return {
       id: candidate._id,
       name: candidate.name,
-      description: `This is ${
-        candidate.name
-      } running for the post of ${activePosition?.toLowerCase()} in the election that is going to define things`,
+      description: `This is ${candidate.name
+        } running for the post of ${activePosition?.toLowerCase()} in the election that is going to define things`,
       image: candidate.image || null,
       votes,
       bio:
         candidate.bio ||
-        `This is ${
-          candidate.name
+        `This is ${candidate.name
         } running for the post of ${activePosition?.toLowerCase()} in the election that is going to define things`,
       position: candidate.position || activePosition,
     };
@@ -104,12 +102,14 @@ const CandidateSection = ({ activePosition, onCandidateSelect, contest }) => {
                 {candidate.bio}
               </p>
 
-              <div className='flex items-center justify-between mb-4'>
-                <span className='text-sm text-gray-500'>Current Votes:</span>
-                <span className='font-semibold text-[#034045]'>
-                  {candidate.votes}
-                </span>
-              </div>
+              {contest?.isVoteCountVisible !== false && (
+                <div className='flex items-center justify-between mb-4'>
+                  <span className='text-sm text-gray-500'>Current Votes:</span>
+                  <span className='font-semibold text-[#034045]'>
+                    {candidate.votes}
+                  </span>
+                </div>
+              )}
 
               <button
                 className='w-full bg-[#034045] hover:bg-[#045a60] text-white py-3 rounded-lg font-medium transition-colors duration-200 cursor-pointer'

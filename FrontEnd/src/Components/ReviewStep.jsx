@@ -21,14 +21,13 @@ const ReviewStep = ({
     allowMultipleVotes: false,
   },
   contestants = [],
-  onEditStep = () => {},
-  onPublish = () => {},
+  onEditStep = () => { },
+  onPublish = () => { },
 }) => {
   const formatTime = (timeObj) => {
     if (!timeObj) return 'Not specified';
-    return `${timeObj.startTimeHour || timeObj.endTimeHour || '--'}:${
-      timeObj.startTimeMinute || timeObj.endTimeMinute || '--'
-    } ${timeObj.startTimeAmPm || timeObj.endTimeAmPm || 'AM'}`;
+    return `${timeObj.startTimeHour || timeObj.endTimeHour || '--'}:${timeObj.startTimeMinute || timeObj.endTimeMinute || '--'
+      } ${timeObj.startTimeAmPm || timeObj.endTimeAmPm || 'AM'}`;
   };
 
   const ReviewSection = ({ title, children, onEdit, stepIndex }) => (
@@ -174,8 +173,8 @@ const ReviewStep = ({
               formData?.payment?.isPaid === true
                 ? 'Yes'
                 : formData?.payment?.isPaid === false
-                ? 'No'
-                : 'Not specified'
+                  ? 'No'
+                  : 'Not specified'
             }
             icon={DollarSign}
           />
@@ -199,8 +198,20 @@ const ReviewStep = ({
               formData.allowMultipleVotes === true
                 ? 'Yes'
                 : formData.allowMultipleVotes === false
-                ? 'No'
-                : 'Not specified'
+                  ? 'No'
+                  : 'Not specified'
+            }
+            icon={Users}
+          />
+
+          <InfoField
+            label='Hide Vote Counts'
+            value={
+              formData.isVoteCountVisible === false
+                ? 'Yes'
+                : formData.isVoteCountVisible === true
+                  ? 'No'
+                  : 'Not specified'
             }
             icon={Users}
           />

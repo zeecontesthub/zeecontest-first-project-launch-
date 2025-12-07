@@ -4,7 +4,10 @@ const EditContestTypeSetup = ({
   allowMultipleVotes,
   onPaymentChange,
   onStatusChange,
+
   onMultipleVotesChange,
+  isVoteCountVisible,
+  onVoteCountVisibilityChange,
 }) => {
   return (
     <div className='space-y-6'>
@@ -22,11 +25,10 @@ const EditContestTypeSetup = ({
               <button
                 type='button'
                 onClick={() => onPaymentChange({ ...payment, isPaid: true })}
-                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${
-                  payment?.isPaid === true
-                    ? 'bg-orange-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${payment?.isPaid === true
+                  ? 'bg-orange-500 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
               >
                 Yes
               </button>
@@ -35,11 +37,10 @@ const EditContestTypeSetup = ({
                 onClick={() =>
                   onPaymentChange({ ...payment, isPaid: false, amount: '' })
                 }
-                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${
-                  payment?.isPaid === false
-                    ? 'bg-orange-500 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${payment?.isPaid === false
+                  ? 'bg-orange-500 text-white'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
               >
                 No
               </button>
@@ -80,22 +81,48 @@ const EditContestTypeSetup = ({
             <button
               type='button'
               onClick={() => onMultipleVotesChange(true)}
-              className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${
-                allowMultipleVotes === true
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
+              className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${allowMultipleVotes === true
+                ? 'bg-orange-500 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
             >
               Yes
             </button>
             <button
               type='button'
               onClick={() => onMultipleVotesChange(false)}
-              className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${
-                allowMultipleVotes === false
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
+              className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${allowMultipleVotes === false
+                ? 'bg-orange-500 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+            >
+              No
+            </button>
+          </div>
+        </div>
+
+        <div className='flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-6 mt-4'>
+          <span className='text-sm font-medium text-gray-700'>
+            Hide Vote Counts
+          </span>
+          <div className='flex space-x-3'>
+            <button
+              type='button'
+              onClick={() => onVoteCountVisibilityChange(false)}
+              className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${isVoteCountVisible === false
+                ? 'bg-orange-500 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+            >
+              Yes
+            </button>
+            <button
+              type='button'
+              onClick={() => onVoteCountVisibilityChange(true)}
+              className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${isVoteCountVisible === true
+                ? 'bg-orange-500 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
             >
               No
             </button>

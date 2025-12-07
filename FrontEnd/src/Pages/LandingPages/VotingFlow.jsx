@@ -296,13 +296,19 @@ const VotingFlow = () => {
           multiplier,
           data
         );
+        // Store user info for closed contest
+        localStorage.setItem('commentUserName', data.name || data.email);
+        localStorage.setItem('commentUserEmail', data.email);
+        localStorage.setItem('commentUserNameExpiry', Date.now() + 30 * 24 * 60 * 60 * 1000);
         redirectToContestDetails();
         return { success: true };
       }
-
       // if no payment, just submit vote directly
       const result = await submitVote(data);
       if (result.success) {
+        localStorage.setItem('commentUserName', data.name || data.email);
+        localStorage.setItem('commentUserEmail', data.email);
+        localStorage.setItem('commentUserNameExpiry', Date.now() + 30 * 24 * 60 * 60 * 1000);
         redirectToContestDetails();
         return { success: true };
       }
@@ -336,11 +342,18 @@ const VotingFlow = () => {
           multiplier,
           voteData
         );
+        // Store user info for open contest
+        localStorage.setItem('commentUserName', voterName);
+        localStorage.setItem('commentUserEmail', voterEmail);
+        localStorage.setItem('commentUserNameExpiry', Date.now() + 30 * 24 * 60 * 60 * 1000);
         redirectToContestDetails();
         return { success: true };
       } else {
         const result = await submitVoteOpen(voteData);
         if (result.success) {
+          localStorage.setItem('commentUserName', voterName);
+          localStorage.setItem('commentUserEmail', voterEmail);
+          localStorage.setItem('commentUserNameExpiry', Date.now() + 30 * 24 * 60 * 60 * 1000);
           redirectToContestDetails();
           return { success: true };
         }

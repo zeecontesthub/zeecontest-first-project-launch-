@@ -48,12 +48,12 @@ const ContestDetailsStep = ({
     payment: { isPaid: false, amount: '' },
     allowMultipleVotes: false,
   },
-  onInputChange = () => {},
+  onInputChange = () => { },
   positions = [],
-  onAddPosition = () => {},
-  onUpdatePosition = () => {},
-  onRemovePosition = () => {},
-  setCreateContest = () => {},
+  onAddPosition = () => { },
+  onUpdatePosition = () => { },
+  onRemovePosition = () => { },
+  setCreateContest = () => { },
 }) => {
   const [editIndex, setEditIndex] = useState(null);
 
@@ -613,11 +613,10 @@ const ContestDetailsStep = ({
                     },
                   }));
                 }}
-                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${
-                  formData.payment?.isPaid === true
+                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${formData.payment?.isPaid === true
                     ? 'bg-orange-500 text-white'
                     : 'bg-gray-200 text-gray-700'
-                }`}
+                  }`}
               >
                 Yes
               </button>
@@ -636,11 +635,10 @@ const ContestDetailsStep = ({
                     },
                   }));
                 }}
-                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${
-                  formData.payment?.isPaid === false
+                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${formData.payment?.isPaid === false
                     ? 'bg-orange-500 text-white'
                     : 'bg-gray-200 text-gray-700'
-                }`}
+                  }`}
               >
                 No
               </button>
@@ -686,45 +684,86 @@ const ContestDetailsStep = ({
         <h2 className='text-lg sm:text-xl font-semibold text-gray-900 text-left mb-4'>
           Voters Setting
         </h2>
-        <div className='flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-6'>
-          <span className='text-sm font-medium text-gray-700'>
-            Allow multiple votes
-          </span>
-          <div className='flex space-x-3'>
-            <button
-              type='button'
-              onClick={() => {
-                onInputChange('allowMultipleVotes', true);
-                setCreateContest((prev) => ({
-                  ...prev,
-                  allowMultipleVotes: true,
-                }));
-              }}
-              className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${
-                formData.allowMultipleVotes
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-gray-200 text-gray-700'
-              }`}
-            >
-              Yes
-            </button>
-            <button
-              type='button'
-              onClick={() => {
-                onInputChange('allowMultipleVotes', false);
-                setCreateContest((prev) => ({
-                  ...prev,
-                  allowMultipleVotes: false,
-                }));
-              }}
-              className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${
-                formData.allowMultipleVotes === false
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-gray-200 text-gray-700'
-              }`}
-            >
-              No
-            </button>
+        <div className='space-y-6'>
+          <div className='flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-6'>
+            <span className='text-sm font-medium text-gray-700'>
+              Allow multiple votes
+            </span>
+            <div className='flex space-x-3'>
+              <button
+                type='button'
+                onClick={() => {
+                  onInputChange('allowMultipleVotes', true);
+                  setCreateContest((prev) => ({
+                    ...prev,
+                    allowMultipleVotes: true,
+                  }));
+                }}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${formData.allowMultipleVotes
+                    ? 'bg-orange-500 text-white'
+                    : 'bg-gray-200 text-gray-700'
+                  }`}
+              >
+                Yes
+              </button>
+              <button
+                type='button'
+                onClick={() => {
+                  onInputChange('allowMultipleVotes', false);
+                  setCreateContest((prev) => ({
+                    ...prev,
+                    allowMultipleVotes: false,
+                  }));
+                }}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${formData.allowMultipleVotes === false
+                    ? 'bg-orange-500 text-white'
+                    : 'bg-gray-200 text-gray-700'
+                  }`}
+              >
+                No
+              </button>
+            </div>
+          </div>
+
+          {/* Hide Vote Counts Toggle */}
+          <div className='flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-6'>
+            <span className='text-sm font-medium text-gray-700'>
+              Hide Vote Counts
+            </span>
+            <div className='flex space-x-3'>
+              <button
+                type='button'
+                onClick={() => {
+                  onInputChange('isVoteCountVisible', false);
+                  setCreateContest((prev) => ({
+                    ...prev,
+                    isVoteCountVisible: false,
+                  }));
+                }}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${formData.isVoteCountVisible === false
+                    ? 'bg-orange-500 text-white'
+                    : 'bg-gray-200 text-gray-700'
+                  }`}
+              >
+                Yes
+              </button>
+              <button
+                type='button'
+                onClick={() => {
+                  onInputChange('isVoteCountVisible', true);
+                  setCreateContest((prev) => ({
+                    ...prev,
+                    isVoteCountVisible: true,
+                  }));
+                }}
+                className={`px-4 py-2 rounded-md font-medium text-sm transition-colors min-w-[60px] ${formData.isVoteCountVisible !== false
+                    ? 'bg-orange-500 text-white'
+                    : 'bg-gray-200 text-gray-700'
+                  }`}
+              >
+                No
+              </button>
+            </div>
           </div>
         </div>
       </div>

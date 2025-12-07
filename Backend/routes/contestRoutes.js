@@ -53,8 +53,8 @@ router.get("/get-user-wallet/user-wallet", getUserWallet);
 router.post("/withdraw/:uid", withdrawal);
 
 // Comment routes
-router.get("/:contestId/contestants/:contestantId/comments", getComments);
-router.post("/:contestId/contestants/:contestantId/comments", addComment);
-router.get("/:contestId/comments", getAllCommentsForContest);
+router.get('/:contestId/contestants/:contestantId/comments', getComments);
+router.post('/:contestId/contestants/:contestantId/comments', addComment);
+router.get('/:contestId/comments', getAllCommentsForContest);
 
 export default router;

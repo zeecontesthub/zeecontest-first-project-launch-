@@ -101,6 +101,7 @@ const contestSchema = new mongoose.Schema({
     default: "draft",
   },
   isClosedContest: { type: Boolean, default: false },
+  isVoteCountVisible: { type: Boolean, default: true },
   socialLinks: {
     instagram: { type: String, default: '' },
     x: { type: String, default: '' },

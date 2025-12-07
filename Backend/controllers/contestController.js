@@ -20,6 +20,7 @@ export const createContest = async (req, res) => {
       payment,
       allowMultipleVotes,
       isClosedContest,
+      isVoteCountVisible,
       _id, // _id is optional for editing
       uid,
     } = req.body;
@@ -47,6 +48,7 @@ export const createContest = async (req, res) => {
       status,
       type,
       isClosedContest,
+      isVoteCountVisible,
       socialLinks: req.body.socialLinks,
     };
 
