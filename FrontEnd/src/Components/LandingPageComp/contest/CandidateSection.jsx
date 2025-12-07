@@ -102,7 +102,7 @@ const CandidateSection = ({ activePosition, onCandidateSelect, contest }) => {
                 {candidate.bio}
               </p>
 
-              {contest?.isVoteCountVisible !== false && (
+              {(contest?.isVoteCountVisible !== false || contest?.status === 'completed') && (
                 <div className='flex items-center justify-between mb-4'>
                   <span className='text-sm text-gray-500'>Current Votes:</span>
                   <span className='font-semibold text-[#034045]'>

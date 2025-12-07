@@ -73,7 +73,7 @@ const VotingPositionsSection = ({
         return total + count * (voter.multiplier || 0);
       }, 0) ?? 0;
 
-    if (contest?.isVoteCountVisible === false) {
+    if (contest?.isVoteCountVisible === false && contest?.status !== 'completed') {
       return `${position.name} - ${count} Candidates`;
     }
     return `${position.name} - ${count} Candidates • ${votes} votes`;
@@ -243,7 +243,9 @@ const VotingPositionsSection = ({
 
               // 3️⃣ Sort by votes (descending) or Shuffle
               let sorted = [...candidatesWithVotes];
-              if (contest?.isVoteCountVisible === false) {
+              const isVoteVisible = contest?.isVoteCountVisible !== false || contest?.status === 'completed';
+
+              if (!isVoteVisible) {
                 // Shuffle for random order
                 for (let i = sorted.length - 1; i > 0; i--) {
                   const j = Math.floor(Math.random() * (i + 1));
@@ -279,12 +281,12 @@ const VotingPositionsSection = ({
                   <div className='flex items-center gap-2 md:gap-4'>
                     <div
                       className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center
-                        font-bold text-sm md:text-lg ${contest?.isVoteCountVisible !== false
+                        font-bold text-sm md:text-lg ${(contest?.isVoteCountVisible !== false || contest?.status === 'completed')
                           ? getRankBadgeColor(index + 1)
                           : 'bg-gray-200 text-gray-700'
                         }`}
                     >
-                      {contest?.isVoteCountVisible !== false ? index + 1 : '-'}
+                      {(contest?.isVoteCountVisible !== false || contest?.status === 'completed') ? index + 1 : '-'}
                     </div>
 
                     <div className='w-10 h-10 md:w-12 md:h-12 bg-black rounded-full flex items-center justify-center overflow-hidden'>
@@ -304,7 +306,7 @@ const VotingPositionsSection = ({
                         {candidate.name}
                       </h3>
                       <p className='text-gray-600 text-sm'>
-                        {contest?.isVoteCountVisible !== false && `${candidate.votes} Votes`}
+                        {(contest?.isVoteCountVisible !== false || contest?.status === 'completed') && `${candidate.votes} Votes`}
                       </p>
                     </div>
                   </div>
@@ -312,7 +314,7 @@ const VotingPositionsSection = ({
                   {/* Show “Leading” only if this candidate has the highest votes */}
 
                   <div className='flex items-center gap-3 mt-3 sm:mt-0'>
-                    {candidate.votes === maxVotes && maxVotes > 0 && contest?.isVoteCountVisible !== false && (
+                    {candidate.votes === maxVotes && maxVotes > 0 && (contest?.isVoteCountVisible !== false || contest?.status === 'completed') && (
                       <div className='bg-[#00B25F] text-white px-4 md:px-6 py-2 rounded-[20px] font-medium text-sm'>
                         {contest?.status === 'completed' ? 'Winner' : 'Leading'}
                       </div>
