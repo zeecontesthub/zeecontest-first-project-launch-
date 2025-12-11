@@ -163,7 +163,7 @@ const VotingPositionsSection = ({
           </div>
 
           {/* Add this CSS somewhere in your component or global styles */}
-          <style jsx>{`
+          <style>{`
   @keyframes slideDown {
     from {
       opacity: 0;

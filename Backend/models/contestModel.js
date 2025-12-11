@@ -110,6 +110,20 @@ const contestSchema = new mongoose.Schema({
   // Add more fields as needed
 });
 
+// ========================================
+// 🚀 PERFORMANCE OPTIMIZATION: Database Indexes
+// ========================================
+// These indexes dramatically improve query performance, especially with 12k+ votes
+// Without indexes, MongoDB performs full collection scans (very slow)
+// With indexes, queries are milliseconds instead of seconds
+
+contestSchema.index({ _id: 1 }); // Primary key lookup
+contestSchema.index({ firebaseUid: 1 }); // Organizer queries
+contestSchema.index({ status: 1 }); // Filter by status
+contestSchema.index({ createdAt: -1 }); // Sort by date
+contestSchema.index({ 'positions.voters.email': 1 }); // Check duplicate votes (open contests)
+contestSchema.index({ 'closedContestVoters.email': 1 }); // Check duplicate votes (closed contests)
+
 const Contest = mongoose.model("Contest", contestSchema);
 
 export default Contest;
