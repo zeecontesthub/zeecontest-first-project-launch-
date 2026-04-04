@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   ChevronLeft,
@@ -8,6 +8,14 @@ import {
   Trophy,
   DollarSign,
   Bot,
+  Calendar,
+  Share2,
+  Clock,
+  ChevronRight,
+  Info,
+  CheckCircle2,
+  AlertCircle,
+  Timer,
 } from 'lucide-react';
 import { FaInstagram, FaGlobe } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
@@ -186,13 +194,14 @@ const ContestDetailPage = () => {
 
   const [selectedCandidate, setSelectedCandidate] = useState(null);
 
-  const allContestants =
-    contest?.positions?.flatMap((pos) =>
+  const allContestants = useMemo(() => {
+    return contest?.positions?.flatMap((pos) =>
       pos.contestants?.map((contestant) => ({
         ...contestant,
         position: pos?.name,
       }))
     ) || [];
+  }, [contest]);
 
   // const allVotes =
   //   contest?.positions?.flatMap((pos) =>
@@ -230,36 +239,70 @@ const ContestDetailPage = () => {
 
   const totalContestants = allContestants.length;
 
-  const stats = [
-    ...(contest?.isVoteCountVisible || contest?.status === 'completed'
-      ? [
-        {
-          icon: Users,
-          label: 'Total Votes',
-          value: totalVotes,
-          bgColor: 'bg-gray-100',
-        },
-      ]
-      : []),
-    {
-      icon: UserCheck,
-      label: 'Total Contestants',
-      value: totalContestants,
-      bgColor: 'bg-gray-100',
-    },
-    {
-      icon: Trophy,
-      label: 'Positions',
-      value: contest?.positions?.length,
-      bgColor: 'bg-gray-100',
-    },
-    {
-      icon: DollarSign,
-      label: 'Amount Per Vote',
-      value: contest?.payment?.isPaid ? `₦${contest?.payment?.amount}` : 'Free',
-      bgColor: 'bg-gray-100',
-    },
-  ];
+  const shouldShowResults = useMemo(() => {
+    if (!contest) return false;
+    if (contest.isVoteCountVisible) return true;
+
+    const now = new Date();
+
+    // Build end date/time
+    const endDate = new Date(contest.endDate);
+    if (contest.endTime) {
+      let hour = parseInt(contest.endTime.endTimeHour, 10);
+      if (contest.endTime.endTimeAmPm === 'PM' && hour < 12) hour += 12;
+      endDate.setHours(hour, parseInt(contest.endTime.endTimeMinute, 10), 0, 0);
+    }
+
+    if (now < endDate) return false;
+
+    // Contest has ended, check reveal settings
+    if (contest.resultRevealSetting === 'immediately') return true;
+    if (contest.resultRevealSetting === 'manual') return contest.isResultReleased;
+    if (contest.resultRevealSetting === 'scheduled' && contest.revealDate) {
+      const revealDate = new Date(contest.revealDate);
+      if (contest.revealTime) {
+        let hour = parseInt(contest.revealTime.revealHour, 10);
+        if (contest.revealTime.revealAmPm === 'PM' && hour < 12) hour += 12;
+        revealDate.setHours(hour, parseInt(contest.revealTime.revealMinute, 10), 0, 0);
+      }
+      return now >= revealDate;
+    }
+
+    return true; // Default
+  }, [contest]);
+
+  const stats = useMemo(() => {
+    return [
+      ...(shouldShowResults
+        ? [
+          {
+            icon: Users,
+            label: 'Total Votes',
+            value: totalVotes,
+            bgColor: 'bg-gray-100',
+          },
+        ]
+        : []),
+      {
+        icon: UserCheck,
+        label: 'Total Contestants',
+        value: totalContestants,
+        bgColor: 'bg-gray-100',
+      },
+      {
+        icon: Trophy,
+        label: 'Positions',
+        value: contest?.positions?.length,
+        bgColor: 'bg-gray-100',
+      },
+      {
+        icon: Calendar,
+        label: 'Status',
+        value: contest?.status?.charAt(0).toUpperCase() + contest?.status?.slice(1),
+        bgColor: 'bg-gray-100',
+      },
+    ];
+  }, [shouldShowResults, totalVotes, totalContestants, contest?.positions, contest?.status]);
 
   const handlePositionChange = (newPosition) => {
     setActivePosition(newPosition);

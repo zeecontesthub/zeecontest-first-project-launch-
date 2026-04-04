@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
-import Sidebar from "../Components/sidebar";
+﻿import React, { useState, useEffect, useMemo } from "react";
+import TopNav from "../Components/TopNav";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   Edit,
@@ -170,8 +170,8 @@ const ContestantDetails = () => {
 
   if (!currentContestant) {
     return (
-      <div className="flex min-h-screen">
-        <Sidebar />
+      <div className="min-h-screen bg-[#f8f8f8]">
+        <TopNav />
         <div className="flex-1 w-full p-6 flex items-center justify-center">
           <div className="text-center">
             <AlertTriangle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
@@ -194,9 +194,9 @@ const ContestantDetails = () => {
   }
 
   return (
-    <div className="flex min-h-screen lg:gap-[10rem]">
-      <Sidebar />
-      <div className="flex-1 p-6 md:ml-20 ">
+    <div className="min-h-screen bg-[#f8f8f8]">
+      <TopNav />
+      <div className="px-4 sm:px-8 py-6 max-w-6xl mx-auto ">
         <div className="mx-auto p-6 min-h-screen">
           <div className="flex items-center gap-4 mb-8">
             <button

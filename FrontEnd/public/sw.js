@@ -49,6 +49,11 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // Skip navigation with query parameters (likely dynamic app routes)
+    if (event.request.url.includes('?') && !event.request.url.match(/\.(js|css|png|jpg|jpeg|svg)$/)) {
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request).then((response) => {
             // Cache hit - return response
@@ -78,6 +83,10 @@ self.addEventListener('fetch', (event) => {
                 }
 
                 return response;
+            }).catch((err) => {
+                console.error('SW Fetch failed:', err);
+                // Return a basic fallback if needed, but for now just let it fail naturally
+                return null;
             });
         })
     );

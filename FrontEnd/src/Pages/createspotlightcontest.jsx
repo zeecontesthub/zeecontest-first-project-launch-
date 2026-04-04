@@ -1,10 +1,7 @@
-import React, { useState } from 'react';
-import Sidebar from '../Components/sidebar';
+﻿import React, { useState } from 'react';
+import TopNav from '../Components/TopNav';
 import ContestDetailsStep from '../Components/ContestDetailsStep';
-import ImageUploadStep from '../Components/ImageUploadStep';
 import ContestantDetailsStep from '../Components/ContestantDetailsStep';
-import ReviewStep from '../Components/ReviewStep';
-import PositionPopup from '../Components/PositionPopup';
 import Security from '../Components/Security';
 import axios from 'axios';
 import { uploadToCloudinary } from '../actions/cloudinaryAction';
@@ -18,8 +15,8 @@ const CreateSpotlightContest = () => {
   const navigate = useNavigate();
   const { user, setUserContests, createContest, setCreateContest } = useUser();
   const [currentStep, setCurrentStep] = useState(0);
-  const [isPositionPopupOpen, setIsPositionPopupOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
   // State for contest positions
   const [positions, setPositions] = useState(
@@ -71,48 +68,33 @@ const CreateSpotlightContest = () => {
       amount: 0,
     },
     allowMultipleVotes: createContest?.allowMultipleVotes || false,
-    contestType: createContest?.contestType || 'open', // new field
+    contestType: createContest?.contestType || 'open',
+    closedContestType: createContest?.closedContestType || 'pre-registration',
+    authenticationField: createContest?.authenticationField || '',
     isVoteCountVisible: createContest?.isVoteCountVisible !== undefined ? createContest.isVoteCountVisible : true,
+    resultRevealSetting: createContest?.resultRevealSetting || 'immediately',
+    revealDate: createContest?.revealDate || '',
+    revealTime: createContest?.revealTime || {
+      revealHour: '',
+      revealMinute: '00',
+      revealAmPm: 'AM',
+    },
   });
 
-  // State for security settings
+  const [customVoters, setCustomVoters] = useState(
+    createContest?.closedContestVoters || []
+  );
+
   const [isVoterRegistrationEnabled, setIsVoterRegistrationEnabled] = useState(
     createContest?.isVoterRegistrationEnabled || false
   );
 
-  // Form validation
-  // eslint-disable-next-line no-unused-vars
-  const isFormValid = () => {
-    return (
-      formData.contestName &&
-      formData.contestDescription &&
-      formData.startDate &&
-      formData.endDate &&
-      contestants.length > 0
-    );
-  };
-
-  // Handlers for Contest Details Step
   const onInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Position management
   const onAddPosition = () => {
-    setIsPositionPopupOpen(true);
-  };
-
-  const handleAddPositionFromPopup = (position) => {
-    setPositions((prev) => [...prev, position]);
-    setCreateContest((prev) => ({
-      ...prev,
-      positions: [...positions, position],
-    }));
-    setIsPositionPopupOpen(false);
-  };
-
-  const handleClosePositionPopup = () => {
-    setIsPositionPopupOpen(false);
+    setPositions((prev) => [...prev, { name: 'New Position', description: '', contestants: [] }]);
   };
 
   const onUpdatePosition = (index, field, value) => {
@@ -125,44 +107,25 @@ const CreateSpotlightContest = () => {
     setPositions((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // Image upload handlers with loading state
   const onFileUpload = async (file, type) => {
     if (!file) return;
     try {
       setIsUploading(true);
-
       const imgURL = await uploadToCloudinary(file);
-      console.log('Uploaded Image URL:', imgURL);
-      if (!imgURL) {
-        console.error('Failed to upload image to Cloudinary.');
-        // Optionally show a toast here:
-        // toast.error("Image upload failed. Please try again.");
-        return;
-      }
+      if (!imgURL) return;
 
       if (type === 'cover') {
-        setCreateContest((prev) => ({
-          ...prev,
-          coverImageUrl: imgURL,
-        }));
         setCoverImage(imgURL);
       } else if (type === 'logo') {
-        setCreateContest((prev) => ({
-          ...prev,
-          contestLogoImageUrl: imgURL,
-        }));
         setLogoImage(imgURL);
       }
     } catch (error) {
       console.error('Error uploading image:', error);
-      // Optionally show a toast here:
-      // toast.error("Something went wrong while uploading.");
     } finally {
       setIsUploading(false);
     }
   };
 
-  // Contestant management
   const onContestantInputChange = (field, value) => {
     setContestantForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -171,134 +134,70 @@ const CreateSpotlightContest = () => {
     if (!file) return;
     try {
       setIsUploading(true);
-
       const imgURL = await uploadToCloudinary(file);
       if (!imgURL) {
-        console.error('Failed to upload image to Cloudinary.');
-        // Optionally show toast:
-        toast.error('Image upload failed. Please try again.');
+        toast.error('Image upload failed.');
         return;
       }
-
-      setContestantForm((prev) => ({
-        ...prev,
-        image: imgURL,
-      }));
+      setContestantForm((prev) => ({ ...prev, image: imgURL }));
     } catch (error) {
       console.error('Error uploading contestant image:', error);
-      // Optionally show toast:
-      toast.error('Something went wrong while uploading.');
     } finally {
       setIsUploading(false);
     }
   };
 
-  const addSingleContestant = (contestantData) => {
-    const newContestant = { ...contestantData, dateId: Date.now() };
-
-    setPositions((prev) =>
-      (prev || []).map((pos) =>
-        pos.name === newContestant.position
-          ? {
-            ...pos,
-            contestants: [
-              ...(Array.isArray(pos.contestants) ? pos.contestants : []),
-              newContestant,
-            ],
-          }
-          : pos
-      )
-    );
-
-    setContestants((prev) => [...(prev || []), newContestant]);
-
-    setCreateContest((prev) => {
-      const updatedPositions = (prev.positions || []).map((pos) =>
-        pos.name === newContestant.position
-          ? {
-            ...pos,
-            contestants: [
-              ...(Array.isArray(pos.contestants) ? pos.contestants : []),
-              newContestant,
-            ],
-          }
-          : pos
-      );
-
-      return {
-        ...prev,
-        contestants: [...(prev.contestants || []), newContestant],
-        positions: updatedPositions,
-      };
-    });
-  };
-
   const onAddContestant = () => {
     if (contestantForm.name.trim() === '') return;
 
-    addSingleContestant(contestantForm);
+    if (editingId) {
+      setContestants((prev) =>
+        prev.map((c) => (c.dateId === editingId ? { ...contestantForm, dateId: editingId } : c))
+      );
+      setEditingId(null);
+      toast.success('Contestant updated!');
+    } else {
+      const newContestant = { ...contestantForm, dateId: Date.now() };
+      setContestants((prev) => [...prev, newContestant]);
+      toast.success('Contestant added!');
+    }
 
+    setContestantForm({ name: '', bio: '', position: '', image: null, email: '' });
+  };
+
+  const onEditContestant = (contestant) => {
+    setEditingId(contestant.dateId);
     setContestantForm({
-      name: '',
-      bio: '',
-      position: '',
-      image: null,
-      email: '',
+      name: contestant.name,
+      bio: contestant.bio,
+      position: contestant.position,
+      image: contestant.image,
+      email: contestant.email,
     });
+    // Scroll to form or show indicator
+    toast.info(`Editing ${contestant.name}`);
+  };
+
+  const onCancelEdit = () => {
+    setEditingId(null);
+    setContestantForm({ name: '', bio: '', position: '', image: null, email: '' });
   };
 
   const onRemoveContestant = (positionName, id) => {
-    setPositions((prevPositions) =>
-      prevPositions.map((pos) =>
-        pos.name === positionName
-          ? {
-            ...pos,
-            contestants: pos.contestants.filter((c) => c.dateId !== id),
-          }
-          : pos
-      )
-    );
-
-    setContestants((prevContestants) =>
-      prevContestants.filter((c) => c.dateId !== id)
-    );
-
-    setCreateContest((prevCreateContest) => {
-      const newContestants = prevCreateContest.contestants.filter(
-        (c) => c.dateId !== id
-      );
-
-      const newPositions = prevCreateContest.positions.map((pos) =>
-        pos.name === positionName
-          ? {
-            ...pos,
-            contestants: pos.contestants.filter((c) => c.dateId !== id),
-          }
-          : pos
-      );
-
-      return {
-        ...prevCreateContest,
-        contestants: newContestants,
-        positions: newPositions,
-      };
-    });
+    setContestants((prev) => prev.filter((c) => c.dateId !== id));
+    if (editingId === id) onCancelEdit();
   };
 
   const findKey = (keys, regex) => keys.find((key) => regex.test(key));
 
   const onBulkUpload = (file) => {
     if (!file) return;
-
     setIsUploading(true);
-
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
       complete: (results) => {
         const allKeys = results.meta.fields || [];
-        const successfulAdds = [];
-        const failedAdds = [];
         const newContestants = [];
         const newPositionsToAdd = [];
 
@@ -312,10 +211,7 @@ const CreateSpotlightContest = () => {
           const name = nameKey ? row[nameKey] : '';
           const position = positionKey ? row[positionKey] : '';
 
-          if (name.trim() === '' || position.trim() === '') {
-            failedAdds.push({ ...row, reason: 'Missing Name or Position' });
-            return;
-          }
+          if (name.trim() === '' || position.trim() === '') return;
 
           const newContestantData = {
             name: name,
@@ -327,184 +223,49 @@ const CreateSpotlightContest = () => {
           };
 
           newContestants.push(newContestantData);
-          successfulAdds.push(newContestantData.name);
 
-          // Check if this position needs to be created
-          const positionExists = positions.some(
-            (pos) => pos.name.toLowerCase() === position.toLowerCase()
-          );
-          const alreadyInNewPositions = newPositionsToAdd.some(
-            (pos) => pos.name.toLowerCase() === position.toLowerCase()
-          );
+          const positionExists = positions.some((pos) => pos.name.toLowerCase() === position.toLowerCase());
+          const alreadyInNewPositions = newPositionsToAdd.some((pos) => pos.name.toLowerCase() === position.toLowerCase());
 
           if (!positionExists && !alreadyInNewPositions) {
-            newPositionsToAdd.push({
-              name: position,
-              description: `Auto-created from CSV upload`,
-              contestants: [],
-            });
+            newPositionsToAdd.push({ name: position, description: `Auto-created`, contestants: [] });
           }
         });
+
         if (newContestants.length > 0) {
-          if (newPositionsToAdd.length > 0) {
-            setPositions((prev) => [...prev, ...newPositionsToAdd]);
-          }
-
-          // Update positions state with contestants
-          setPositions((prev) => {
-            const allPositions =
-              newPositionsToAdd.length > 0
-                ? [...prev, ...newPositionsToAdd]
-                : prev;
-
-            return allPositions.map((pos) => {
-              const posContestants = newContestants.filter(
-                (c) => c.position.toLowerCase() === pos.name.toLowerCase()
-              );
-              return posContestants.length > 0
-                ? {
-                  ...pos,
-                  contestants: [
-                    ...(Array.isArray(pos.contestants)
-                      ? pos.contestants
-                      : []),
-                    ...posContestants,
-                  ],
-                }
-                : pos;
-            });
-          });
-
-          // Update contestants state
-          setContestants((prev) => [...(prev || []), ...newContestants]);
-
-          // Update createContest state
-          setCreateContest((prev) => {
-            const allPositions =
-              newPositionsToAdd.length > 0
-                ? [...(prev.positions || []), ...newPositionsToAdd]
-                : prev.positions || [];
-
-            const updatedPositions = allPositions.map((pos) => {
-              const posContestants = newContestants.filter(
-                (c) => c.position.toLowerCase() === pos.name.toLowerCase()
-              );
-              return posContestants.length > 0
-                ? {
-                  ...pos,
-                  contestants: [
-                    ...(Array.isArray(pos.contestants)
-                      ? pos.contestants
-                      : []),
-                    ...posContestants,
-                  ],
-                }
-                : pos;
-            });
-
-            return {
-              ...prev,
-              contestants: [...(prev.contestants || []), ...newContestants],
-              positions: updatedPositions,
-            };
-          });
+          if (newPositionsToAdd.length > 0) setPositions(prev => [...prev, ...newPositionsToAdd]);
+          setContestants(prev => [...prev, ...newContestants]);
+          toast.success(`Loaded ${newContestants.length} contestants.`);
         }
-
         setIsUploading(false);
-
-        if (successfulAdds.length > 0) {
-          toast.success(
-            `Successfully added ${successfulAdds.length} contestant(s).`
-          );
-        }
-        if (failedAdds.length > 0) {
-          toast.error(
-            `${failedAdds.length} contestant(s) were skipped (Missing Name/Position).`
-          );
-          console.warn('Skipped Contestants:', failedAdds);
-        }
-      },
-      error: (error) => {
-        setIsUploading(false);
-        console.error('Error parsing CSV:', error);
-        toast.error('Error reading CSV file.');
-      },
+      }
     });
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
+  const stepTitles = ['Identity & Schedule', 'Structure & Participants', 'Settings & Review'];
 
-  const handleDrop = (e, type) => {
-    e.preventDefault();
-    const files = e.dataTransfer.files;
-    if (files.length > 0) {
-      if (type === 'bulk') {
-        onBulkUpload(files[0]);
-      } else if (type === 'contestantImage') {
-        onContestantImageUpload(files[0]);
-      }
-    }
-  };
-
-  // Navigation handlers
   const nextStep = () => {
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
-    }
+    if (currentStep < 2) setCurrentStep(currentStep + 1);
   };
 
   const prevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
+    if (currentStep > 0) setCurrentStep(currentStep - 1);
   };
 
-  const onEditStep = (step) => {
-    if (step >= 0 && step <= 4) {
-      setCurrentStep(step);
-    }
-  };
+  // Auto-save to context (localStorage) whenever state changes
+  React.useEffect(() => {
+    const syncData = {
+      ...formData,
+      positions,
+      contestants,
+      coverImageUrl: coverImage,
+      contestLogoImageUrl: logoImage,
+      closedContestVoters: customVoters,
+      isVoterRegistrationEnabled
+    };
+    setCreateContest(syncData);
+  }, [formData, positions, contestants, coverImage, logoImage, customVoters, isVoterRegistrationEnabled]);
 
-  // Save draft functionality
-  const saveDraft = async () => {
-    try {
-      const payload = {
-        title: formData.contestName,
-        description: formData.contestDescription,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        startTime: formData.startTime,
-        endTime: formData.endTime,
-        positions: createContest.positions,
-        participants: createContest.contestants,
-        coverImageUrl: coverImage,
-        contestLogoImageUrl: logoImage,
-        payment: formData.payment,
-        allowMultipleVotes: formData.allowMultipleVotes,
-        _id: createContest?._id || null, // Include contest ID if editing
-        status: 'draft',
-        type: 'spot-light',
-        uid: user?.firebaseUid,
-        isClosedContest: formData.contestType === 'closed' ? true : false,
-        isVoteCountVisible: formData.isVoteCountVisible,
-      };
-
-      const res = await axios.post('/api/contest/create-contest', payload);
-
-      if (res.data && res.data.contest) {
-        setUserContests(res.data.contest);
-        toast.success('Contest Saved as Draft Successfully');
-        navigate('/dashboard');
-      }
-    } catch (err) {
-      console.error('Failed to Save contest:', err);
-      toast.error('Failed to Save contest. Please try again.');
-    }
-  };
-
-  // Publish contest
   const onPublish = async () => {
     try {
       const payload = {
@@ -514,8 +275,11 @@ const CreateSpotlightContest = () => {
         endDate: formData.endDate,
         startTime: formData.startTime,
         endTime: formData.endTime,
-        positions: createContest.positions,
-        participants: createContest.contestants,
+        positions: positions.map(pos => ({
+          ...pos,
+          contestants: contestants.filter(c => c.position === pos.name)
+        })),
+        participants: contestants,
         coverImageUrl: coverImage,
         contestLogoImageUrl: logoImage,
         payment: formData.payment,
@@ -523,37 +287,72 @@ const CreateSpotlightContest = () => {
         status: 'upcoming',
         type: 'spot-light',
         uid: user?.firebaseUid,
-        _id: createContest?._id || null, // Include contest ID if editing
-        isClosedContest: formData.contestType === 'closed' ? true : false,
+        isClosedContest: formData.contestType === 'closed',
+        closedContestType: formData.closedContestType,
+        authenticationField: formData.authenticationField,
+        closedContestVoters: customVoters,
         isVoteCountVisible: formData.isVoteCountVisible,
+        resultRevealSetting: formData.resultRevealSetting,
+        revealDate: formData.revealDate,
+        revealTime: formData.revealTime,
       };
 
       const res = await axios.post('/api/contest/create-contest', payload);
-
-      if (res.data && res.data.contest) {
-        setUserContests(res.data.contest);
-        toast.success('Contest created successfully');
+      if (res.data) {
+        toast.success('Contest Published!');
+        setCreateContest(null); // Clear draft after publish
         navigate('/dashboard');
       }
     } catch (err) {
-      console.error('Failed to create contest:', err);
-      toast.error('Failed to create contest. Please try again.');
+      toast.error('Failed to create contest.');
     }
   };
 
-  // Step components
+  const onSaveDraft = async () => {
+    try {
+      const payload = {
+        title: formData.contestName || "Untitled Draft",
+        description: formData.contestDescription,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        positions: positions.map(pos => ({
+          ...pos,
+          contestants: contestants.filter(c => c.position === pos.name)
+        })),
+        participants: contestants,
+        coverImageUrl: coverImage,
+        contestLogoImageUrl: logoImage,
+        payment: formData.payment,
+        allowMultipleVotes: formData.allowMultipleVotes,
+        status: 'draft',
+        type: 'spot-light',
+        uid: user?.firebaseUid,
+        isClosedContest: formData.contestType === 'closed',
+        closedContestType: formData.closedContestType,
+        authenticationField: formData.authenticationField,
+        closedContestVoters: customVoters,
+        isVoteCountVisible: formData.isVoteCountVisible,
+        resultRevealSetting: formData.resultRevealSetting,
+        revealDate: formData.revealDate,
+        revealTime: formData.revealTime,
+      };
+
+      await axios.post('/api/contest/create-contest', payload);
+      toast.success('Draft saved successfully!');
+      setCreateContest(null); // Clear local draft state after sync with backend
+      navigate('/contest?tab=Draft'); // Navigating to contest page draft tab
+    } catch (err) {
+      console.error(err);
+      toast.info('Saved to local storage (Backend draft failed)');
+    }
+  };
+
   const steps = [
     <ContestDetailsStep
       formData={formData}
       onInputChange={onInputChange}
-      positions={positions}
-      onAddPosition={onAddPosition}
-      onUpdatePosition={onUpdatePosition}
-      onRemovePosition={onRemovePosition}
-      setCreateContest={setCreateContest}
-      setContestantForm={setContestantForm}
-    />,
-    <ImageUploadStep
       coverImage={coverImage}
       logoImage={logoImage}
       onFileUpload={onFileUpload}
@@ -565,242 +364,106 @@ const CreateSpotlightContest = () => {
       onContestantImageUpload={onContestantImageUpload}
       onAddContestant={onAddContestant}
       onRemoveContestant={onRemoveContestant}
+      onEditContestant={onEditContestant}
+      onCancelEdit={onCancelEdit}
+      editingId={editingId}
       contestants={contestants}
       onBulkUpload={onBulkUpload}
-      handleDragOver={handleDragOver}
-      handleDrop={handleDrop}
       positions={positions}
       isUploading={isUploading}
+      onAddPosition={onAddPosition}
+      onRemovePosition={onRemovePosition}
+      onUpdatePosition={onUpdatePosition}
     />,
     <Security
       contestType={formData.contestType}
-      onContestTypeChange={(type) =>
-        setFormData((prev) => ({ ...prev, contestType: type }))
-      }
-      isVoterRegistrationEnabled={isVoterRegistrationEnabled}
-      onToggleVoterRegistration={() =>
-        setIsVoterRegistrationEnabled(!isVoterRegistrationEnabled)
-      }
+      onContestTypeChange={(type) => onInputChange('contestType', type)}
+      closedContestType={formData.closedContestType}
+      onClosedContestTypeChange={(type) => onInputChange('closedContestType', type)}
+      authenticationField={formData.authenticationField}
+      onAuthenticationFieldChange={(field) => onInputChange('authenticationField', field)}
+      customVoters={customVoters}
+      setCustomVoters={setCustomVoters}
+      payment={formData.payment}
+      onPaymentChange={(val) => onInputChange('payment', val)}
+      allowMultipleVotes={formData.allowMultipleVotes}
+      onAllowMultipleVotesChange={(val) => onInputChange('allowMultipleVotes', val)}
+      isVoteCountVisible={formData.isVoteCountVisible}
+      onVoteCountVisibilityChange={(val) => onInputChange('isVoteCountVisible', val)}
+      resultRevealSetting={formData.resultRevealSetting}
+      onResultRevealSettingChange={(val) => onInputChange('resultRevealSetting', val)}
+      revealDate={formData.revealDate}
+      onRevealDateChange={(val) => onInputChange('revealDate', val)}
+      revealTime={formData.revealTime}
+      onRevealTimeChange={(val) => onInputChange('revealTime', val)}
+      previewData={{
+        contestName: formData.contestName,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        contestantCount: contestants.length,
+        positionCount: positions.length
+      }}
     />,
-    <ReviewStep
-      coverImage={coverImage}
-      logoImage={logoImage}
-      formData={formData}
-      contestants={contestants}
-      onEditStep={onEditStep}
-      onPublish={onPublish}
-    />,
-  ];
-
-  const stepTitles = [
-    'Contest Details',
-    'Upload Images',
-    'Add Contestants',
-    'Security Settings',
-    'Review & Publish',
   ];
 
   return (
-    <div className='flex bg-white min-h-screen lg:gap-[10rem]'>
-      <Sidebar />
-
-      {/* Main Container with improved mobile responsiveness */}
-      <div className='flex-1 p-3 sm:p-4 md:p-6 lg:ml-20 w-full max-w-5xl mx-auto'>
-        {/* Header Section */}
-        <div className='mb-4 sm:mb-6'>
-          <h2 className='text-center text-xl sm:text-2xl md:text-3xl font-semibold text-gray-900 leading-tight'>
-            Create Spotlight Contest
-          </h2>
+    <div className='flex bg-white min-h-screen'>
+      <TopNav />
+      <div className='px-4 sm:px-8 py-6 max-w-6xl mx-auto lg:p-10 w-full max-w-5xl mx-auto sm:ml-60'>
+        <div className='mb-10 text-center'>
+          <h2 className='text-3xl font-bold text-gray-900'>Create Spotlight Contest</h2>
+          <p className='text-gray-500 mt-2'>Set up your election in 3 simple steps</p>
         </div>
 
-        {/* Step Progress Indicator - Mobile Optimized */}
-        <div className='mb-6 md:mb-8'>
-          {/* Mobile: Vertical Progress on small screens */}
-          <div className='block sm:hidden'>
-            <div className='bg-gray-50 rounded-lg p-4 mb-4'>
-              <div className='text-sm font-medium text-gray-600 mb-2'>
-                Step {currentStep + 1} of {stepTitles.length}
+        <div className='flex items-center justify-center gap-4 mb-12'>
+          {stepTitles.map((title, i) => (
+            <React.Fragment key={i}>
+              <div className='flex flex-col items-center gap-2'>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${i <= currentStep ? 'bg-orange-500 text-white scale-110 shadow-lg shadow-orange-100' : 'bg-gray-100 text-gray-400'}`}>
+                  {i + 1}
+                </div>
+                <span className={`text-xs font-bold whitespace-nowrap ${i <= currentStep ? 'text-gray-900' : 'text-gray-300'}`}>{title}</span>
               </div>
-              <div className='text-lg font-semibold text-orange-600 mb-2'>
-                {stepTitles[currentStep]}
-              </div>
-              <div className='w-full bg-gray-200 rounded-full h-2'>
-                <div
-                  className='bg-orange-500 h-2 rounded-full transition-all duration-300'
-                  style={{
-                    width: `${((currentStep + 1) / stepTitles.length) * 100}%`,
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Desktop: Horizontal Progress on larger screens */}
-          <div className='hidden sm:block'>
-            <div className='flex items-center mb-4'>
-              {/* Left Arrow */}
-              <button
-                type='button'
-                className='bg-white border border-gray-300 rounded-full p-2 shadow hover:bg-gray-100 mr-2'
-                onClick={() => {
-                  document
-                    .getElementById('step-progress-bar')
-                    ?.scrollBy({ left: -200, behavior: 'smooth' });
-                }}
-                aria-label='Scroll left'
-              >
-                <svg
-                  width='20'
-                  height='20'
-                  fill='none'
-                  stroke='currentColor'
-                  strokeWidth='2'
-                >
-                  <path d='M13 17l-5-5 5-5' />
-                </svg>
-              </button>
-              {/* Progress Bar */}
-              <div
-                id='step-progress-bar'
-                className='flex items-center justify-between overflow-x-auto scroll-smooth pb-2'
-                style={{
-                  scrollbarWidth: 'none',
-                  maxWidth: 'calc(100vw - 120px)',
-                }} // adjust 120px if needed for arrow width
-              >
-                {stepTitles.map((title, index) => (
-                  <div key={index} className='flex items-center min-w-fit'>
-                    <div
-                      className={`w-8 h-8 lg:w-10 lg:h-10 rounded-full flex items-center justify-center text-sm lg:text-base font-medium transition-all duration-200 ${index <= currentStep
-                        ? 'bg-orange-500 text-white shadow-md'
-                        : 'bg-gray-200 text-gray-600'
-                        }`}
-                    >
-                      {index + 1}
-                    </div>
-                    <span
-                      className={`ml-2 lg:ml-3 text-sm lg:text-base whitespace-nowrap transition-all duration-200 ${index <= currentStep
-                        ? 'text-orange-600 font-medium'
-                        : 'text-gray-500'
-                        }`}
-                    >
-                      {title}
-                    </span>
-                    {index < stepTitles.length - 1 && (
-                      <div
-                        className={`ml-3 lg:ml-6 w-12 lg:w-20 h-0.5 transition-all duration-300 ${index < currentStep ? 'bg-orange-500' : 'bg-gray-200'
-                          }`}
-                      />
-                    )}
-                  </div>
-                ))}
-              </div>
-              {/* Right Arrow */}
-              <button
-                type='button'
-                className='bg-white border border-gray-300 rounded-full p-2 shadow hover:bg-gray-100 ml-2'
-                onClick={() => {
-                  document
-                    .getElementById('step-progress-bar')
-                    ?.scrollBy({ left: 200, behavior: 'smooth' });
-                }}
-                aria-label='Scroll right'
-              >
-                <svg
-                  width='20'
-                  height='20'
-                  fill='none'
-                  stroke='currentColor'
-                  strokeWidth='2'
-                >
-                  <path d='M7 17l5-5-5-5' />
-                </svg>
-              </button>
-            </div>
-          </div>
+              {i < 2 && <div className={`w-16 h-0.5 ${i < currentStep ? 'bg-orange-500' : 'bg-gray-100'}`} />}
+            </React.Fragment>
+          ))}
         </div>
 
-        {/* Step Content */}
-        <div className='mb-6 md:mb-8'>{steps[currentStep]}</div>
+        <div className='min-h-[500px] mb-12'>
+          {steps[currentStep]}
+        </div>
 
-        {/* Position Popup */}
-        <PositionPopup
-          isOpen={isPositionPopupOpen}
-          onClose={handleClosePositionPopup}
-          onAddPosition={handleAddPositionFromPopup}
-        />
+        <div className='flex justify-between items-center py-6 border-t border-gray-100 sticky bottom-0 bg-white/80 backdrop-blur-md px-4'>
+          <button
+            onClick={prevStep}
+            disabled={currentStep === 0}
+            className='px-8 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-50 disabled:opacity-0 transition-all'
+          >
+            Back
+          </button>
 
-        {/* Navigation Buttons - Mobile Optimized */}
-        <div className='sticky bottom-0 bg-white border-t border-gray-200 p-4 pb-16 -mx-3 sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:static z-30'>
-          {/* Mobile: Stacked Layout */}
-          <div className='flex flex-col space-y-3 sm:hidden'>
-            <div className='flex space-x-3'>
-              <button
-                onClick={prevStep}
-                disabled={isUploading || currentStep === 0}
-                className='flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors text-sm'
-              >
-                Back
-              </button>
-              <button
-                onClick={nextStep}
-                className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors text-sm ${isUploading ? 'opacity-50 cursor-not-allowed' : ''
-                  } bg-orange-500 hover:bg-orange-600 text-white`}
-                disabled={isUploading}
-              >
-                Next
-              </button>
-            </div>
+          <div className='flex gap-4'>
             <button
-              onClick={saveDraft}
-              className={`w-full px-4 py-3 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors text-sm ${isUploading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              disabled={isUploading}
+              onClick={onSaveDraft}
+              className='px-6 py-3 text-teal-600 font-bold hover:bg-teal-50 rounded-xl transition-all'
             >
-              Save as Draft
+              Save Draft
             </button>
-            {/* Add extra margin for publish button if on last step */}
-            {currentStep === steps.length - 1 && (
+            {currentStep === 2 ? (
               <button
                 onClick={onPublish}
-                className={`w-full px-4 py-3 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors text-sm mb-8 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                disabled={isUploading}
+                className='px-10 py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 shadow-lg shadow-orange-100 active:scale-95 transition-all'
               >
-                Publish Contest
+                Launch Contest
+              </button>
+            ) : (
+              <button
+                onClick={nextStep}
+                className='px-10 py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 shadow-lg shadow-orange-100 active:scale-95 transition-all'
+              >
+                Continue
               </button>
             )}
-          </div>
-
-          {/* Desktop: Horizontal Layout */}
-          <div className='hidden sm:flex sm:flex-row sm:justify-between sm:items-center'>
-            <button
-              onClick={saveDraft}
-              className={`px-6 py-2 lg:px-8 lg:py-3 bg-teal-600 text-white rounded-lg font-medium hover:bg-teal-700 transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              disabled={isUploading}
-            >
-              Save as Draft
-            </button>
-            <div className='flex space-x-4'>
-              <button
-                onClick={prevStep}
-                disabled={isUploading || currentStep === 0}
-                className='px-6 py-2 lg:px-8 lg:py-3 bg-gray-100 text-gray-700 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors'
-              >
-                Back
-              </button>
-              {currentStep !== steps.length - 1 && (
-                <button
-                  onClick={nextStep}
-                  className={`px-6 py-2 lg:px-8 lg:py-3 rounded-lg font-medium transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''
-                    } bg-orange-500 hover:bg-orange-600 text-white`}
-                  disabled={isUploading}
-                >
-                  Next
-                </button>
-              )}
-            </div>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
-/* eslint-disable no-unused-vars */
+﻿/* eslint-disable no-unused-vars */
 import React, { useEffect, useMemo, useState } from 'react';
 import { Edit, Eye, Share2 } from 'lucide-react';
-import Sidebar from '../Components/sidebar';
+import TopNav from '../Components/TopNav';
 import BannerImage from '../assets/Rectangle _5189.png';
 import LogoImage from '../assets/Ellipse 20.png';
 import {
@@ -135,30 +135,47 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
     if (contestId) fetchContest();
   }, [contestId]);
 
-  const sections = [
-    {
-      title: 'Start Contest',
-      buttonText: 'Start Contest',
-      buttonColor: 'bg-green-600 hover:bg-green-700',
-      icon: <Play size={20} />,
-      description:
-        'Begin the voting process for all voters before the start time',
-    },
-    {
-      title: 'Pause Contest',
-      buttonText: 'Pause Contest',
-      buttonColor: 'bg-yellow-600 hover:bg-yellow-700',
-      icon: <Pause size={20} />,
-      description: 'Temporarily halt the voting process',
-    },
-    {
-      title: 'End Contest',
-      buttonText: 'End Contest',
-      buttonColor: 'bg-red-600 hover:bg-red-700',
-      icon: <Square size={20} />,
-      description: 'Permanently stop the contest and finalize results',
-    },
-  ];
+  const sections = useMemo(() => {
+    const baseSections = [
+      {
+        title: 'Start Contest',
+        buttonText: 'Start Contest',
+        buttonColor: 'bg-green-600 hover:bg-green-700',
+        icon: <Play size={20} />,
+        description: 'Begin the voting process for all voters before the start time',
+      },
+      {
+        title: 'Pause Contest',
+        buttonText: 'Pause Contest',
+        buttonColor: 'bg-yellow-600 hover:bg-yellow-700',
+        icon: <Pause size={20} />,
+        description: 'Temporarily halt the voting process',
+      },
+      {
+        title: 'End Contest',
+        buttonText: 'End Contest',
+        buttonColor: 'bg-red-600 hover:bg-red-700',
+        icon: <Square size={20} />,
+        description: 'Permanently stop the contest and finalize results',
+      },
+    ];
+
+    if (
+      contest?.status === 'completed' &&
+      contest?.resultRevealSetting === 'manual' &&
+      !contest?.isResultReleased
+    ) {
+      baseSections.push({
+        title: 'Release Results',
+        buttonText: 'Release Results',
+        buttonColor: 'bg-teal-600 hover:bg-teal-700',
+        icon: <Award size={20} />,
+        description: 'Make final results public and notify all participants',
+      });
+    }
+
+    return baseSections;
+  }, [contest]);
 
   const nextSection = () => {
     setCurrentSection((prev) => (prev + 1) % sections.length);
@@ -295,6 +312,10 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
           endTimeAmPm: now.getHours() >= 12 ? 'PM' : 'AM',
         },
         status: 'completed',
+      };
+    } else if (pendingAction === 'Release Results') {
+      updatedFields = {
+        isResultReleased: true,
       };
     }
 
@@ -525,9 +546,9 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
   }
 
   return (
-    <div className='flex min-h-screen overflow-x-hidden lg:gap-[10rem]'>
-      <Sidebar />
-      <div className='flex-1 p-6 md:ml-20 '>
+    <div className='min-h-screen bg-[#f8f8f8]'>
+      <TopNav />
+      <div className='px-4 sm:px-8 py-6 max-w-6xl mx-auto '>
         {/* Header */}
         <h2 className='text-2xl sm:text-[30px] text-left font-bold text-gray-900 mb-6 sm:mb-8'>
           Contest
@@ -558,9 +579,8 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                   {contest?.title || 'Contest Name'}
                 </h2>
                 <p
-                  className={`text-gray-600 text-left text-sm sm:text-base ${
-                    showFullDescription ? '' : 'line-clamp-2'
-                  }`}
+                  className={`text-gray-600 text-left text-sm sm:text-base ${showFullDescription ? '' : 'line-clamp-2'
+                    }`}
                   style={{
                     display: '-webkit-box',
                     WebkitLineClamp: showFullDescription ? 'none' : 2,
@@ -680,7 +700,7 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                 Share Voters Link
               </button>
 
-              {contest?.isClosedContest && (
+              {contest?.isClosedContest && contest?.closedContestType === 'pre-registration' && (
                 <button
                   className='flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium'
                   onClick={() => {
@@ -772,11 +792,10 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                   </h3>
 
                   <div
-                    className={`grid grid-cols-1 md:grid-cols-2 ${
-                      (contest?.positions?.length || 0) > 2
-                        ? 'lg:grid-cols-3'
-                        : 'lg:grid-cols-2'
-                    } gap-3`}
+                    className={`grid grid-cols-1 md:grid-cols-2 ${(contest?.positions?.length || 0) > 2
+                      ? 'lg:grid-cols-3'
+                      : 'lg:grid-cols-2'
+                      } gap-3`}
                   >
                     {contest?.positions?.slice(0, 3).map((position, index) => {
                       // === 🔹 1️⃣ Calculate each candidate's votes for THIS position ===
@@ -804,7 +823,7 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                                       (v) =>
                                         v.positionTitle === position.name &&
                                         v.votedFor?.toString() ===
-                                          candidate._id?.toString()
+                                        candidate._id?.toString()
                                     ).length || 0;
                                   return (
                                     total + count * (voter.multiplier || 0)
@@ -822,39 +841,37 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                       // === 🔹 3️⃣ Total votes for the position (including multiplier) ===
                       const totalPositionVotes = !contest.isClosedContest
                         ? position.voters?.reduce(
-                            (sum, v) => sum + (v.multiplier || 0),
-                            0
-                          ) || 0
+                          (sum, v) => sum + (v.multiplier || 0),
+                          0
+                        ) || 0
                         : contest.closedContestVoters?.reduce((sum, v) => {
-                            const count =
-                              v.votedFor?.filter(
-                                (vote) => vote.positionTitle === position.name
-                              ).length || 0;
-                            return sum + count * (v.multiplier || 0);
-                          }, 0) || 0;
+                          const count =
+                            v.votedFor?.filter(
+                              (vote) => vote.positionTitle === position.name
+                            ).length || 0;
+                          return sum + count * (v.multiplier || 0);
+                        }, 0) || 0;
 
                       return (
                         <div
                           key={position._id}
-                          className={`p-3 sm:p-4 rounded-xl cursor-pointer transition-all hover:shadow-md ${
-                            index === 0
-                              ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200'
-                              : index === 1
+                          className={`p-3 sm:p-4 rounded-xl cursor-pointer transition-all hover:shadow-md ${index === 0
+                            ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200'
+                            : index === 1
                               ? 'bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200'
                               : 'bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200'
-                          }`}
+                            }`}
                           onClick={() => setSelectedPositionData(position)}
                         >
                           <div className='flex items-center gap-3'>
                             {/* 🏆 Medal / Trophy Icon */}
                             <div
-                              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${
-                                index === 0
-                                  ? 'bg-yellow-500 text-white'
-                                  : index === 1
+                              className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${index === 0
+                                ? 'bg-yellow-500 text-white'
+                                : index === 1
                                   ? 'bg-gray-400 text-white'
                                   : 'bg-amber-600 text-white'
-                              }`}
+                                }`}
                             >
                               {index === 0 ? (
                                 <Trophy className='w-3 h-3 sm:w-4 sm:h-4' />
@@ -1222,11 +1239,10 @@ const Contestdetails = ({ isPaidContest, voterFee }) => {
                     <button
                       key={index}
                       onClick={() => goToSection(index)}
-                      className={`w-3 h-3 rounded-full transition-colors ${
-                        index === currentSection
-                          ? 'bg-orange-400'
-                          : 'bg-gray-300 hover:bg-gray-400'
-                      }`}
+                      className={`w-3 h-3 rounded-full transition-colors ${index === currentSection
+                        ? 'bg-orange-400'
+                        : 'bg-gray-300 hover:bg-gray-400'
+                        }`}
                     />
                   ))}
                 </div>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import Sidebar from "../Components/sidebar";
+﻿import React, { useState, useEffect } from "react";
+import TopNav from "../Components/TopNav";
 import ContestCard from "../Components/ContestCard";
 import Image1 from "../assets/Rectangle_333.png";
 import Image2 from "../assets/22222.png";
@@ -19,8 +19,30 @@ const Contest = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const { userContests } = useUser(); // get user from context
+  const { user, userContests, setUserContests } = useUser();
   const location = useLocation();
+
+  useEffect(() => {
+    const fetchContests = async () => {
+      if (!user?._id) {
+        console.warn("Organiser ID missing in contest page fetch");
+        return;
+      }
+      setIsLoading(true);
+      try {
+        console.log(`Fetching contests for organiser: ${user._id}`);
+        const res = await axios.get(`/api/contest/organizer/${user._id}`);
+        const contests = res.data.contests || [];
+        console.log(`Successfully fetched ${contests.length} contests.`);
+        setUserContests(contests);
+      } catch (err) {
+        console.error("Failed to fetch organiser contests:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchContests();
+  }, [user?._id, setUserContests]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -94,8 +116,8 @@ const Contest = () => {
   return (
     <>
       {isLoading && <FullPageLoader />}
-      <div className="flex min-h-screen bg-white lg:gap-[10rem]">
-        <Sidebar />
+      <div className="min-h-screen bg-[#f8f8f8]">
+        <TopNav />
         <div className="flex-1 w-full p-6 md:ml-20">
           {/* Header */}
           <h2 className="text-[30px] text-left font-bold text-gray-900 mb-8">
@@ -124,11 +146,10 @@ const Contest = () => {
                   setSelectionMode(false);
                   setSelectedDrafts([]);
                 }}
-                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                  activeTab === tab
-                    ? "bg-orange-500 text-white"
-                    : "bg-teal-800 text-white hover:bg-teal-700"
-                }`}
+                className={`px-6 py-3 rounded-lg font-medium transition-colors ${activeTab === tab
+                  ? "bg-orange-500 text-white"
+                  : "bg-teal-800 text-white hover:bg-teal-700"
+                  }`}
               >
                 {tab === "Draft" ? "Drafts" : tab}
               </button>
@@ -198,11 +219,11 @@ const Contest = () => {
           {/* Contest Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {userContests
-                .filter(
-                  (contest) =>
-                    activeTab === "All" ||
-                    contest.status === activeTab.toLocaleLowerCase()
-                ).length > 0 ? (
+              .filter(
+                (contest) =>
+                  activeTab === "All" ||
+                  contest.status === activeTab.toLocaleLowerCase()
+              ).length > 0 ? (
               userContests
                 .filter(
                   (contest) =>

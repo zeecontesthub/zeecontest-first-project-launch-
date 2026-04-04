@@ -1,6 +1,6 @@
-/* eslint-disable no-unused-vars */
+﻿/* eslint-disable no-unused-vars */
 import React, { useState, useMemo, useEffect } from 'react';
-import Sidebar from '../Components/sidebar';
+import TopNav from '../Components/TopNav';
 import BannerImage from '../assets/Rectangle _5189.png';
 import LogoImage from '../assets/Ellipse 20.png';
 import {
@@ -20,44 +20,37 @@ import { toast } from 'react-toastify';
 import FullPageLoader from '../Components/FullPageLoader';
 
 // A new component for the mobile-friendly card view
-const VoterCard = ({ voter, isClosedContest, handleDeleteVoter }) => {
-  return (
-    <div className='bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-4 transition-transform hover:scale-[1.01]'>
-      <div className='flex justify-between items-start mb-2'>
-        <div className='flex-1'>
-          <p className='text-xs font-semibold text-gray-500 uppercase tracking-wider'>
-            Full Name
-          </p>
-          <p className='text-gray-900 font-bold text-lg'>{voter.name}</p>
+const VoterCard = ({ voter, isClosedContest, columns = [] }) => (
+  <div className='bg-white p-4 rounded-xl border border-gray-100 shadow-sm mb-4 last:mb-0'>
+    <div className='flex justify-between items-start mb-3'>
+      <div className='flex items-center gap-3'>
+        <div className='w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center'>
+          <Users className='w-5 h-5 text-gray-500' />
         </div>
-        {isClosedContest && (
-          <button
-            onClick={(e) => handleDeleteVoter(e, voter.id)}
-            className='text-red-600 hover:text-red-800 transition-colors p-2 rounded-full hover:bg-red-100 flex items-center justify-center -mr-2'
-          >
-            <DeleteIcon className='w-5 h-5' />
-          </button>
-        )}
-      </div>
-      <div className='mb-2'>
-        <p className='text-xs font-semibold text-gray-500 uppercase tracking-wider'>
-          Email Address
-        </p>
-        <p className='text-gray-600 truncate'>{voter.email}</p>
-      </div>
-      <div>
-        <p className='text-xs font-semibold text-gray-500 uppercase tracking-wider'>
-          {isClosedContest ? 'Registration Date' : 'Voting Date'}
-        </p>
-        <p className='text-gray-600'>
-          {voter.votingDate
-            ? new Date(voter.votingDate).toLocaleDateString()
-            : '--'}
-        </p>
+        <div>
+          <h4 className='font-bold text-gray-900'>{voter.name}</h4>
+          <p className='text-xs text-gray-500'>{voter.email}</p>
+        </div>
       </div>
     </div>
-  );
-};
+    <div className='grid grid-cols-2 gap-3 text-sm'>
+      {columns.filter(c => c.key !== 'name' && c.key !== 'email').map(col => (
+        <div key={col.key}>
+          <p className='text-gray-500 text-xs mb-1'>{col.label}</p>
+          <p className='text-gray-900 font-medium'>
+            {col.isCustom
+              ? voter.customData?.[col.originalKey] || '--'
+              : col.key === 'votingDate'
+                ? voter.votingDate
+                  ? new Date(voter.votingDate).toLocaleDateString()
+                  : '--'
+                : voter[col.key] || '--'}
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 const VotersDetails = () => {
   const { contestId } = useParams();
@@ -70,9 +63,13 @@ const VotersDetails = () => {
   const navigate = useNavigate();
   const [isVotersRegLinkOpen, setIsVotersRegLinkOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const votersRegLink = contest?.isClosedContest
-    ? `${window.location.origin}/voterregistration/${contestId}`
-    : `${window.location.origin}/vote/${contestId}`;
+  const [voterToDelete, setVoterToDelete] = useState(null); // { id, name }
+
+  const votersRegLink =
+    contest?.isClosedContest && contest?.closedContestType === 'pre-registration'
+      ? `${window.location.origin}/voterregistration/${contestId}`
+      : `${window.location.origin}/vote/${contestId}`;
+
   useEffect(() => {
     const fetchContest = async () => {
       setIsLoading(true);
@@ -87,36 +84,6 @@ const VotersDetails = () => {
     };
     if (contestId) fetchContest();
   }, [contestId]);
-
-  const [registrationForm, setRegistrationForm] = useState({
-    name: '',
-    email: '',
-    registrationDate: '',
-  });
-
-  const registrationData = [
-    {
-      id: 1,
-      name: 'John Doe',
-      email: 'john@example.com',
-      registrationDate: '2025-08-01',
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      registrationDate: '2025-08-02',
-    },
-  ];
-
-  const regItemsPerPage = 10;
-  const [regCurrentPage, setRegCurrentPage] = useState(1);
-  const regTotalPages = Math.ceil(registrationData.length / regItemsPerPage);
-  const regStartIndex = (regCurrentPage - 1) * regItemsPerPage;
-  const regPaginatedData = registrationData.slice(
-    regStartIndex,
-    regStartIndex + regItemsPerPage
-  );
 
   const allVoters = useMemo(() => {
     if (!contest) return [];
@@ -137,13 +104,57 @@ const VotersDetails = () => {
   const voterDetails = useMemo(
     () =>
       allVoters.map((v) => ({
-        id: v._id,
+        id: v._id || v.id,
         name: v.name,
         email: v.email,
         votingDate: v.addedDate || v.votingDate || null,
+        customData: v.customData || {},
       })),
     [allVoters]
   );
+
+  const columns = useMemo(() => {
+    if (!contest) return [];
+
+    const baseCols = [
+      { key: 'name', label: 'Full Name' },
+      { key: 'email', label: 'Email Address' },
+    ];
+
+    if (contest.isClosedContest && contest.closedContestType === 'bulk-upload') {
+      const customKeys = new Set();
+      // Reserved keys already shown in baseCols — skip them
+      const RESERVED = new Set(['name', 'email']);
+      allVoters.forEach((v) => {
+        if (v.customData) {
+          Object.keys(v.customData).forEach((k) => {
+            if (!RESERVED.has(k.toLowerCase())) customKeys.add(k);
+          });
+        }
+      });
+
+      const customCols = Array.from(customKeys).map((key) => ({
+        key: `customData.${key}`,
+        label: key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' '),
+        isCustom: true,
+        originalKey: key,
+      }));
+
+      return [
+        ...baseCols,
+        ...customCols,
+        { key: 'votingDate', label: 'Registration Date' },
+      ];
+    }
+
+    const dateLabel =
+      contest.isClosedContest &&
+        contest.closedContestType === 'pre-registration'
+        ? 'Registration Date'
+        : 'Voting Date';
+
+    return [...baseCols, { key: 'votingDate', label: dateLabel }];
+  }, [contest, allVoters]);
 
   const filteredData = useMemo(() => {
     let filtered = voterDetails.filter(
@@ -219,42 +230,13 @@ const VotersDetails = () => {
   const totalVotes = useMemo(() => calculateTotalVotes(contest), [contest]);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await axios.post(
-        `/api/contest/contests/${contestId}/voters`,
-        {
-          voterName: registrationForm.name,
-          voterEmail: registrationForm.email,
-        }
-      );
-      if (res.data?.success) {
-        toast.success('Voter registered successfully');
-        setContest(res.data?.contest || contest);
-        setRegistrationForm({ name: '', email: '', registrationDate: '' });
-      } else {
-        toast.error(res.data?.message || 'Something went wrong.');
-      }
-    } catch (err) {
-      if (err.response?.data?.message) {
-        toast.error(err.response.data.message);
-      } else {
-        toast.error('Unable to send verification code. Please try again.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteVoter = async (e, voterId) => {
-    e.preventDefault();
-    if (loading) return;
+  const confirmDeleteVoter = async () => {
+    if (!voterToDelete || loading) return;
+    const { id } = voterToDelete;
     setLoading(true);
     try {
       toast.promise(
-        axios.delete(`/api/contest/contests/${contestId}/voters/${voterId}`),
+        axios.delete(`/api/contest/contests/${contestId}/voters/${id}`),
         {
           pending: 'Deleting voter...',
           success: 'Voter deleted successfully',
@@ -264,7 +246,7 @@ const VotersDetails = () => {
       setContest((prev) => ({
         ...prev,
         closedContestVoters: prev.closedContestVoters.filter(
-          (v) => v._id !== voterId
+          (v) => v._id !== id
         ),
       }));
     } catch (err) {
@@ -272,15 +254,49 @@ const VotersDetails = () => {
       toast.error(err.response?.data?.message || 'Error deleting voter');
     } finally {
       setLoading(false);
+      setVoterToDelete(null);
     }
   };
 
   if (isLoading) return <FullPageLoader />;
 
   return (
-    <div className='flex min-h-screen bg-white overflow-x-hidden flex-col lg:flex-row'>
-      <Sidebar />
-      <div className='flex-1 p-4 md:p-6 lg:ml-64'>
+    <div className='min-h-screen bg-[#f8f8f8]'>
+      {/* Delete Confirmation Modal */}
+      {voterToDelete && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>
+          <div className='bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4'>
+            <div className='text-center'>
+              <div className='mx-auto w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mb-4'>
+                <DeleteIcon className='w-7 h-7 text-red-600' />
+              </div>
+              <h3 className='text-xl font-bold text-gray-900 mb-2'>Delete Voter?</h3>
+              <p className='text-gray-600 text-sm mb-6'>
+                Are you sure you want to delete{' '}
+                <span className='font-semibold text-gray-900'>{voterToDelete.name}</span>?
+                This action cannot be undone.
+              </p>
+              <div className='flex gap-3'>
+                <button
+                  onClick={() => setVoterToDelete(null)}
+                  className='flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors'
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteVoter}
+                  disabled={loading}
+                  className='flex-1 px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-60 transition-colors'
+                >
+                  {loading ? 'Deleting...' : 'Yes, Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      <TopNav />
+      <div className='px-4 sm:px-8 py-6 max-w-6xl mx-auto'>
         <div className='flex items-center gap-2 md:gap-4 mb-6 md:mb-8'>
           <button
             onClick={() => navigate(-1)}
@@ -345,10 +361,12 @@ const VotersDetails = () => {
             <div className='flex flex-col gap-3 w-full lg:w-auto mt-4 lg:mt-0'>
               <button
                 className='flex items-center justify-center gap-2 px-4 py-2 border border-[#000000] rounded-lg hover:bg-teal-900 hover:text-white transition-colors text-sm font-medium'
-                onClick={() => setIsVotersRegLinkOpen(true)}
+                onClick={() => {
+                  setIsVotersRegLinkOpen(true);
+                }}
               >
                 <Share2 size={16} />
-                {contest?.isClosedContest
+                {contest?.isClosedContest && contest?.closedContestType === 'pre-registration'
                   ? 'Share Voters Registration Link'
                   : 'Share Voting Link'}
               </button>
@@ -404,66 +422,7 @@ const VotersDetails = () => {
 
             {contest?.isClosedContest ? (
               <>
-                <div className='bg-white rounded-2xl shadow-lg border border-gray-100 p-4 md:p-6 mb-4 md:mb-6'>
-                  <h3 className='text-lg font-bold mb-4 text-gray-900'>
-                    Register Voter
-                  </h3>
-                  <form
-                    className='flex flex-col md:flex-row gap-4 items-center'
-                    onSubmit={handleSubmit}
-                  >
-                    <input
-                      type='text'
-                      placeholder='Full Name'
-                      value={registrationForm?.name || ''}
-                      onChange={(e) =>
-                        setRegistrationForm((f) => ({
-                          ...f,
-                          name: e.target.value,
-                        }))
-                      }
-                      className='w-full md:flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all'
-                      required
-                    />
-                    <input
-                      type='email'
-                      placeholder='Email Address'
-                      value={registrationForm?.email || ''}
-                      onChange={(e) =>
-                        setRegistrationForm((f) => ({
-                          ...f,
-                          email: e.target.value,
-                        }))
-                      }
-                      className='w-full md:flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all'
-                      required
-                    />
-                    <input
-                      type='date'
-                      placeholder='Registration Date'
-                      value={registrationForm?.registrationDate || ''}
-                      onChange={(e) =>
-                        setRegistrationForm((f) => ({
-                          ...f,
-                          registrationDate: e.target.value,
-                        }))
-                      }
-                      className='w-full md:flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all'
-                      required
-                    />
-                    <button
-                      type='submit'
-                      className={`w-full md:w-auto px-6 py-3 ${
-                        loading
-                          ? 'cursor-not-allowed bg-orange-200'
-                          : 'bg-orange-500'
-                      } text-white rounded-xl font-medium hover:bg-orange-600 transition-colors`}
-                      disabled={loading}
-                    >
-                      {loading ? 'Registering...' : 'Register Voter'}
-                    </button>
-                  </form>
-                </div>
+
 
                 {/* Mobile view for closed contest table */}
                 <div className='block lg:hidden'>
@@ -474,7 +433,7 @@ const VotersDetails = () => {
                           key={reg.id}
                           voter={reg}
                           isClosedContest={true}
-                          handleDeleteVoter={handleDeleteVoter}
+                          columns={columns}
                         />
                       ))
                     ) : (
@@ -514,15 +473,14 @@ const VotersDetails = () => {
                           <th className='py-4 px-6 font-semibold text-gray-900 whitespace-nowrap'>
                             S/N
                           </th>
-                          <th className='py-4 px-6 font-semibold text-gray-900 whitespace-nowrap'>
-                            Full Name
-                          </th>
-                          <th className='py-4 px-6 font-semibold text-gray-900 whitespace-nowrap'>
-                            Email Address
-                          </th>
-                          <th className='py-4 px-6 font-semibold text-gray-900 whitespace-nowrap'>
-                            Registration Date
-                          </th>
+                          {columns.map((col) => (
+                            <th
+                              key={col.key}
+                              className='py-4 px-6 font-semibold text-gray-900 whitespace-nowrap'
+                            >
+                              {col.label}
+                            </th>
+                          ))}
                           <th className='py-4 px-6 font-semibold text-gray-900 text-right'>
                             Actions
                           </th>
@@ -536,24 +494,25 @@ const VotersDetails = () => {
                               className='hover:bg-gray-50 transition-colors'
                             >
                               <td className='py-4 px-6 text-gray-900 font-medium whitespace-nowrap'>
-                                {regStartIndex + idx + 1}
+                                {startIndex + idx + 1}
                               </td>
-                              <td className='py-4 px-6 font-medium text-gray-900 whitespace-nowrap'>
-                                {reg.name}
-                              </td>
-                              <td className='py-4 px-6 text-gray-600 whitespace-nowrap'>
-                                {reg.email}
-                              </td>
-                              <td className='py-4 px-6 text-gray-600 whitespace-nowrap'>
-                                {reg.votingDate
-                                  ? new Date(
-                                      reg.votingDate
-                                    ).toLocaleDateString()
-                                  : '--'}
-                              </td>
+                              {columns.map((col) => (
+                                <td
+                                  key={col.key}
+                                  className='py-4 px-6 text-gray-600 whitespace-nowrap'
+                                >
+                                  {col.isCustom
+                                    ? reg.customData?.[col.originalKey] || '--'
+                                    : col.key === 'votingDate'
+                                      ? reg.votingDate
+                                        ? new Date(reg.votingDate).toLocaleDateString()
+                                        : '--'
+                                      : reg[col.key] || '--'}
+                                </td>
+                              ))}
                               <td className='py-4 px-6 text-right'>
                                 <button
-                                  onClick={(e) => handleDeleteVoter(e, reg.id)}
+                                  onClick={() => setVoterToDelete({ id: reg.id, name: reg.name })}
                                   className='text-red-600 hover:text-red-800 transition-colors p-1 rounded-full hover:bg-red-100'
                                 >
                                   <DeleteIcon className='w-5 h-5' />
@@ -586,50 +545,39 @@ const VotersDetails = () => {
                       </tbody>
                     </table>
                   </div>
+
                 </div>
-                {regTotalPages > 1 && (
-                  <div className='flex flex-col md:flex-row items-center justify-between px-4 md:px-6 py-4 bg-gray-50 border-t border-gray-200 gap-2'>
+
+                {totalPages > 1 && (
+                  <div className='flex flex-col md:flex-row items-center justify-between px-4 md:px-6 py-4 bg-gray-50 border-t border-gray-200 gap-2 mt-0'>
                     <div className='text-sm text-gray-700'>
-                      Showing {regStartIndex + 1} to{' '}
-                      {Math.min(
-                        regStartIndex + regItemsPerPage,
-                        registrationData.length
-                      )}{' '}
-                      of {registrationData.length} registrations
+                      Showing {startIndex + 1} to{' '}
+                      {Math.min(startIndex + itemsPerPage, filteredData.length)}{' '}
+                      of {filteredData.length} voters
                     </div>
                     <div className='flex gap-2'>
                       <button
-                        onClick={() =>
-                          setRegCurrentPage(Math.max(1, regCurrentPage - 1))
-                        }
-                        disabled={regCurrentPage === 1}
+                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                        disabled={currentPage === 1}
                         className='px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
                       >
                         Previous
                       </button>
-                      {Array.from(
-                        { length: regTotalPages },
-                        (_, i) => i + 1
-                      ).map((page) => (
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                         <button
                           key={page}
-                          onClick={() => setRegCurrentPage(page)}
-                          className={`px-3 py-1 text-sm border rounded-md transition-colors ${
-                            regCurrentPage === page
-                              ? 'bg-orange-600 text-white border-orange-600'
-                              : 'border-gray-300 hover:bg-gray-100'
-                          }`}
+                          onClick={() => setCurrentPage(page)}
+                          className={`px-3 py-1 text-sm border rounded-md transition-colors ${currentPage === page
+                            ? 'bg-orange-600 text-white border-orange-600'
+                            : 'border-gray-300 hover:bg-gray-100'
+                            }`}
                         >
                           {page}
                         </button>
                       ))}
                       <button
-                        onClick={() =>
-                          setRegCurrentPage(
-                            Math.min(regTotalPages, regCurrentPage + 1)
-                          )
-                        }
-                        disabled={regCurrentPage === regTotalPages}
+                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                        disabled={currentPage === totalPages}
                         className='px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
                       >
                         Next
@@ -650,6 +598,7 @@ const VotersDetails = () => {
                           key={voter?.id}
                           voter={voter}
                           isClosedContest={false}
+                          columns={columns}
                         />
                       ))
                     ) : (
@@ -689,27 +638,14 @@ const VotersDetails = () => {
                           <th className='py-4 px-6 font-semibold text-gray-900 whitespace-nowrap'>
                             S/N
                           </th>
-                          <th
-                            className='py-4 px-6 font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors whitespace-nowrap'
-                            onClick={() => handleSort('name')}
-                          >
-                            <div className='flex items-center gap-2'>
-                              Full Name
-                              <SortIcon field='name' />
-                            </div>
-                          </th>
-                          <th
-                            className='py-4 px-6 font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors whitespace-nowrap'
-                            onClick={() => handleSort('email')}
-                          >
-                            <div className='flex items-center gap-2'>
-                              Email Address
-                              <SortIcon field='email' />
-                            </div>
-                          </th>
-                          <th className='py-4 px-6 font-semibold text-gray-900 whitespace-nowrap'>
-                            Voting Date
-                          </th>
+                          {columns.map((col) => (
+                            <th
+                              key={col.key}
+                              className='py-4 px-6 font-semibold text-gray-900 whitespace-nowrap'
+                            >
+                              {col.label}
+                            </th>
+                          ))}
                         </tr>
                       </thead>
                       <tbody className='divide-y divide-gray-100'>
@@ -722,25 +658,22 @@ const VotersDetails = () => {
                               <td className='py-4 px-6 text-gray-900 font-medium whitespace-nowrap'>
                                 {startIndex + idx + 1}
                               </td>
-                              <td className='py-4 px-6 whitespace-nowrap'>
-                                <div className='font-medium text-gray-900'>
-                                  {voter.name}
-                                </div>
-                              </td>
-                              <td className='py-4 px-6 whitespace-nowrap'>
-                                <div className='text-gray-600'>
-                                  {voter.email}
-                                </div>
-                              </td>
-                              <td className='py-4 px-6 whitespace-nowrap'>
-                                <div className='text-gray-600'>
-                                  {voter.votingDate
-                                    ? new Date(
-                                        voter.votingDate
-                                      ).toLocaleDateString()
-                                    : '--'}
-                                </div>
-                              </td>
+                              {columns.map((col) => (
+                                <td
+                                  key={col.key}
+                                  className='py-4 px-6 whitespace-nowrap'
+                                >
+                                  <div className='text-gray-600'>
+                                    {col.isCustom
+                                      ? voter.customData?.[col.originalKey] || '--'
+                                      : col.key === 'votingDate'
+                                        ? voter.votingDate
+                                          ? new Date(voter.votingDate).toLocaleDateString()
+                                          : '--'
+                                        : voter[col.key] || '--'}
+                                  </div>
+                                </td>
+                              ))}
                             </tr>
                           ))
                         ) : (
@@ -789,11 +722,10 @@ const VotersDetails = () => {
                           <button
                             key={page}
                             onClick={() => setCurrentPage(page)}
-                            className={`px-3 py-1 text-sm border rounded-md transition-colors ${
-                              currentPage === page
-                                ? 'bg-orange-600 text-white border-orange-600'
-                                : 'border-gray-300 hover:bg-gray-100'
-                            }`}
+                            className={`px-3 py-1 text-sm border rounded-md transition-colors ${currentPage === page
+                              ? 'bg-orange-600 text-white border-orange-600'
+                              : 'border-gray-300 hover:bg-gray-100'
+                              }`}
                           >
                             {page}
                           </button>

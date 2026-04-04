@@ -1,5 +1,4 @@
 import { Search } from "lucide-react";
-// import logo from "../../assets/Logo.png";
 import ContestListing from "../../Components/LandingPageComp/contest/ContestListing";
 import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
@@ -113,12 +112,14 @@ const Contest = () => {
           </div>
         </div>
 
-        <ContestListing
-          contests={contests}
-          loading={loading}
-          error={error}
-          lastItemRef={lastItemRef} // Pass ref for infinite scroll
-        />
+        <div className="max-w-7xl mx-auto px-4 py-10">
+          <ContestListing
+            contests={contests}
+            loading={loading}
+            error={error}
+            lastItemRef={lastItemRef} // Pass ref for infinite scroll
+          />
+        </div>
       </section>
     </>
   );

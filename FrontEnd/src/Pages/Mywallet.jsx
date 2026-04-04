@@ -1,6 +1,6 @@
-/* eslint-disable no-unused-vars */
+﻿/* eslint-disable no-unused-vars */
 import React, { use, useEffect, useState } from "react";
-import Sidebar from "../Components/sidebar";
+import TopNav from "../Components/TopNav";
 import {
   Download,
   TrendingUp,
@@ -228,10 +228,10 @@ const Mywallet = () => {
   if (isLoading) return <FullPageLoader />;
 
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row lg:gap-[10rem]">
-      <Sidebar />
+    <div className="min-h-screen bg-[#f8f8f8]">
+      <TopNav />
 
-      <div className="flex-1 p-4 sm:p-6 md:ml-20">
+      <div className="px-4 sm:px-8 py-6 max-w-6xl mx-auto sm:p-6 md:ml-20">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6 sm:mb-8">
           <h2 className="text-2xl sm:text-[30px] font-bold text-gray-900">

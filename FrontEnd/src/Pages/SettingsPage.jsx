@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import Sidebar from "../Components/sidebar";
+﻿import React, { useState, useEffect } from "react";
+import TopNav from "../Components/TopNav";
 import { uploadToCloudinary } from "../actions/cloudinaryAction"; // Adjust the import path as necessary
 import { useUser } from "../context/UserContext";
 import axios from "axios";
@@ -196,9 +196,9 @@ const SettingsPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 lg:gap-[10rem]">
-      <Sidebar />
-      <div className="flex-1 p-6 md:ml-20 ">
+    <div className="min-h-screen bg-[#f8f8f8]">
+      <TopNav />
+      <div className="px-4 sm:px-8 py-6 max-w-6xl mx-auto ">
         {/* Header Section */}
         <div className="mb-10 text-left ">
           <h2 className="text-[30px] font-bold text-gray-900 mb-3">Settings</h2>

@@ -84,9 +84,39 @@ const VContestantDetails = () => {
       return { ...c, id, votes, percentage };
     });
 
-    const isVoteVisible = contest?.isVoteCountVisible || contest?.status === 'completed';
+    const shouldShowResults = (() => {
+      if (!contest) return false;
+      if (contest.isVoteCountVisible) return true;
 
-    if (!isVoteVisible) {
+      const now = new Date();
+
+      // Build end date/time
+      const endDate = new Date(contest.endDate);
+      if (contest.endTime) {
+        let hour = parseInt(contest.endTime.endTimeHour, 10);
+        if (contest.endTime.endTimeAmPm === 'PM' && hour < 12) hour += 12;
+        endDate.setHours(hour, parseInt(contest.endTime.endTimeMinute, 10), 0, 0);
+      }
+
+      if (now < endDate) return false;
+
+      // Contest has ended, check reveal settings
+      if (contest.resultRevealSetting === 'immediately') return true;
+      if (contest.resultRevealSetting === 'manual') return contest.isResultReleased;
+      if (contest.resultRevealSetting === 'scheduled' && contest.revealDate) {
+        const revealDate = new Date(contest.revealDate);
+        if (contest.revealTime) {
+          let hour = parseInt(contest.revealTime.revealHour, 10);
+          if (contest.revealTime.revealAmPm === 'PM' && hour < 12) hour += 12;
+          revealDate.setHours(hour, parseInt(contest.revealTime.revealMinute, 10), 0, 0);
+        }
+        return now >= revealDate;
+      }
+
+      return true; // Default
+    })();
+
+    if (!shouldShowResults) {
       // Shuffle for random order
       for (let i = withVotes.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -99,7 +129,7 @@ const VContestantDetails = () => {
     }
 
     return withVotes;
-  }, [positionInfo, positionVotes, contest?.isVoteCountVisible, contest?.status]);
+  }, [positionInfo, positionVotes, contest]);
 
   const currentContestant = useMemo(() => {
     if (!allContestants.length) return null;

@@ -20,7 +20,14 @@ export const createContest = async (req, res) => {
       payment,
       allowMultipleVotes,
       isClosedContest,
+      closedContestType,
+      authenticationField,
+      closedContestVoters,
       isVoteCountVisible,
+      resultRevealSetting,
+      revealDate,
+      revealTime,
+      isResultReleased,
       _id, // _id is optional for editing
       uid,
     } = req.body;
@@ -28,6 +35,16 @@ export const createContest = async (req, res) => {
     const organizer = await User.findOne({ firebaseUid: uid });
     if (!organizer) {
       return res.status(404).json({ message: "Organizer not found" });
+    }
+
+    let finalVoters = closedContestVoters || [];
+    if (closedContestType === "bulk-upload" && authenticationField) {
+      finalVoters = finalVoters.map((v) => {
+        if (v.customData && v.customData[authenticationField]) {
+          v.customKey = v.customData[authenticationField].toString().trim();
+        }
+        return v;
+      });
     }
 
     const contestData = {
@@ -48,7 +65,14 @@ export const createContest = async (req, res) => {
       status,
       type,
       isClosedContest,
+      closedContestType,
+      authenticationField,
+      closedContestVoters: finalVoters,
       isVoteCountVisible,
+      resultRevealSetting,
+      revealDate,
+      revealTime,
+      isResultReleased,
       socialLinks: req.body.socialLinks,
     };
 
@@ -170,7 +194,7 @@ export const getContestById = async (req, res) => {
 export const updateContestStatus = async (req, res) => {
   try {
     const { contestId } = req.params;
-    const { status, startDate, startTime, endDate, endTime } = req.body;
+    const { status, startDate, startTime, endDate, endTime, isResultReleased } = req.body;
 
     // Build update object based on what is sent
     const updateData = {};
@@ -179,6 +203,7 @@ export const updateContestStatus = async (req, res) => {
     if (startTime) updateData.startTime = startTime;
     if (endDate) updateData.endDate = endDate;
     if (endTime) updateData.endTime = endTime;
+    if (isResultReleased !== undefined) updateData.isResultReleased = isResultReleased;
 
     const contest = await Contest.findByIdAndUpdate(contestId, updateData, {
       new: true,
@@ -443,53 +468,66 @@ export const addVoters = async (req, res) => {
     });
     await contest.save();
 
-    // Setup transporter (use env vars for real secrets)
-    const transporter = nodemailer.createTransport({
-      host: "smtp.sendgrid.net",
-      port: 587, // or 2525
-      secure: false, // STARTTLS
-      auth: {
-        user: "apikey", // literally the word "apikey"
-        pass: process.env.SENDGRID_API_KEY, // your SendGrid API key stored in Render env
-      },
-    });
+    // Setup transporter for Resend
+    const resendApiKey = process.env.RESEND_API_KEY;
 
-    // Send email
-    await transporter.sendMail({
-      from: `"ZEECONTEST Support" <support@zeecontest.com>`,
-      to: voterEmail,
-      subject: `Your Voting Verification Code – ${contest.title}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-          <h2 style="color: #0A84FF;">Hello ${voterName},</h2>
-          <p>Thank you for registering to vote in <b>${contest.title}</b>.</p>
-          
-          <p>Your one-time verification code is:</p>
-          <div style="margin: 20px 0; padding: 12px; background: #f4f4f4;
-                      border: 1px solid #ddd; border-radius: 6px;
-                      display: inline-block; font-size: 20px; font-weight: bold;
-                      letter-spacing: 2px; color: #0A84FF;">
-            ${code}
+    if (resendApiKey && resendApiKey !== "your_resend_api_key_here") {
+      const transporter = nodemailer.createTransport({
+        host: "smtp.resend.com",
+        port: 587,
+        secure: false, // STARTTLS
+        auth: {
+          user: "resend",
+          pass: resendApiKey,
+        },
+      });
+
+      // Send email
+      await transporter.sendMail({
+        from: `"ZEECONTEST Support" <support@zeecontest.com>`, // Updated to verified domain
+        to: voterEmail,
+        subject: `Your Voting Verification Code – ${contest.title}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <h2 style="color: #0A84FF;">Hello ${voterName},</h2>
+            <p>Thank you for registering to vote in <b>${contest.title}</b>.</p>
+            
+            <p>Your one-time verification code is:</p>
+            <div style="margin: 20px 0; padding: 12px; background: #f4f4f4;
+                        border: 1px solid #ddd; border-radius: 6px;
+                        display: inline-block; font-size: 20px; font-weight: bold;
+                        letter-spacing: 2px; color: #0A84FF;">
+              ${code}
+            </div>
+
+            <p>Please enter this code to confirm your vote.</p>
+
+            <h3 style="margin-top: 24px; color: #444;">📅 Contest Schedule</h3>
+            <p>
+              <b>Start:</b> ${startDate}, ${startTime} <br/>
+              <b>End:</b> ${endDate}, ${endTime}
+            </p>
+
+            <p style="font-size: 14px; color: #777;">If you didn’t request this code, please ignore this email.</p>
+            
+            <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;">
+            <p style="font-size: 12px; color: #999;">© ${new Date().getFullYear()} ZEECONTEST. All rights reserved.</p>
           </div>
-
-          <p>Please enter this code to confirm your vote.</p>
-
-          <h3 style="margin-top: 24px; color: #444;">📅 Contest Schedule</h3>
-          <p>
-            <b>Start:</b> ${startDate}, ${startTime} <br/>
-            <b>End:</b> ${endDate}, ${endTime}
-          </p>
-
-          <p style="font-size: 14px; color: #777;">If you didn’t request this code, please ignore this email.</p>
-          
-          <hr style="margin: 24px 0; border: none; border-top: 1px solid #eee;">
-          <p style="font-size: 12px; color: #999;">© ${new Date().getFullYear()} ZEECONTEST. All rights reserved.</p>
-        </div>
-      `,
-    });
+        `,
+      });
+      console.log(`Verification email sent to ${voterEmail}`);
+    } else {
+      console.log("-----------------------------------------");
+      console.log("DEVELOPMENT MODE: RESEND_API_KEY missing.");
+      console.log(`To: ${voterEmail}`);
+      console.log(`Verification Code: ${code}`);
+      console.log("-----------------------------------------");
+    }
 
     return res.status(200).json({
-      message: "Verification code sent to email",
+      message: resendApiKey && resendApiKey !== "your_resend_api_key_here"
+        ? "Verification code sent to email"
+        : "Verification code generated (check server console in dev)",
       success: true,
       contest,
     });
@@ -547,21 +585,34 @@ export const deleteVoter = async (req, res) => {
 export const addVerifyVote = async (req, res) => {
   try {
     const { contestId } = req.params;
-    let { email, code, votedFor, multiplier = 1 } = req.body;
+    let { email, code, customKey, votedFor, multiplier = 1 } = req.body;
 
     // normalize types
     multiplier = Number(multiplier) || 1;
-    const codeNum = Number(code);
 
     const contest = await Contest.findById(contestId);
     if (!contest) return res.status(404).json({ message: "Contest not found" });
 
-    // find the unverified/registered voter by email+code
-    const voter = contest.closedContestVoters.find(
-      (v) => v.email === email && v.code === codeNum
-    );
-    if (!voter) {
-      return res.status(400).json({ message: "Invalid code or email" });
+    let voter;
+    if (contest.closedContestType === "bulk-upload") {
+      // Find voter by their custom authentication key natively mapped
+      if (!customKey) return res.status(400).json({ message: "Verification key is required" });
+
+      voter = contest.closedContestVoters.find(
+        (v) => v.customKey && v.customKey.toLowerCase() === customKey.trim().toLowerCase()
+      );
+      if (!voter) {
+        return res.status(400).json({ message: `Invalid ${contest.authenticationField || 'Verification Key'}` });
+      }
+    } else {
+      // Normal pre-registration email/code check
+      const codeNum = Number(code);
+      voter = contest.closedContestVoters.find(
+        (v) => v.email === email && v.code === codeNum
+      );
+      if (!voter) {
+        return res.status(400).json({ message: "Invalid code or email" });
+      }
     }
 
     // If multiple votes are not allowed and the voter already has multiplier > 0
@@ -604,22 +655,79 @@ export const getAllContests = async (req, res) => {
   try {
     const { page = 1, limit = 30, q = "", status, type } = req.query;
 
-    const query = {
-      status: { $ne: "draft" }, // Exclude drafts
-    };
+    const query = {};
 
     if (q) query.title = { $regex: q, $options: "i" };
-    if (status) query.status = status; // optional filter for non-draft statuses
+    if (status) {
+      query.status = status;
+    } else {
+      query.status = { $ne: "draft" }; // Default: Exclude drafts
+    }
     if (type) query.type = type; // optional filter
 
     const pageNum = Math.max(parseInt(page, 10) || 1, 1);
     const lim = Math.min(Math.max(parseInt(limit, 10) || 30, 1), 100);
 
     const [contests, total] = await Promise.all([
-      Contest.find(query)
-        .sort({ createdAt: -1 })
-        .skip((pageNum - 1) * lim)
-        .limit(lim),
+      Contest.aggregate([
+        { $match: query },
+        { $sort: { createdAt: -1 } },
+        { $skip: (pageNum - 1) * lim },
+        { $limit: lim },
+        {
+          $project: {
+            title: 1,
+            status: 1,
+            coverImageUrl: 1,
+            isClosedContest: 1,
+            positionCount: { $size: { $ifNull: ["$positions", []] } },
+            totalContestants: {
+              $sum: {
+                $map: {
+                  input: { $ifNull: ["$positions", []] },
+                  as: "pos",
+                  in: { $size: { $ifNull: ["$$pos.contestants", []] } }
+                }
+              }
+            },
+            totalVotes: {
+              $add: [
+                {
+                  $sum: {
+                    $map: {
+                      input: { $ifNull: ["$positions", []] },
+                      as: "pos",
+                      in: {
+                        $sum: {
+                          $map: {
+                            input: { $ifNull: ["$$pos.voters", []] },
+                            as: "voter",
+                            in: { $max: [{ $ifNull: ["$$voter.multiplier", 1] }, 1] }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  $sum: {
+                    $map: {
+                      input: { $ifNull: ["$closedContestVoters", []] },
+                      as: "cvoter",
+                      in: {
+                        $multiply: [
+                          { $max: [{ $ifNull: ["$$cvoter.multiplier", 1] }, 1] },
+                          { $size: { $ifNull: ["$$cvoter.votedFor", []] } }
+                        ]
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]),
       Contest.countDocuments(query),
     ]);
 
@@ -837,32 +945,44 @@ export const withdrawal = async (req, res) => {
     }
 
     // ----- SEND EMAIL TO Zeecontesthub -----
-    const transporter = nodemailer.createTransport({
-      host: "smtp.sendgrid.net",
-      port: 587, // or 2525
-      secure: false, // STARTTLS
-      auth: {
-        user: "apikey", // literally the word "apikey"
-        pass: process.env.SENDGRID_API_KEY, // your SendGrid API key stored in Render env
-      },
-    });
+    const resendApiKey = process.env.RESEND_API_KEY;
 
-    const mailOptions = {
-      from: `"Zeecontest" <support@zeecontest.com>`,
-      to: "Zeecontesthub@gmail.com",
-      subject: `Withdrawal Request from ${userName}`,
-      html: `
-        <h2>Withdrawal Details</h2>
-        <p><strong>User:</strong> ${userName} (${userEmail})</p>
-        <p><strong>Amount:</strong> ₦${amount}</p>
-        <p><strong>Bank Name:</strong> ${bankName}</p>
-        <p><strong>Account Number:</strong> ${bankAccount}</p>
-        <p><strong>Account Holder:</strong> ${accountName}</p>
-        <p>Please make the transfer accordingly.</p>
-      `,
-    };
+    if (resendApiKey && resendApiKey !== "your_resend_api_key_here") {
+      const transporter = nodemailer.createTransport({
+        host: "smtp.resend.com",
+        port: 587,
+        secure: false, // STARTTLS
+        auth: {
+          user: "resend",
+          pass: resendApiKey,
+        },
+      });
 
-    await transporter.sendMail(mailOptions);
+      const mailOptions = {
+        from: `"Zeecontest" <support@zeecontest.com>`, // Updated to verified domain
+        to: "Zeecontesthub@gmail.com",
+        subject: `Withdrawal Request from ${userName}`,
+        html: `
+          <h2>Withdrawal Details</h2>
+          <p><strong>User:</strong> ${userName} (${userEmail})</p>
+          <p><strong>Amount:</strong> ₦${amount}</p>
+          <p><strong>Bank Name:</strong> ${bankName}</p>
+          <p><strong>Account Number:</strong> ${bankAccount}</p>
+          <p><strong>Account Holder:</strong> ${accountName}</p>
+          <p>Please make the transfer accordingly.</p>
+        `,
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log(`Withdrawal email sent for ${userEmail}`);
+    } else {
+      console.log("-----------------------------------------");
+      console.log("DEVELOPMENT MODE: RESEND_API_KEY missing.");
+      console.log(`Withdrawal Request for: ${userName} (${userEmail})`);
+      console.log(`Amount: ₦${amount}`);
+      console.log(`Bank: ${bankName}, Acc: ${bankAccount}`);
+      console.log("-----------------------------------------");
+    }
 
     res.json({
       success: true,

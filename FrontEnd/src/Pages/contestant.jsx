@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
-import Sidebar from '../Components/sidebar';
+﻿import React, { useEffect, useState, useRef } from 'react';
+import TopNav from '../Components/TopNav';
 import BannerImage from '../assets/Rectangle _5189.png';
 import LogoImage from '../assets/Ellipse 20.png';
 import { Edit, Share2, ChevronLeft } from 'lucide-react';
@@ -206,9 +206,9 @@ const Contestant = () => {
   if (isLoading) return <FullPageLoader />;
 
   return (
-    <div className='flex min-h-screen overflow-x-hidden lg:gap-[10rem]'>
-      <Sidebar />
-      <div className='flex-1 p-6 md:ml-20 '>
+    <div className='min-h-screen bg-[#f8f8f8]'>
+      <TopNav />
+      <div className='px-4 sm:px-8 py-6 max-w-6xl mx-auto '>
         {/* Header */}
         <div className='flex items-center gap-4 mb-8'>
           <button

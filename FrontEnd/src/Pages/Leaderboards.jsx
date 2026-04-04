@@ -1,7 +1,7 @@
-/* eslint-disable no-unused-vars */
+﻿/* eslint-disable no-unused-vars */
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Sidebar from "../Components/sidebar";
+import TopNav from "../Components/TopNav";
 import BannerImage from "../assets/Rectangle _5189.png";
 import LogoImage from "../assets/Ellipse 20.png";
 import FullPageLoader from "../Components/FullPageLoader";
@@ -17,6 +17,8 @@ import {
   Medal,
   Target,
   ChevronLeft,
+  Lock,
+  Info,
 } from "lucide-react";
 import { Pie, Bar } from "react-chartjs-2";
 import {
@@ -81,7 +83,7 @@ const Leaderboards = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
-  
+
 
   useEffect(() => {
     const fetchContest = async () => {
@@ -247,7 +249,7 @@ const Leaderboards = () => {
 
     const topPosition = contest.positions.reduce((prev, curr) =>
       getPositionTotalVotes(curr, contest) >
-      getPositionTotalVotes(prev, contest)
+        getPositionTotalVotes(prev, contest)
         ? curr
         : prev
     );
@@ -383,12 +385,74 @@ const Leaderboards = () => {
   // Get the voting link for this contest
   const votingLink = `${window.location.origin}/vote/${contestId}`;
 
+  const shouldShowResults = useMemo(() => {
+    if (!contest) return false;
+    if (contest.isVoteCountVisible) return true;
+
+    const now = new Date();
+
+    // Build end date/time
+    const endDate = new Date(contest.endDate);
+    if (contest.endTime) {
+      let hour = parseInt(contest.endTime.endTimeHour, 10);
+      if (contest.endTime.endTimeAmPm === 'PM' && hour < 12) hour += 12;
+      endDate.setHours(hour, parseInt(contest.endTime.endTimeMinute, 10), 0, 0);
+    }
+
+    if (now < endDate) return false;
+
+    // Contest has ended, check reveal settings
+    if (contest.resultRevealSetting === 'immediately') return true;
+    if (contest.resultRevealSetting === 'manual') return contest.isResultReleased;
+    if (contest.resultRevealSetting === 'scheduled' && contest.revealDate) {
+      const revealDate = new Date(contest.revealDate);
+      if (contest.revealTime) {
+        let hour = parseInt(contest.revealTime.revealHour, 10);
+        if (contest.revealTime.revealAmPm === 'PM' && hour < 12) hour += 12;
+        revealDate.setHours(hour, parseInt(contest.revealTime.revealMinute, 10), 0, 0);
+      }
+      return now >= revealDate;
+    }
+
+    return true; // Default
+  }, [contest]);
+
   if (isLoading) return <FullPageLoader />;
 
+  if (!shouldShowResults) {
+    return (
+      <div className="min-h-screen bg-[#f8f8f8] bg-gray-900 text-white overflow-x-hidden">
+        <TopNav />
+        <div className="flex-1 flex flex-col items-center justify-center p-6 md:ml-20">
+          <div className="bg-gray-800/50 backdrop-blur-xl border border-gray-700 p-10 rounded-3xl text-center max-w-lg shadow-2xl">
+            <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-orange-500/30">
+              <Lock className="w-10 h-10 text-orange-500 animate-pulse" />
+            </div>
+            <h2 className="text-3xl font-bold mb-4">Results are Hidden</h2>
+            <p className="text-gray-400 mb-8 leading-relaxed">
+              The organizer has restricted the visibility of vote counts for this contest.
+              Results will be revealed according to the official contest schedule.
+            </p>
+            <div className="flex items-center justify-center gap-2 text-sm text-gray-500 bg-gray-900/50 py-3 px-6 rounded-2xl border border-gray-700/50">
+              <Info className="w-4 h-4" />
+              <span>Stay tuned for the official announcement</span>
+            </div>
+            <button
+              onClick={() => navigate(-1)}
+              className="mt-8 text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-h-screen bg-white overflow-x-hidden lg:gap-[10rem]">
-      <Sidebar />
-      <div className="flex-1 p-6 md:ml-20 ">
+    <div className="min-h-screen bg-[#f8f8f8]">
+      <TopNav />
+      <div className="px-4 sm:px-8 py-6 max-w-6xl mx-auto ">
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => navigate(-1)}
@@ -548,16 +612,16 @@ const Leaderboards = () => {
                 {filteredPositions.map((pos) => {
                   const totalPositionVotes = !contest.isClosedContest
                     ? pos.voters?.reduce(
-                        (sum, v) => sum + (v.multiplier || 0),
-                        0
-                      ) || 0
+                      (sum, v) => sum + (v.multiplier || 0),
+                      0
+                    ) || 0
                     : contest.closedContestVoters?.reduce((sum, v) => {
-                        const count =
-                          v.votedFor?.filter(
-                            (vote) => vote.positionTitle === pos.name
-                          ).length || 0;
-                        return sum + count * (v.multiplier || 0);
-                      }, 0) || 0;
+                      const count =
+                        v.votedFor?.filter(
+                          (vote) => vote.positionTitle === pos.name
+                        ).length || 0;
+                      return sum + count * (v.multiplier || 0);
+                    }, 0) || 0;
                   return (
                     <div
                       key={pos.name}
@@ -605,26 +669,24 @@ const Leaderboards = () => {
                       return (
                         <div
                           key={index}
-                          className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-4 rounded-2xl transition-all duration-200 ${
-                            isWinner
-                              ? "bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200"
-                              : isRunner
+                          className={`flex items-center gap-2 sm:gap-4 p-3 sm:p-4 rounded-2xl transition-all duration-200 ${isWinner
+                            ? "bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200"
+                            : isRunner
                               ? "bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200"
                               : isThird
-                              ? "bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-200"
-                              : "bg-gray-50/50 border border-gray-100"
-                          }`}
+                                ? "bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-200"
+                                : "bg-gray-50/50 border border-gray-100"
+                            }`}
                         >
                           <div
-                            className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full font-bold text-sm sm:text-lg flex-shrink-0 ${
-                              isWinner
-                                ? "bg-yellow-500 text-white"
-                                : isRunner
+                            className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full font-bold text-sm sm:text-lg flex-shrink-0 ${isWinner
+                              ? "bg-yellow-500 text-white"
+                              : isRunner
                                 ? "bg-gray-400 text-white"
                                 : isThird
-                                ? "bg-orange-600 text-white"
-                                : "bg-gray-300 text-gray-600"
-                            }`}
+                                  ? "bg-orange-600 text-white"
+                                  : "bg-gray-300 text-gray-600"
+                              }`}
                           >
                             {isWinner ? (
                               <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -666,19 +728,17 @@ const Leaderboards = () => {
                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                               <div className="flex-1 bg-gray-200 rounded-full h-2 sm:h-3 overflow-hidden">
                                 <div
-                                  className={`h-full rounded-full transition-all duration-1000 ${
-                                    isWinner
-                                      ? "bg-gradient-to-r from-yellow-400 to-orange-500"
-                                      : "bg-gradient-to-r from-teal-500 to-teal-600"
-                                  }`}
+                                  className={`h-full rounded-full transition-all duration-1000 ${isWinner
+                                    ? "bg-gradient-to-r from-yellow-400 to-orange-500"
+                                    : "bg-gradient-to-r from-teal-500 to-teal-600"
+                                    }`}
                                   style={{
-                                    width: `${
-                                      positionStats?.totalVotes
-                                        ? (contestant.votes /
-                                            positionStats?.totalVotes) *
-                                          100
-                                        : 0
-                                    }%`,
+                                    width: `${positionStats?.totalVotes
+                                      ? (contestant.votes /
+                                        positionStats?.totalVotes) *
+                                      100
+                                      : 0
+                                      }%`,
                                   }}
                                 ></div>
                               </div>

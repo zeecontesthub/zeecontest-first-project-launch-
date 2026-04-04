@@ -1,6 +1,6 @@
-/* eslint-disable no-unused-vars */
+﻿/* eslint-disable no-unused-vars */
 import { useState, useRef, useEffect } from 'react';
-import Sidebar from '../Components/sidebar';
+import TopNav from '../Components/TopNav';
 import { ChevronLeft } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import BannerImage from '../assets/Rectangle _5189.png';
@@ -531,9 +531,9 @@ const Editcontest = () => {
   if (isLoading) return <FullPageLoader />;
 
   return (
-    <div className='flex min-h-screen bg-white lg:gap-[10rem]'>
-      <Sidebar />
-      <div className='flex-1 p-6 md:ml-20 '>
+    <div className='min-h-screen bg-[#f8f8f8]'>
+      <TopNav />
+      <div className='px-4 sm:px-8 py-6 max-w-6xl mx-auto '>
         {/* Header */}
         <div className='flex items-center mb-6 sm:mb-8 gap-4'>
           <button

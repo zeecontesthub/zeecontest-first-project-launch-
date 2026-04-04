@@ -213,11 +213,11 @@ const VotingFlow = () => {
         return prev.map((v) =>
           v.positionTitle === posTitle
             ? {
-                ...v,
-                votedFor: candidate._id,
-                name: candidate.name,
-                image: candidate.image,
-              }
+              ...v,
+              votedFor: candidate._id,
+              name: candidate.name,
+              image: candidate.image,
+            }
             : v
         );
       }
@@ -319,51 +319,66 @@ const VotingFlow = () => {
     }
   };
   // Update handleOpenContestGoogleVerify to redirect after success
-  const handleOpenContestGoogleVerify = async () => {
+  const handleOpenContestGoogleVerify = (voterName) => {
+    console.log('[VotingFlow] handleOpenContestGoogleVerify called directly from click handler');
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
-    try {
-      // Google popup
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      const voterName = user.displayName || 'Anonymous';
-      const voterEmail = user.email;
-      const voteData = {
-        voterName,
-        voterEmail,
-        multiplier,
-        votedFor: finalVotes, // e.g. [{ positionTitle, votedFor }]
-      };
-      // Paid or free contest?
-      if (contest?.payment?.isPaid) {
-        await payWithPaystackOpen(
+
+    // Call signInWithPopup WITHOUT an initial await to ensure it stays in the user interaction stack
+    return signInWithPopup(auth, provider)
+      .then(async (result) => {
+        console.log('[VotingFlow] Google Sign-in Success:', result.user.email);
+        const user = result.user;
+
+        const finalVoterName = voterName || user.displayName || 'Anonymous';
+        const voterEmail = user.email;
+        const voteData = {
+          voterName: finalVoterName,
           voterEmail,
-          contest.payment.amount,
           multiplier,
-          voteData
-        );
-        // Store user info for open contest
-        localStorage.setItem('commentUserName', voterName);
-        localStorage.setItem('commentUserEmail', voterEmail);
-        localStorage.setItem('commentUserNameExpiry', Date.now() + 30 * 24 * 60 * 60 * 1000);
-        redirectToContestDetails();
-        return { success: true };
-      } else {
-        const result = await submitVoteOpen(voteData);
-        if (result.success) {
+          votedFor: finalVotes, // e.g. [{ positionTitle, votedFor }]
+        };
+
+        console.log('[VotingFlow] Submitting vote data:', voteData);
+        // Paid or free contest?
+        if (contest?.payment?.isPaid) {
+          console.log('[VotingFlow] Paid contest, using Paystack...');
+          await payWithPaystackOpen(
+            voterEmail,
+            contest.payment.amount,
+            multiplier,
+            voteData
+          );
+          // Store user info for open contest
           localStorage.setItem('commentUserName', voterName);
           localStorage.setItem('commentUserEmail', voterEmail);
           localStorage.setItem('commentUserNameExpiry', Date.now() + 30 * 24 * 60 * 60 * 1000);
           redirectToContestDetails();
           return { success: true };
+        } else {
+          console.log('[VotingFlow] Free contest, calling submitVoteOpen...');
+          const res = await submitVoteOpen(voteData);
+          console.log('[VotingFlow] submitVoteOpen result:', res);
+          if (res?.success) {
+            localStorage.setItem('commentUserName', voterName);
+            localStorage.setItem('commentUserEmail', voterEmail);
+            localStorage.setItem('commentUserNameExpiry', Date.now() + 30 * 24 * 60 * 60 * 1000);
+            redirectToContestDetails();
+            return { success: true };
+          }
+          return res;
         }
-        return result;
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error(err.message || 'Error verifying you');
-      return { success: false };
-    }
+      })
+      .catch((err) => {
+        console.error('[VotingFlow] Google Verify Error:', err);
+        // Special check for common Auth configuration errors
+        if (err.code === 'auth/invalid-action-code' || err.message?.includes('invalid')) {
+          toast.error('Auth configuration error. Please ensure localhost is an authorized domain in Firebase Console.');
+        } else {
+          toast.error(err.message || 'Error verifying you');
+        }
+        return { success: false, error: err.message };
+      });
   };
 
   // ⬇️ Submit vote for CLOSED contests (used both after payment verification and for free votes)
@@ -374,6 +389,7 @@ const VotingFlow = () => {
         {
           email: data.email,
           code: data.code,
+          customKey: data.customKey,
           votedFor: finalVotes,
           multiplier,
         }
@@ -474,16 +490,19 @@ const VotingFlow = () => {
 
   // Actual vote submission to your Express route
   async function submitVoteOpen(voteData) {
+    console.log('[VotingFlow] Calling submitVoteOpen API...', voteData);
     try {
       const res = await axios.post(
         `/api/contest/contests/${contestId}/add-vote`,
         voteData
       );
+      console.log('[VotingFlow] API Response Success:', res.data);
       if (res.data?.success) {
         toast.success('Vote submitted successfully!');
         return { success: true };
       } else {
         const message = res.data?.message || 'Something went wrong';
+        console.warn('[VotingFlow] API Response Failure:', message);
         toast.error(message);
         return { success: false, message };
       }
@@ -491,6 +510,7 @@ const VotingFlow = () => {
       const message = axios.isAxiosError(error)
         ? error.response?.data?.message || 'Something went wrong'
         : 'Something went wrong';
+      console.error('[VotingFlow] API Error:', { message, error });
       toast.error(message);
       return { success: false, message };
     }
@@ -728,19 +748,18 @@ const VotingFlow = () => {
                       </span>
                     </div>
                     <div
-                      className={`w-6 h-6 border-2 rounded ${
-                        votes.find(
-                          (vote) => vote.positionTitle === currentPosition.name
-                        )?.votedFor === candidate._id
-                          ? 'bg-[#034045] border-[#034045]'
-                          : 'border-gray-300'
-                      } flex items-center justify-center`}
+                      className={`w-6 h-6 border-2 rounded ${votes.find(
+                        (vote) => vote.positionTitle === currentPosition.name
+                      )?.votedFor === candidate._id
+                        ? 'bg-[#034045] border-[#034045]'
+                        : 'border-gray-300'
+                        } flex items-center justify-center`}
                     >
                       {votes.find(
                         (vote) => vote.positionTitle === currentPosition.name
                       )?.votedFor === candidate._id && (
-                        <Check className='w-4 h-4 text-white' />
-                      )}
+                          <Check className='w-4 h-4 text-white' />
+                        )}
                     </div>
                   </div>
                 ))}
@@ -758,13 +777,12 @@ const VotingFlow = () => {
                     (vote) => vote.positionTitle === currentPosition?.name
                   )
                 }
-                className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${
-                  votes.find(
-                    (vote) => vote.positionTitle === currentPosition.name
-                  )
-                    ? 'bg-[#034045] hover:bg-[#045a60] text-white'
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                }`}
+                className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${votes.find(
+                  (vote) => vote.positionTitle === currentPosition.name
+                )
+                  ? 'bg-[#034045] hover:bg-[#045a60] text-white'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
               >
                 {currentPositionIndex < positions.length - 1
                   ? 'Next Position'
@@ -871,11 +889,10 @@ const VotingFlow = () => {
           <button
             onClick={handleSubmitVotes}
             disabled={Object.keys(votes).length === 0}
-            className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${
-              Object.keys(votes).length > 0
-                ? 'bg-[#034045] hover:bg-[#045a60] text-white'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }`}
+            className={`w-full py-4 rounded-lg font-semibold text-lg transition-colors ${Object.keys(votes).length > 0
+              ? 'bg-[#034045] hover:bg-[#045a60] text-white'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              }`}
           >
             Cast my votes
           </button>
@@ -884,6 +901,7 @@ const VotingFlow = () => {
             open={showVotersCode}
             onClose={handleVotersCodeClose}
             onSubmit={handleVotersCodeSubmit}
+            contest={contest}
           />
           <OpenContestRegistration
             open={showOpenContestPopup}

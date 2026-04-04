@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { ChevronDown, Search, Check } from 'lucide-react';
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 
 const VotingPositionsSection = ({
   activePosition,
@@ -58,6 +58,38 @@ const VotingPositionsSection = ({
     };
   }, []);
 
+  const shouldShowResults = React.useMemo(() => {
+    if (!contest) return false;
+    if (contest.isVoteCountVisible) return true;
+
+    const now = new Date();
+
+    // Build end date/time
+    const endDate = new Date(contest.endDate);
+    if (contest.endTime) {
+      let hour = parseInt(contest.endTime.endTimeHour, 10);
+      if (contest.endTime.endTimeAmPm === 'PM' && hour < 12) hour += 12;
+      endDate.setHours(hour, parseInt(contest.endTime.endTimeMinute, 10), 0, 0);
+    }
+
+    if (now < endDate) return false;
+
+    // Contest has ended, check reveal settings
+    if (contest.resultRevealSetting === 'immediately') return true;
+    if (contest.resultRevealSetting === 'manual') return contest.isResultReleased;
+    if (contest.resultRevealSetting === 'scheduled' && contest.revealDate) {
+      const revealDate = new Date(contest.revealDate);
+      if (contest.revealTime) {
+        let hour = parseInt(contest.revealTime.revealHour, 10);
+        if (contest.revealTime.revealAmPm === 'PM' && hour < 12) hour += 12;
+        revealDate.setHours(hour, parseInt(contest.revealTime.revealMinute, 10), 0, 0);
+      }
+      return now >= revealDate;
+    }
+
+    return true; // Default
+  }, [contest]);
+
   const getOptionLabel = (position) => {
     const count = position?.contestants?.length ?? 0;
     const votes = !contest?.isClosedContest
@@ -73,7 +105,7 @@ const VotingPositionsSection = ({
         return total + count * (voter.multiplier || 0);
       }, 0) ?? 0;
 
-    if (contest?.isVoteCountVisible === false && contest?.status !== 'completed') {
+    if (!shouldShowResults) {
       return `${position.name} - ${count} Candidates`;
     }
     return `${position.name} - ${count} Candidates • ${votes} votes`;
@@ -82,6 +114,67 @@ const VotingPositionsSection = ({
   const filteredPositions = contest?.positions?.filter(position =>
     position.name.toLowerCase().includes(positionSearchTerm.toLowerCase())
   ) || [];
+
+  // 1️⃣ Pre-compute and memoize candidates with votes and shuffling
+  const filteredAndSortedCandidates = useMemo(() => {
+    if (!currentCandidates) return [];
+
+    const candidatesWithVotes = currentCandidates.map((candidate) => {
+      let votes = 0;
+
+      if (!contest?.isClosedContest) {
+        votes =
+          currentCandidatesVoters
+            ?.filter(
+              (voter) =>
+                voter.votedFor?.toString() ===
+                candidate._id?.toString()
+            )
+            .reduce(
+              (total, voter) => total + (voter.multiplier || 0),
+              0
+            ) || 0;
+      } else {
+        votes =
+          contest.closedContestVoters?.reduce((total, voter) => {
+            const count =
+              voter.votedFor?.filter(
+                (v) =>
+                  v.votedFor?.toString() === candidate._id?.toString()
+              ).length || 0;
+            return total + count * (voter.multiplier || 0);
+          }, 0) || 0;
+      }
+
+      return { ...candidate, votes };
+    });
+
+    // 2️⃣ Sort by votes (descending) or Shuffle
+    let sorted = [...candidatesWithVotes];
+    const isVoteVisible = shouldShowResults;
+
+    if (!isVoteVisible) {
+      // Shuffle for random order (stable per contest/position change due to useMemo)
+      for (let i = sorted.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [sorted[i], sorted[j]] = [sorted[j], sorted[i]];
+      }
+    } else {
+      sorted.sort((a, b) => b.votes - a.votes);
+    }
+
+    // 3️⃣ Filter based on search term
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    return sorted.filter((candidate) =>
+      candidate.name.toLowerCase().includes(lowerCaseSearchTerm)
+    );
+  }, [currentCandidates, contest, currentCandidatesVoters, shouldShowResults, searchTerm]);
+
+  // 1.1 Calculate maxVotes for "Leading" badge
+  const maxVotes = useMemo(() => {
+    if (filteredAndSortedCandidates.length === 0) return 0;
+    return Math.max(0, ...filteredAndSortedCandidates.map(c => c.votes));
+  }, [filteredAndSortedCandidates]);
 
   return (
     <div className='w-full mx-auto mt-6'>
@@ -162,23 +255,13 @@ const VotingPositionsSection = ({
             )}
           </div>
 
-          {/* Add this CSS somewhere in your component or global styles */}
           <style>{`
-  @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  .animate-slideDown {
-    animation: slideDown 0.2s ease-out;
-  }
-`}</style>
+            @keyframes slideDown {
+              from { opacity: 0; transform: translateY(-10px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-slideDown { animation: slideDown 0.2s ease-out; }
+          `}</style>
         </div>
       </div>
 
@@ -188,7 +271,6 @@ const VotingPositionsSection = ({
             {activePosition} Leaderboard
           </h2>
 
-          {/* Search Input Field */}
           <div className='relative w-full md:w-80'>
             <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400' />
             <input
@@ -203,76 +285,12 @@ const VotingPositionsSection = ({
 
         <div className='bg-white rounded-xl overflow-hidden p-0 md:p-6'>
           <div>
-            {(() => {
-              // 1️⃣ Pre-compute vote totals for all candidates
-              const candidatesWithVotes = currentCandidates.map((candidate) => {
-                let votes = 0;
-
-                if (!contest?.isClosedContest) {
-                  votes =
-                    currentCandidatesVoters
-                      ?.filter(
-                        (voter) =>
-                          voter.votedFor?.toString() ===
-                          candidate._id?.toString()
-                      )
-                      .reduce(
-                        (total, voter) => total + (voter.multiplier || 0),
-                        0
-                      ) || 0;
-                } else {
-                  votes =
-                    contest.closedContestVoters?.reduce((total, voter) => {
-                      const count =
-                        voter.votedFor?.filter(
-                          (v) =>
-                            v.votedFor?.toString() === candidate._id?.toString()
-                        ).length || 0;
-                      return total + count * (voter.multiplier || 0);
-                    }, 0) || 0;
-                }
-
-                return { ...candidate, votes };
-              });
-
-              // 2️⃣ Find the highest vote total
-              const maxVotes = Math.max(
-                0,
-                ...candidatesWithVotes.map((c) => c.votes)
-              );
-
-              // 3️⃣ Sort by votes (descending) or Shuffle
-              let sorted = [...candidatesWithVotes];
-              const isVoteVisible = contest?.isVoteCountVisible !== false || contest?.status === 'completed';
-
-              if (!isVoteVisible) {
-                // Shuffle for random order
-                for (let i = sorted.length - 1; i > 0; i--) {
-                  const j = Math.floor(Math.random() * (i + 1));
-                  [sorted[i], sorted[j]] = [sorted[j], sorted[i]];
-                }
-              } else {
-                sorted.sort((a, b) => b.votes - a.votes);
-              }
-
-              // 4️⃣ Filter the sorted list based on the search term
-              const lowerCaseSearchTerm = searchTerm.toLowerCase();
-
-              const filteredAndSortedCandidates = sorted.filter((candidate) =>
-                candidate.name.toLowerCase().includes(lowerCaseSearchTerm)
-              );
-
-              // 5️⃣ Render
-              if (filteredAndSortedCandidates.length === 0) {
-                return (
-                  <div className='text-center py-10 text-gray-500'>
-                    No candidates found matching "{searchTerm}" for this
-                    position.
-                  </div>
-                );
-              }
-
-              return filteredAndSortedCandidates.map((candidate, index) => (
+            {filteredAndSortedCandidates.length === 0 ? (
+              <div className='text-center py-10 text-gray-500'>
+                No candidates found matching "{searchTerm}" for this position.
+              </div>
+            ) : (
+              filteredAndSortedCandidates.map((candidate, index) => (
                 <div
                   key={candidate._id}
                   className='p-4 md:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between
@@ -281,12 +299,12 @@ const VotingPositionsSection = ({
                   <div className='flex items-center gap-2 md:gap-4'>
                     <div
                       className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center
-                        font-bold text-sm md:text-lg ${(contest?.isVoteCountVisible !== false || contest?.status === 'completed')
+                        font-bold text-sm md:text-lg ${shouldShowResults
                           ? getRankBadgeColor(index + 1)
                           : 'bg-gray-200 text-gray-700'
                         }`}
                     >
-                      {(contest?.isVoteCountVisible !== false || contest?.status === 'completed') ? index + 1 : '-'}
+                      {shouldShowResults ? index + 1 : '-'}
                     </div>
 
                     <div className='w-10 h-10 md:w-12 md:h-12 bg-black rounded-full flex items-center justify-center overflow-hidden'>
@@ -306,15 +324,13 @@ const VotingPositionsSection = ({
                         {candidate.name}
                       </h3>
                       <p className='text-gray-600 text-sm'>
-                        {(contest?.isVoteCountVisible !== false || contest?.status === 'completed') && `${candidate.votes} Votes`}
+                        {shouldShowResults && `${candidate.votes} Votes`}
                       </p>
                     </div>
                   </div>
 
-                  {/* Show “Leading” only if this candidate has the highest votes */}
-
                   <div className='flex items-center gap-3 mt-3 sm:mt-0'>
-                    {candidate.votes === maxVotes && maxVotes > 0 && (contest?.isVoteCountVisible !== false || contest?.status === 'completed') && (
+                    {candidate.votes === maxVotes && maxVotes > 0 && shouldShowResults && (
                       <div className='bg-[#00B25F] text-white px-4 md:px-6 py-2 rounded-[20px] font-medium text-sm'>
                         {contest?.status === 'completed' ? 'Winner' : 'Leading'}
                       </div>
@@ -334,8 +350,8 @@ const VotingPositionsSection = ({
                     </button>
                   </div>
                 </div>
-              ));
-            })()}
+              ))
+            )}
           </div>
         </div>
       </div>

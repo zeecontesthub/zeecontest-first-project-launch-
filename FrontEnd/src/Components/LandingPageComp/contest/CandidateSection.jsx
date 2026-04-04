@@ -1,3 +1,4 @@
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const CandidateSection = ({ activePosition, onCandidateSelect, contest }) => {
@@ -53,6 +54,38 @@ const CandidateSection = ({ activePosition, onCandidateSelect, contest }) => {
     };
   });
 
+  const shouldShowResults = React.useMemo(() => {
+    if (!contest) return false;
+    if (contest.isVoteCountVisible) return true;
+
+    const now = new Date();
+
+    // Build end date/time
+    const endDate = new Date(contest.endDate);
+    if (contest.endTime) {
+      let hour = parseInt(contest.endTime.endTimeHour, 10);
+      if (contest.endTime.endTimeAmPm === 'PM' && hour < 12) hour += 12;
+      endDate.setHours(hour, parseInt(contest.endTime.endTimeMinute, 10), 0, 0);
+    }
+
+    if (now < endDate) return false;
+
+    // Contest has ended, check reveal settings
+    if (contest.resultRevealSetting === 'immediately') return true;
+    if (contest.resultRevealSetting === 'manual') return contest.isResultReleased;
+    if (contest.resultRevealSetting === 'scheduled' && contest.revealDate) {
+      const revealDate = new Date(contest.revealDate);
+      if (contest.revealTime) {
+        let hour = parseInt(contest.revealTime.revealHour, 10);
+        if (contest.revealTime.revealAmPm === 'PM' && hour < 12) hour += 12;
+        revealDate.setHours(hour, parseInt(contest.revealTime.revealMinute, 10), 0, 0);
+      }
+      return now >= revealDate;
+    }
+
+    return true; // Default
+  }, [contest]);
+
   return (
     <div className='w-full mx-auto px-4 py-8'>
       <div className='flex flex-col md:flex-row md:items-center md:justify-between mb-8'>
@@ -102,7 +135,7 @@ const CandidateSection = ({ activePosition, onCandidateSelect, contest }) => {
                 {candidate.bio}
               </p>
 
-              {(contest?.isVoteCountVisible !== false || contest?.status === 'completed') && (
+              {shouldShowResults && (
                 <div className='flex items-center justify-between mb-4'>
                   <span className='text-sm text-gray-500'>Current Votes:</span>
                   <span className='font-semibold text-[#034045]'>

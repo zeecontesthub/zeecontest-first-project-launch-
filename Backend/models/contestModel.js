@@ -16,6 +16,8 @@ const voterSchema = new mongoose.Schema(
   {
     name: { type: String },
     email: { type: String },
+    customData: { type: Map, of: String },
+    customKey: { type: String },
     addedDate: { type: Date, default: Date.now },
     votedFor: [
       {
@@ -86,6 +88,8 @@ const contestSchema = new mongoose.Schema({
   participants: [participantSchema], // Array of participants
   positions: [positionSchema], // Array of positions
   closedContestVoters: [voterSchema], // <-- Add this line
+  closedContestType: { type: String, enum: ['pre-registration', 'bulk-upload'], default: 'pre-registration' },
+  authenticationField: { type: String },
   payment: {
     isPaid: { type: Boolean, default: false },
     amount: { type: Number, default: 0 }, // Amount in cents
@@ -102,6 +106,18 @@ const contestSchema = new mongoose.Schema({
   },
   isClosedContest: { type: Boolean, default: false },
   isVoteCountVisible: { type: Boolean, default: true },
+  resultRevealSetting: {
+    type: String,
+    enum: ['immediately', 'scheduled', 'manual'],
+    default: 'immediately'
+  },
+  revealDate: { type: Date },
+  revealTime: {
+    revealHour: { type: String },
+    revealMinute: { type: String },
+    revealAmPm: { type: String },
+  },
+  isResultReleased: { type: Boolean, default: false },
   socialLinks: {
     instagram: { type: String, default: '' },
     x: { type: String, default: '' },

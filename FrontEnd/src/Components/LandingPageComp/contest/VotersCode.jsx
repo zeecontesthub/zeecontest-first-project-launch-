@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 
-const VotersCode = ({ open, onClose, onSubmit }) => {
+const VotersCode = ({ open, onClose, onSubmit, contest }) => {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
+  const [customKey, setCustomKey] = useState("");
   const [error, setError] = useState("");
   const [showToast, setShowToast] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,20 +31,30 @@ const VotersCode = ({ open, onClose, onSubmit }) => {
     if (isSubmitting) return; // Prevent multiple submissions
     setIsSubmitting(true);
 
-    if (!validateEmail(email)) {
-      setError("Please enter a valid email address.");
-      setIsSubmitting(false);
-      return;
-    }
+    const isBulk = contest?.closedContestType === 'bulk-upload';
 
-    if (code.length !== 6) {
-      setError("Please enter a valid 6-digit code.");
-      setIsSubmitting(false);
-      return;
+    if (!isBulk) {
+      if (!validateEmail(email)) {
+        setError("Please enter a valid email address.");
+        setIsSubmitting(false);
+        return;
+      }
+      if (code.length !== 6) {
+        setError("Please enter a valid 6-digit code.");
+        setIsSubmitting(false);
+        return;
+      }
+    } else {
+      if (!customKey.trim()) {
+        setError(`Please enter your ${contest?.authenticationField}.`);
+        setIsSubmitting(false);
+        return;
+      }
     }
 
     try {
-      const data = await onSubmit({ email, code }); // <— await here!
+      const submissionData = isBulk ? { customKey: customKey.trim() } : { email, code };
+      const data = await onSubmit(submissionData);
 
       if (data?.success) {
         // Show toast notification
@@ -75,45 +86,64 @@ const VotersCode = ({ open, onClose, onSubmit }) => {
             &times;
           </button>
           <h2 className="text-2xl font-bold mb-4 text-center text-[#034045]">
-            Enter Email and Code{" "}
+            {contest?.closedContestType === 'bulk-upload' ? `Authenticate Vote` : `Enter Email and Code`}
           </h2>
           <form
             onSubmit={handleSubmit}
             className="flex flex-col items-center w-full"
           >
-            <input
-              type="email"
-              value={email}
-              onChange={handleEmailChange}
-              className="text-center text-base border border-gray-300 rounded-lg px-4 py-3 mb-3 w-full focus:outline-none focus:ring-2 focus:ring-[#034045]"
-              placeholder="Email address"
-              required
-              autoFocus
-            />
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={6}
-              value={code}
-              onChange={handleChange}
-              className="text-center text-xl tracking-widest border border-gray-300 rounded-lg px-4 py-3 mb-3 w-full focus:outline-none focus:ring-2 focus:ring-[#034045]"
-              placeholder="6-digit code"
-            />
+            {contest?.closedContestType === 'bulk-upload' ? (
+              <div className="w-full">
+                <label className="block text-sm text-gray-700 font-medium mb-1 text-left">
+                  {contest?.authenticationField || 'Verification Key'}
+                </label>
+                <input
+                  type="text"
+                  value={customKey}
+                  onChange={(e) => { setCustomKey(e.target.value); setError(""); }}
+                  className="text-base border border-gray-300 rounded-lg px-4 py-3 mb-3 w-full focus:outline-none focus:ring-2 focus:ring-[#034045]"
+                  placeholder={`Enter your ${contest?.authenticationField || 'key'}`}
+                  autoFocus
+                />
+              </div>
+            ) : (
+              <>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={handleEmailChange}
+                  className="text-center text-base border border-gray-300 rounded-lg px-4 py-3 mb-3 w-full focus:outline-none focus:ring-2 focus:ring-[#034045]"
+                  placeholder="Email address"
+                  autoFocus
+                />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  value={code}
+                  onChange={handleChange}
+                  className="text-center text-xl tracking-widest border border-gray-300 rounded-lg px-4 py-3 mb-3 w-full focus:outline-none focus:ring-2 focus:ring-[#034045]"
+                  placeholder="6-digit code"
+                />
+              </>
+            )}
+
             {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
             <button
               type="submit"
-              className={`w-full ${
-                isSubmitting ? "bg-gray-300" : "bg-[#034045]"
-              } hover:bg-[#045a60] text-white py-3 rounded-lg font-medium transition-colors duration-200 cursor-pointer mt-2`}
-              disabled={!validateEmail(email) || code.length !== 6}
+              className={`w-full ${isSubmitting ? "bg-gray-300" : "bg-[#034045]"
+                } hover:bg-[#045a60] text-white py-3 rounded-lg font-medium transition-colors duration-200 cursor-pointer mt-2`}
+              disabled={isSubmitting}
             >
               {isSubmitting ? "Submitting..." : "Submit"}
             </button>
           </form>
-          <p className="text-gray-500 text-xs mt-3 text-center">
-            Check your email for the code.
-          </p>
+          {contest?.closedContestType !== 'bulk-upload' && (
+            <p className="text-gray-500 text-xs mt-3 text-center">
+              Check your email for the code.
+            </p>
+          )}
         </div>
       </div>
       {showToast && (
