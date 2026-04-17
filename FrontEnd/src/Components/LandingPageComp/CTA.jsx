@@ -48,7 +48,7 @@ const CTA = () => {
         Stay Updated with ZeeContest
       </h2>
       <p className='text-center md:text-left text-sm md:text-lg text-white/80 w-full md:max-w-xl'>
-        ZeeContest is launching soon. Subscribe to our newsletter to get the
+        Subscribe to our newsletter to get the
         latest updates, tips for running successful contests, and exclusive
         announcements straight to your inbox.
       </p>
