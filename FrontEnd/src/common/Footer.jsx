@@ -104,13 +104,14 @@ const Footer = () => {
         <div className='flex flex-col items-center lg:items-start text-center lg:text-left space-y-6'>
           <h4 className='text-lg font-bold text-gray-800'>Get in Touch</h4>{' '}
           <ul className='space-y-3'>
-            <li className='flex items-center gap-2'>
+            <li className='flex flex-col items-center gap-2'>
               <a
                 href='mailto:support@zeecontest.com'
                 className='text-[#949AA9] hover:text-[#E67347] transition-colors text-sm'
               >
                 support@zeecontest.com
               </a>
+              <p>Address: 17 fadeyi street igbo-efon,lekki lagos, Nigeria</p>
             </li>
           </ul>
         </div>
