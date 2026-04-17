@@ -111,7 +111,7 @@ const Footer = () => {
               >
                 support@zeecontest.com
               </a>
-              <p>Address: 17 fadeyi street igbo-efon,lekki lagos, Nigeria</p>
+              <p className='text-[#949AA9] hover:text-[#E67347] transition-colors text-sm'>Address: 17 fadeyi street igbo-efon,lekki lagos, Nigeria</p>
             </li>
           </ul>
         </div>
